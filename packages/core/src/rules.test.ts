@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { parseMove, parsePosition } from './notation.ts';
-import { boardOf, initialPosition, isLegal, legalMoves, play, replay } from './rules.ts';
+import { boardOf, initialPosition, isLegal, legalMoves, moveCount, play, replay } from './rules.ts';
 import { randomGame, seededRandom } from './testing.ts';
 
 const EMPTY = '.........';
@@ -68,4 +68,10 @@ test('random games always end, and a position has legal moves exactly while unde
     outcomes.add(replay(moves).outcome);
   }
   expect(outcomes).toEqual(new Set(['x', 'o', 'draw']));
+});
+
+test('moveCount counts the pieces on the board', () => {
+  expect(moveCount(initialPosition)).toBe(0);
+  const moves = randomGame(seededRandom(7));
+  expect(moveCount(replay(moves))).toBe(moves.length);
 });

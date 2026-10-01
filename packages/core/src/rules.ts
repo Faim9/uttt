@@ -68,6 +68,15 @@ export function createPosition(
 
 export const initialPosition = createPosition(Array(9).fill(0), Array(9).fill(0), 'x', null);
 
+/** Number of moves played so far, i.e. pieces on the board. */
+export function moveCount(position: Position): number {
+  let count = 0;
+  for (const mask of [...position.x, ...position.o]) {
+    for (let bits = mask; bits; bits &= bits - 1) count++;
+  }
+  return count;
+}
+
 export function cellAt(position: Position, move: number): Player | null {
   const bit = 1 << cellOf(move);
   if (position.x[boardOf(move)] & bit) return 'x';
@@ -99,7 +108,9 @@ export function legalMoves(position: Position): number[] {
 
 /** Returns the position after `move`; the cell played picks the opponent's next board. */
 export function play(position: Position, move: number): Position {
-  if (!isLegal(position, move)) throw new Error(`Illegal move: ${move}`);
+  if (!isLegal(position, move)) {
+    throw new Error(`Illegal move: board ${boardOf(move) + 1}, cell ${cellOf(move) + 1}`);
+  }
   const masks = { x: [...position.x], o: [...position.o] };
   masks[position.turn][boardOf(move)] |= 1 << cellOf(move);
   return createPosition(masks.x, masks.o, other(position.turn), cellOf(move));

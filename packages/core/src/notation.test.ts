@@ -6,6 +6,7 @@ import {
   parseGame,
   parseMove,
   parsePosition,
+  startOf,
 } from './notation.ts';
 import { initialPosition, replay } from './rules.ts';
 import { randomGame, seededRandom } from './testing.ts';
@@ -80,4 +81,12 @@ test('rejects game records with illegal moves', () => {
 
 test('rejects tag values that would break the record', () => {
   expect(() => formatGame({ tags: { X: 'a"b' }, moves: [] })).toThrow('Invalid tag');
+});
+
+test('a Position tag sets the starting position', () => {
+  const start = `xxx....../xxx....../xx......./oo.o.o.../oo.o.o.../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} x 3`;
+  const record = parseGame(`[Position "${start}"]\n\n1. 3-3 1-0`);
+  expect(record.moves).toEqual([parseMove('3-3')]);
+  expect(startOf(record.tags)).toEqual(parsePosition(start));
+  expect(() => parseGame(`[Position "${start}"]\n\n1. 5-5`)).toThrow('Illegal move 1: 5-5');
 });

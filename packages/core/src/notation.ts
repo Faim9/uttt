@@ -76,7 +76,10 @@ export function formatGame({ tags, moves }: GameRecord): string {
   return `${header.join('\n')}\n\n${body.join(' ')}\n`;
 }
 
-/** Parses a game record and checks that every move is legal. */
+/**
+ * Parses a game record and checks that every move is legal.
+ * A `Position` tag holding a position string sets a custom starting position.
+ */
 export function parseGame(text: string): GameRecord {
   const tags = Object.fromEntries([...text.matchAll(TAG)].map(([, key, value]) => [key, value]));
   const tokens = text
@@ -94,6 +97,10 @@ export function parseGame(text: string): GameRecord {
   moves.reduce((position, move, i) => {
     if (!isLegal(position, move)) throw new Error(`Illegal move ${i + 1}: ${formatMove(move)}`);
     return play(position, move);
-  }, initialPosition);
+  }, startOf(tags));
   return { tags, moves };
+}
+
+export function startOf(tags: GameRecord['tags']): Position {
+  return tags.Position ? parsePosition(tags.Position) : initialPosition;
 }

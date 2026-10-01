@@ -23,4 +23,16 @@ The codebase must stay **readable and concise**. Prefer less code that's obvious
 - **Strict TypeScript.** No `any`. Validate all external input with the shared Zod schemas.
 - **Server is authoritative.** Never trust the client for game state, clocks, or ratings.
 
+## Commands
+
+`pnpm dev` (web on :5173) · `pnpm test` · `pnpm typecheck` · `pnpm lint` · `pnpm format` · `pnpm build`.
+Run typecheck, lint, and test before committing.
+
+## Stack gotchas
+
+- **SvelteKit 3:** config lives in `vite.config.ts` (`sveltekit({...})`); there is no `svelte.config.js`.
+  `$lib` is replaced by the `#lib/*` subpath import in `packages/web/package.json`.
+- **TypeScript is pinned to 6.0.x** until typescript-eslint supports TS 7.
+- `core` is consumed as TS source (no build step); imports use explicit `.ts` extensions.
+
 @PILLARS.md

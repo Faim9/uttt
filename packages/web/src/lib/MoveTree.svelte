@@ -1,0 +1,83 @@
+<script lang="ts">
+  import { formatMove } from '@uttt/core';
+  import type { GameTree, TreeNode } from './tree.svelte.ts';
+
+  let { tree }: { tree: GameTree } = $props();
+
+  /** Move numbers count X+O pairs; an O move only gets one ("3…") where the line is interrupted. */
+  function moveNumber(node: TreeNode, interrupted: boolean): string {
+    const ply = node.ply - 1;
+    const number = Math.floor(ply / 2) + 1;
+    if (ply % 2 === 0) return `${number}.`;
+    return interrupted ? `${number}…` : '';
+  }
+
+  /** Whether variations were printed right after `node`, i.e. it has siblings. */
+  const hasVariations = (node: TreeNode | null) => (node?.parent?.children.length ?? 0) > 1;
+</script>
+
+{#snippet move(node: TreeNode, interrupted: boolean)}
+  <button class="move" class:current={node === tree.current} onclick={() => tree.goTo(node)}>
+    <span class="number">{moveNumber(node, interrupted)}</span>{node.move === null
+      ? ''
+      : formatMove(node.move)}
+  </button>
+{/snippet}
+
+{#snippet line(from: TreeNode, interruptedStart: boolean)}
+  {#each from.mainLine as node, i (node)}
+    {@render move(node, i === 0 ? interruptedStart : hasVariations(node.parent))}
+    {#each node.parent?.children.slice(1) ?? [] as variation (variation)}
+      <span class="variation">
+        ({@render move(variation, true)}{@render line(variation, false)})
+      </span>
+    {/each}
+  {/each}
+{/snippet}
+
+<div class="moves">
+  {#if tree.root.children.length === 0}
+    <span class="muted">No moves yet — click the board to play.</span>
+  {:else}
+    {@render line(tree.root, true)}
+  {/if}
+</div>
+
+<style>
+  .moves {
+    max-height: 16rem;
+    overflow-y: auto;
+    line-height: 1.9;
+  }
+
+  .move {
+    padding: 0.05rem 0.3rem;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+  }
+
+  .move:hover {
+    background: var(--border);
+  }
+
+  .move.current {
+    background: var(--accent);
+    color: white;
+  }
+
+  .number {
+    margin-right: 0.25rem;
+    color: var(--muted);
+  }
+
+  .current .number {
+    color: inherit;
+  }
+
+  .variation {
+    color: var(--muted);
+  }
+</style>
