@@ -5,14 +5,12 @@ work is finished or priorities change. The target product is described in PILLAR
 
 ## Next, in priority order (set by the owner, 2026-10-02)
 
-1. **Post-game review:** one click from a finished game to see where you went wrong and which moves were good,
-   by the engine's judgment: eval graph, best move per position, mistake/blunder classification.
-2. **Rating-based matchmaking:** pair players close in rating, widening the range the longer they wait, so
+1. **Rating-based matchmaking:** pair players close in rating, widening the range the longer they wait, so
    climbing the ladder brings stronger opponents. Today pairing is first-come within a pool.
-3. **Account security + email service:** email verification, password reset, breached-password check, 2FA,
+2. **Account security + email service:** email verification, password reset, breached-password check, 2FA,
    session management page. Needed before hosting publicly for real tests.
-4. **Clock lag compensation:** don't charge players for network transit time.
-5. **Disconnects:** grace period, then the opponent may claim victory. Today a disconnected player's clock
+3. **Clock lag compensation:** don't charge players for network transit time.
+4. **Disconnects:** grace period, then the opponent may claim victory. Today a disconnected player's clock
    simply runs out.
 
 ## Done
@@ -22,6 +20,10 @@ work is finished or priorities change. The target product is described in PILLAR
   share links).
 - **Online play:** accounts (Argon2id, DB sessions), guest play, quick pairing in five time controls, challenge
   links, server-authoritative games with clocks, resign / draw / abort, games restored after a server restart.
+- **Post-game review:** "Review game" after every game (online and vs. computer) and on the analysis board.
+  Evaluates each position at 10k playouts across parallel workers (~1–2 s per game), classifies every move
+  (best / good / inaccuracy / mistake / blunder by win-chance lost: 10 / 20 / 30%), per-player accuracy,
+  eval graph, jump to each player's next mistake, and "show best move".
 - **Ratings:** Glicko-2 per category (bullet / blitz / rapid), profiles with recent games, leaderboard.
 - **Security baseline:** same-origin checks on unsafe requests and WebSocket handshakes, rate limits (HTTP and
   per-socket), Zod validation of all input, hash-based CSP, helmet headers.

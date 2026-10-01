@@ -14,6 +14,9 @@
   --active: #fff1c2;
   --last: #dfe9ff;
   --hint: #16a34a;
+  --inaccuracy: #a68f00;
+  --mistake: #d97a00;
+  --blunder: #d62828;
   --radius: 10px;
 }
 
@@ -33,6 +36,9 @@
     --active: #3d3622;
     --last: #243352;
     --hint: #4ade80;
+    --inaccuracy: #e3cc3a;
+    --mistake: #f5a524;
+    --blunder: #f05252;
   }
 }
 

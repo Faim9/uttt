@@ -14,7 +14,10 @@
   import Board from '#lib/Board.svelte';
   import { Engine } from '#lib/engine.ts';
   import EvalBar from '#lib/EvalBar.svelte';
+  import EvalGraph from '#lib/EvalGraph.svelte';
   import MoveTree from '#lib/MoveTree.svelte';
+  import ReviewPanel from '#lib/ReviewPanel.svelte';
+  import { GameReview } from '#lib/review.ts';
   import { GameTree } from '#lib/tree.svelte.ts';
   import { onDestroy } from 'svelte';
 
@@ -28,16 +31,25 @@
   let analysis = $state.raw<Analysis | null>(null);
   let importText = $state('');
   let copied = $state('');
+  let review = $state.raw<GameReview | null>(null);
 
   const position = $derived(tree.current.position);
   const start = $derived(formatPosition(tree.root.position));
 
   const engine = new Engine();
-  onDestroy(() => engine.destroy());
+  onDestroy(() => {
+    engine.destroy();
+    review?.cancel();
+  });
+
+  // Links from finished games add `review`, so the review starts right away.
+  if (page.url.searchParams.has('review')) startReview();
 
   $effect(() => {
     analysis = null;
-    if (!engineOn || position.outcome !== null) return engine.stop();
+    // A running review needs every core; live analysis resumes when it's done.
+    const reviewing = review !== null && !review.done;
+    if (!engineOn || reviewing || position.outcome !== null) return engine.stop();
     engine.analyze(position, MAX_PLAYOUTS, (update) => (analysis = update));
   });
 
@@ -54,14 +66,25 @@
     }
   }
 
+  function startReview(): void {
+    review?.cancel();
+    review = new GameReview(tree.root);
+  }
+
+  function setTree(next: GameTree): void {
+    review?.cancel();
+    review = null;
+    tree = next;
+  }
+
   function load(): void {
     const text = importText.trim();
     try {
       if (text.includes('/') && !text.includes('[')) {
-        tree = new GameTree(parsePosition(text));
+        setTree(new GameTree(parsePosition(text)));
       } else {
         const record = parseGame(text);
-        tree = new GameTree(startOf(record.tags), record.moves);
+        setTree(new GameTree(startOf(record.tags), record.moves));
       }
       importText = '';
       error = '';
@@ -114,23 +137,32 @@
 <svelte:window {onkeydown} />
 
 <div class="board-layout">
-  <div class="board-with-eval">
-    <EvalBar
-      winChance={position.outcome
-        ? { x: 1, o: 0, draw: 0.5 }[position.outcome]
-        : (analysis?.winChance ?? null)}
-    />
-    <Board
-      {position}
-      lastMove={tree.current.move}
-      hint={engineOn ? analysis?.bestMove : null}
-      onmove={(move) => tree.play(move)}
-    />
+  <div class="board-column">
+    <div class="board-with-eval">
+      <EvalBar
+        winChance={position.outcome
+          ? { x: 1, o: 0, draw: 0.5 }[position.outcome]
+          : (analysis?.winChance ?? null)}
+      />
+      <Board
+        {position}
+        lastMove={tree.current.move}
+        hint={engineOn ? analysis?.bestMove : null}
+        onmove={(move) => tree.play(move)}
+      />
+    </div>
+    {#if review}
+      <EvalGraph {review} current={tree.current} ongoto={(node) => tree.goTo(node)} />
+    {/if}
   </div>
 
   <div class="panel">
     {#if error}
       <p class="card error" role="alert">{error}</p>
+    {/if}
+
+    {#if review}
+      <ReviewPanel {review} {tree} />
     {/if}
 
     <section class="card">
@@ -150,12 +182,17 @@
 
     <section class="card">
       <h2>Moves</h2>
-      <MoveTree {tree} />
+      <MoveTree {tree} judge={(node) => review?.of(node)?.judgement ?? null} />
       <div class="controls">
         <button class="button" aria-label="First move" onclick={() => tree.toStart()}>⏮</button>
         <button class="button" aria-label="Previous move" onclick={() => tree.back()}>◀</button>
         <button class="button" aria-label="Next move" onclick={() => tree.forward()}>▶</button>
         <button class="button" aria-label="Last move" onclick={() => tree.toEnd()}>⏭</button>
+        <button
+          class="button primary"
+          disabled={tree.root.children.length === 0}
+          onclick={startReview}>{review ? 'Review again' : 'Review game'}</button
+        >
       </div>
       <div class="controls">
         <button
@@ -191,13 +228,18 @@
         aria-label="Game record or position string to import"></textarea>
       <div class="controls">
         <button class="button primary" disabled={!importText.trim()} onclick={load}>Load</button>
-        <button class="button" onclick={() => (tree = new GameTree())}>New board</button>
+        <button class="button" onclick={() => setTree(new GameTree())}>New board</button>
       </div>
     </section>
   </div>
 </div>
 
 <style>
+  .board-column {
+    display: grid;
+    gap: 0.75rem;
+  }
+
   .board-with-eval {
     display: flex;
     gap: 0.75rem;

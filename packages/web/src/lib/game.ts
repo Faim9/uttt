@@ -1,4 +1,4 @@
-import type { GamePlayer, GameState } from '@uttt/core';
+import { formatMove, type GamePlayer, type GameState, type Judgement } from '@uttt/core';
 
 const HOW: Record<NonNullable<GameState['termination']>, string> = {
   line: 'three in a row',
@@ -32,3 +32,20 @@ export function formatClock(ms: number): string {
   const seconds = Math.ceil(ms / 1000);
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 }
+
+/** How each judgement is shown: chess-style symbols after the move, and a label. */
+export const JUDGEMENTS: Record<Judgement, { label: string; plural: string; symbol: string }> = {
+  best: { label: 'best move', plural: 'best moves', symbol: '' },
+  good: { label: 'good move', plural: 'good moves', symbol: '' },
+  inaccuracy: { label: 'inaccuracy', plural: 'inaccuracies', symbol: '?!' },
+  mistake: { label: 'mistake', plural: 'mistakes', symbol: '?' },
+  blunder: { label: 'blunder', plural: 'blunders', symbol: '??' },
+};
+
+/** Opens the moves on the analysis board; with `review`, the engine review starts right away. */
+export function analysisLink(moves: number[], { review = false } = {}): string {
+  const params = new URLSearchParams({ moves: moves.map(formatMove).join(' ') });
+  return `/analysis?${params}${review ? '&review' : ''}`;
+}
+
+export const percent = (fraction: number) => `${Math.round(fraction * 100)}%`;

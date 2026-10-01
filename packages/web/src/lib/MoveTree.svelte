@@ -1,8 +1,15 @@
 <script lang="ts">
-  import { formatMove } from '@uttt/core';
+  import { formatMove, type Judgement } from '@uttt/core';
+  import { JUDGEMENTS } from './game.ts';
   import type { GameTree, TreeNode } from './tree.svelte.ts';
 
-  let { tree }: { tree: GameTree } = $props();
+  interface Props {
+    tree: GameTree;
+    /** The review's verdict on the move leading to a node, if any. */
+    judge?: (node: TreeNode) => Judgement | null;
+  }
+
+  let { tree, judge = () => null }: Props = $props();
 
   /** Move numbers count X+O pairs; an O move only gets one ("3…") where the line is interrupted. */
   function moveNumber(node: TreeNode, interrupted: boolean): string {
@@ -17,10 +24,15 @@
 </script>
 
 {#snippet move(node: TreeNode, interrupted: boolean)}
-  <button class="move" class:current={node === tree.current} onclick={() => tree.goTo(node)}>
+  {@const judgement = judge(node)}
+  <button
+    class="move {judgement ?? ''}"
+    class:current={node === tree.current}
+    onclick={() => tree.goTo(node)}
+  >
     <span class="number">{moveNumber(node, interrupted)}</span>{node.move === null
       ? ''
-      : formatMove(node.move)}
+      : formatMove(node.move)}{judgement ? JUDGEMENTS[judgement].symbol : ''}
   </button>
 {/snippet}
 
@@ -79,5 +91,23 @@
 
   .variation {
     color: var(--muted);
+  }
+
+  .inaccuracy {
+    color: var(--inaccuracy);
+  }
+
+  .mistake {
+    color: var(--mistake);
+  }
+
+  .blunder {
+    color: var(--blunder);
+  }
+
+  .inaccuracy,
+  .mistake,
+  .blunder {
+    font-weight: 700;
   }
 </style>

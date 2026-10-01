@@ -2,7 +2,7 @@
   import { page } from '$app/state';
   import { formatMove, other, replay, type GameState, type Player } from '@uttt/core';
   import Board from '#lib/Board.svelte';
-  import { resultText } from '#lib/game.ts';
+  import { analysisLink, resultText } from '#lib/game.ts';
   import PlayerBar from '#lib/PlayerBar.svelte';
   import { socket } from '#lib/session.svelte.ts';
 
@@ -62,10 +62,6 @@
     if (position.turn === you) return 'Your move';
     return "Opponent's move";
   }
-
-  const analysisLink = $derived(
-    `/analysis?${new URLSearchParams({ moves: (game?.moves ?? []).map(formatMove).join(' ') })}`,
-  );
 </script>
 
 {#if game && position}
@@ -123,8 +119,10 @@
           {/if}
         {:else if !active}
           <div class="actions">
-            <a class="button primary" href="/play">New game</a>
-            <a class="button" href={analysisLink}>Analyze</a>
+            <a class="button primary" href={analysisLink(game.moves, { review: true })}>
+              Review game
+            </a>
+            <a class="button" href="/play">New game</a>
           </div>
         {/if}
       </section>

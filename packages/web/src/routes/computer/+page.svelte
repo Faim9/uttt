@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { formatMove, other, replay, type Player } from '@uttt/core';
+  import { other, replay, type Player } from '@uttt/core';
   import Board from '#lib/Board.svelte';
   import { Engine } from '#lib/engine.ts';
+  import { analysisLink } from '#lib/game.ts';
   import { onDestroy } from 'svelte';
 
   /** Engine playouts per move at each level. */
@@ -48,10 +49,6 @@
     if (position.outcome === 'draw') return 'Draw.';
     return position.outcome === player ? 'You won!' : 'The computer won.';
   }
-
-  const analysisLink = $derived(
-    `/analysis?${new URLSearchParams({ moves: moves.map(formatMove).join(' ') })}`,
-  );
 </script>
 
 {#if player === null}
@@ -108,10 +105,14 @@
           <button class="button" disabled={moves.length < (player === 'x' ? 1 : 2)} onclick={undo}>
             Take back
           </button>
-          <a class="button" href={analysisLink}>Analyze</a>
+          {#if position.outcome}
+            <a class="button primary" href={analysisLink(moves, { review: true })}>Review game</a>
+          {:else}
+            <a class="button" href={analysisLink(moves)}>Analyze</a>
+          {/if}
           <button class="button" onclick={() => (player = null)}>New game</button>
           {#if position.outcome}
-            <button class="button primary" onclick={rematch}>Rematch (swap sides)</button>
+            <button class="button" onclick={rematch}>Rematch (swap sides)</button>
           {/if}
         </div>
       </section>
