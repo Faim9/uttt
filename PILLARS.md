@@ -105,7 +105,9 @@ The pillar that turns the site from "a place to play" into "a place to improve."
 
 - Free to play; no paywalled core features.
 - Public API and clearly labeled bot accounts (ranked separately from humans).
-- Game database exports; consider open-sourcing the code.
+- Game database exports.
+- **Open source under AGPL-3.0-or-later**, so hosted forks must publish their source; forks keep the author
+  credit and use their own name (see README).
 
 ## Tech Stack
 

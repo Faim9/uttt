@@ -1,6 +1,7 @@
 {
   "name": "@uttt/server",
   "private": true,
+  "license": "AGPL-3.0-or-later",
   "type": "module",
   "scripts": {
     "dev": "node --watch src/main.ts",

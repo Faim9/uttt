@@ -7,6 +7,12 @@
 
   let { children } = $props();
 
+  /**
+   * The public repository. The AGPL requires offering the source to everyone who uses the site, so set this
+   * before deploying; the footer links to it once set.
+   */
+  const SOURCE_URL = '';
+
   const links = [
     { href: '/play', label: 'Play' },
     { href: '/computer', label: 'Computer' },
@@ -49,6 +55,17 @@
 <main>
   {@render children()}
 </main>
+
+<!-- The author credit is an attribution the license requires forks to keep (see README, "License"). -->
+<footer>
+  <p>Created by Faim9, with AI assistance (Claude).</p>
+  <p>
+    Free software under the
+    <a href="https://www.gnu.org/licenses/agpl-3.0.html" rel="license">GNU AGPL v3</a
+    >{#if SOURCE_URL}
+      · <a href={SOURCE_URL}>Source code</a>{/if}.
+  </p>
+</footer>
 
 <style>
   header {
@@ -106,5 +123,23 @@
     max-width: 1100px;
     margin: 0 auto;
     padding: 1.5rem 1rem;
+  }
+
+  footer {
+    max-width: 1100px;
+    margin: 2rem auto 0;
+    padding: 1rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  footer p {
+    margin: 0.25rem 0;
+  }
+
+  footer a {
+    color: inherit;
   }
 </style>
