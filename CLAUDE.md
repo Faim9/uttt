@@ -2,8 +2,11 @@
 
 A lichess/chess.com-style website for Ultimate Tic-Tac-Toe.
 
-The product pillars, rules, notation, tech stack, MVP scope, and open decisions live in PILLARS.md. Treat it as the
-source of truth for what we're building and why, and update it when a decision changes.
+- **PILLARS.md** (loaded below): the target product and its principles. Change it only when a product decision changes.
+- **ROADMAP.md** (loaded below): what's done, the owner's priority order, open decisions. Update it when finishing
+  work or when priorities change; it is the only place that tracks status.
+- **docs/notation.md**: the full UTN spec. Read it before touching notation, position strings, game records,
+  import/export, or share links.
 
 ## Code rules (most important)
 
@@ -42,3 +45,4 @@ migrations run automatically on startup. Run typecheck, lint, and test before co
 - The CSP is a `<meta>` tag SvelteKit adds to the build (configured in `vite.config.ts`); it's absent in dev.
 
 @PILLARS.md
+@ROADMAP.md

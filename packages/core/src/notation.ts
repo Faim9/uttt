@@ -1,5 +1,5 @@
 /**
- * UTN — Ultimate Tic-tac-toe Notation (see PILLARS.md, Pillar 1).
+ * UTN — Ultimate Tic-tac-toe Notation. The spec lives in docs/notation.md; the tests here enforce it.
  * A move is written `<big>-<small>`, both numbered 1–9 in reading order, e.g. `5-3`.
  */
 
