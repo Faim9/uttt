@@ -25,14 +25,20 @@ The codebase must stay **readable and concise**. Prefer less code that's obvious
 
 ## Commands
 
-`pnpm dev` (web on :5173) · `pnpm test` · `pnpm typecheck` · `pnpm lint` · `pnpm format` · `pnpm build`.
-Run typecheck, lint, and test before committing.
+`pnpm dev` (web on :5173, API on :3000, proxied) · `pnpm test` · `pnpm typecheck` · `pnpm lint` ·
+`pnpm format` · `pnpm build` · `pnpm start` (production: one process serves the built site + API).
+Schema changes: edit `packages/server/src/schema.ts`, then `pnpm --filter @uttt/server db:generate --name <change>`;
+migrations run automatically on startup. Run typecheck, lint, and test before committing.
 
 ## Stack gotchas
 
 - **SvelteKit 3:** config lives in `vite.config.ts` (`sveltekit({...})`); there is no `svelte.config.js`.
   `$lib` is replaced by the `#lib/*` subpath import in `packages/web/package.json`.
 - **TypeScript is pinned to 6.0.x** until typescript-eslint supports TS 7.
-- `core` is consumed as TS source (no build step); imports use explicit `.ts` extensions.
+- `core` is consumed as TS source (no build step); imports use explicit `.ts` extensions. The server runs
+  `.ts` directly with Node's built-in type stripping, so only erasable TS syntax is allowed.
+- The server rejects unsafe requests and WebSocket handshakes whose Origin doesn't match Host, so the Vite
+  dev proxy must keep `changeOrigin: false`.
+- The CSP is a `<meta>` tag SvelteKit adds to the build (configured in `vite.config.ts`); it's absent in dev.
 
 @PILLARS.md

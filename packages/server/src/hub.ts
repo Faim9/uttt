@@ -99,6 +99,8 @@ export class Hub {
         return;
       case 'createChallenge':
         return this.createChallenge({ client, ...message });
+      case 'cancelChallenge':
+        return this.cancelChallenges(client);
       case 'acceptChallenge':
         return this.acceptChallenge(client, message.id);
       case 'watch':
@@ -135,12 +137,16 @@ export class Hub {
 
   private createChallenge(challenge: Challenge): void {
     requireAccountIfRated(challenge);
-    for (const [id, existing] of this.challenges) {
-      if (existing.client === challenge.client) this.challenges.delete(id);
-    }
+    this.cancelChallenges(challenge.client);
     const id = newId();
     this.challenges.set(id, challenge);
     send(challenge.client, { type: 'challengeCreated', id });
+  }
+
+  private cancelChallenges(client: Client): void {
+    for (const [id, challenge] of this.challenges) {
+      if (challenge.client === client) this.challenges.delete(id);
+    }
   }
 
   private acceptChallenge(client: Client, id: string): void {
@@ -222,9 +228,7 @@ export class Hub {
 
   private disconnect(client: Client): void {
     this.seeks = this.seeks.filter((seek) => seek.client !== client);
-    for (const [id, challenge] of this.challenges) {
-      if (challenge.client === client) this.challenges.delete(id);
-    }
+    this.cancelChallenges(client);
     for (const [gameId, watchers] of this.watchers) {
       watchers.delete(client);
       if (watchers.size === 0) this.watchers.delete(gameId);

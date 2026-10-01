@@ -251,13 +251,21 @@ Three packages and no more, unless something genuinely can't fit. `core` must ne
 
 The smallest product that proves the concept:
 
-1. Rules library with full test coverage + notation.
-2. Accounts (email/password, verification, sessions) + anonymous casual play.
-3. Real-time play with time controls, quick pairing, and challenge-by-link.
-4. Glicko-2 ratings for one or two time controls + a leaderboard.
-5. Game archive per user, shareable game URLs.
-6. Analysis board with the in-browser MCTS engine (eval + best line).
-7. Security baseline from Pillar 6 (auth, rate limiting, CSP, server-authoritative state).
+1. [x] Rules library with full test coverage + notation.
+2. [x] Accounts (email/password, sessions) + anonymous casual play. _Email verification deferred._
+3. [x] Real-time play with time controls, quick pairing, and challenge-by-link.
+4. [x] Glicko-2 ratings per category (bullet/blitz/rapid) + a leaderboard.
+5. [x] Game archive per user (profile page), shareable game URLs (`/game/<id>`).
+6. [x] Analysis board with the in-browser MCTS engine (eval + best line).
+7. [x] Security baseline from Pillar 6 (auth, rate limiting, CSP, server-authoritative state).
+8. [x] Play vs. computer (pulled forward from Phase 2).
+
+**Deferred from the MVP** (each needs a decision or an external service):
+
+- Email verification and password reset: needs an email provider.
+- Breached-password check (HIBP), 2FA, OAuth, session management page.
+- Clock lag compensation; claiming victory when the opponent disconnects (today their clock just runs out).
+- Rating-range matchmaking (pairing is first-come within a pool).
 
 **Phase 2:** post-game review, play vs. computer, spectating/TV, profiles & social, basic anti-cheat, moderation tools.
 **Phase 3:** puzzles, tournaments, opening explorer, public API & bots, mobile polish, variants.

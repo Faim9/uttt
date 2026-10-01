@@ -219,3 +219,15 @@ test('games in progress survive a server restart', async () => {
   expect(game.termination).toBeNull();
   expect(you).toBeNull();
 });
+
+test('a cancelled challenge can no longer be accepted', async () => {
+  const app = await newApp();
+  const creator = await (await visitor(app)).connect();
+  creator.send({ type: 'createChallenge', timeControl: '3+2', rated: false, color: 'random' });
+  const { id } = await creator.next('challengeCreated');
+  creator.send({ type: 'cancelChallenge' });
+
+  const accepter = await (await visitor(app)).connect();
+  accepter.send({ type: 'acceptChallenge', id });
+  expect((await accepter.next('error')).message).toMatch('expired or was cancelled');
+});

@@ -3,12 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm --filter @uttt/web dev",
+    "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
     "test": "vitest run",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "start": "pnpm --filter @uttt/server start"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

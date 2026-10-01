@@ -53,6 +53,7 @@ export const ClientMessage = z.discriminatedUnion('type', [
     rated: z.boolean(),
     color: z.enum(['x', 'o', 'random']),
   }),
+  z.object({ type: z.literal('cancelChallenge') }),
   z.object({ type: z.literal('acceptChallenge'), id: Id }),
   z.object({ type: z.literal('watch'), gameId: Id }),
   z.object({ type: z.literal('move'), gameId: Id, move: z.number().int().min(0).max(80) }),

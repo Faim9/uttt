@@ -4,6 +4,10 @@
 </section>
 
 <section class="choices">
+  <a class="card choice" href="/play">
+    <h2>Play online</h2>
+    <p>Quick pairing or a challenge link for a friend. Rated games with an account.</p>
+  </a>
   <a class="card choice" href="/computer">
     <h2>Play the computer</h2>
     <p>Six strength levels, from first steps to a real challenge.</p>
