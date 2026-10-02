@@ -102,6 +102,13 @@ export class Hub {
     }
   }
 
+  /** Whether the user is in a game that hasn't ended. */
+  isPlaying(userId: number): boolean {
+    return [...this.games.values()].some(
+      (game) => game.seats.x.userId === userId || game.seats.o.userId === userId,
+    );
+  }
+
   challenge(id: string) {
     const challenge = this.challenges.get(id);
     if (!challenge) return undefined;

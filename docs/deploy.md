@@ -99,6 +99,13 @@ The first build takes a few minutes. Then:
 In the Cloudflare dashboard for `uttt.org` → **SSL/TLS → Edge Certificates**, turn on
 **Always Use HTTPS**.
 
+## 8. Privacy contact address
+
+The privacy page lists `privacy@uttt.org`. Forward it to your own inbox for free: in the Cloudflare
+dashboard for `uttt.org` → **Email → Email Routing**, enable it (it adds the DNS records), then
+**Routing rules → Create address**: `privacy` → your personal email. Confirm the verification email
+Cloudflare sends to your inbox.
+
 ## Everyday tasks
 
 **Update to the latest code:**

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { api, session } from '#lib/session.svelte.ts';
   import TwoFactorSettings from '#lib/TwoFactorSettings.svelte';
+  import AccountData from '#lib/AccountData.svelte';
 
   interface Account {
     username: string;
@@ -168,6 +169,8 @@
       </button>
     {/if}
   </section>
+
+  <AccountData twoFactor={account.twoFactor} />
 {:else}
   <p class="muted">{error || 'Loading…'}</p>
 {/if}

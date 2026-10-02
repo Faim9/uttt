@@ -30,7 +30,7 @@ export function deliver(request: FastifyRequest, email: Promise<void>): void {
 }
 
 /** Checks a second factor: a current authenticator code, or an unused recovery code (used up here). */
-function checkSecondFactor(store: Store, userId: number, code: string): boolean {
+export function checkSecondFactor(store: Store, userId: number, code: string): boolean {
   const twoFactor = store.twoFactor(userId);
   if (!twoFactor) return true;
   const step = matchingStep(twoFactor.secret, code.trim(), twoFactor.lastStep);
@@ -44,6 +44,10 @@ function checkSecondFactor(store: Store, userId: number, code: string): boolean 
     recoveryCodes: twoFactor.recoveryCodes.filter((h) => h !== hash),
   });
   return true;
+}
+
+export function clearSessionCookie(reply: FastifyReply): void {
+  reply.clearCookie(SESSION_COOKIE, cookie);
 }
 
 /** Who is behind a request: a signed-in user, or a guest identified by a random cookie. */
@@ -175,7 +179,7 @@ export const authRoutes =
     app.post('/api/logout', async (request, reply) => {
       const token = request.cookies[SESSION_COOKIE];
       if (token) store.deleteSession(token);
-      reply.clearCookie(SESSION_COOKIE, cookie);
+      clearSessionCookie(reply);
       return { user: null };
     });
   };

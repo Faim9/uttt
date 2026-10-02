@@ -1,13 +1,23 @@
 import { hash, verify } from '@node-rs/argon2';
 import {
   ChangePasswordBody,
+  DeleteAccountBody,
+  formatMove,
+  RESULTS,
   DisableTwoFactorBody,
   EnableTwoFactorBody,
   type User,
 } from '@uttt/core';
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
-import { deliver, signedIn, strictLimit, type Services } from './auth.ts';
+import {
+  checkSecondFactor,
+  clearSessionCookie,
+  deliver,
+  signedIn,
+  strictLimit,
+  type Services,
+} from './auth.ts';
 import { BREACHED_MESSAGE } from './breach.ts';
 import {
   hashRecoveryCode,
@@ -120,6 +130,55 @@ export const accountRoutes =
         }
         store.disableTwoFactor(session.user.id);
         return overview(session);
+      }),
+    );
+
+    /** Everything stored about the user, as a JSON download (GDPR right of access). */
+    app.get(
+      '/api/account/export',
+      withSession((session, request, reply) => {
+        const { user, token } = session;
+        reply.header('content-disposition', `attachment; filename="uttt-${user.username}.json"`);
+        return {
+          exportedAt: new Date(),
+          account: { ...store.account(user.id), twoFactor: store.twoFactor(user.id) !== null },
+          sessions: store.sessions(user.id, token),
+          ratings: store.ratings(user.id),
+          games: store.allGames(user.id).map(({ moves, outcome, ...game }) => ({
+            ...game,
+            result: outcome ? RESULTS[outcome] : null,
+            moves: moves.map(formatMove),
+          })),
+        };
+      }),
+    );
+
+    /**
+     * Deletes the account (GDPR right to erasure). Needs the password, and a code when two-factor is on.
+     * Games stay for the opponents' records, anonymized.
+     */
+    app.post(
+      '/api/account/delete',
+      strictLimit,
+      withSession(async ({ user }, request, reply) => {
+        const { password, code } = DeleteAccountBody.parse(request.body);
+        const currentHash = store.passwordHash(user.id);
+        if (!currentHash || !(await verify(currentHash, password))) {
+          return reply.code(403).send({ error: 'Your password is incorrect' });
+        }
+        if (store.twoFactor(user.id) && !(code && checkSecondFactor(store, user.id, code))) {
+          return reply
+            .code(403)
+            .send({ error: 'Enter a valid authentication code', twoFactor: true });
+        }
+        if (hub.isPlaying(user.id)) {
+          return reply.code(409).send({ error: 'Finish or resign your current game first' });
+        }
+        const sessionIds = store.deleteOtherSessions(user.id);
+        store.deleteUser(user.id);
+        hub.endSessions(sessionIds);
+        clearSessionCookie(reply);
+        return { user: null };
       }),
     );
 

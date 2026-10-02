@@ -5,9 +5,11 @@ work is finished or priorities change. The target product is described in PILLAR
 
 ## Next, in priority order
 
-All priorities set on 2026-10-02 are done; the owner sets the next ones. Candidates, from PILLARS.md and
-the deferred list: hosting the site for real tests, spectating / TV, social features (follow, block),
-rating graphs on profiles, data export and account deletion (GDPR), and basic anti-cheat.
+1. **Launch for real tests:** server (Oracle, pending capacity), private GitHub repo, then follow
+   docs/deploy.md. Make the repository public at launch and set `SOURCE_URL`.
+
+After that, the owner sets priorities. Candidates: spectating / TV, social features (follow, block), rating
+graphs on profiles, online rematch, basic anti-cheat.
 
 ## Done
 
@@ -31,6 +33,9 @@ rating graphs on profiles, data export and account deletion (GDPR), and basic an
   quota so moves in transit still count.
 - **Disconnects:** a player whose last connection to a running game drops is shown as gone; after 30 s the
   opponent may claim the win or a draw ("won by abandonment"). Coming back resets the wait.
+- **Deployment prep:** Docker image, compose with Litestream backups to Cloudflare R2 (7-day point-in-time
+  restore), restore-on-first-start, Cloudflare Tunnel, rotated logs, health check; guide in docs/deploy.md.
+- **Privacy (GDPR):** privacy page, download-my-data (JSON), account deletion (games kept, anonymized).
 - **Ratings:** Glicko-2 per category (bullet / blitz / rapid), profiles with recent games, leaderboard.
 - **Security baseline:** same-origin checks on unsafe requests and WebSocket handshakes, rate limits (HTTP and
   per-socket), Zod validation of all input, hash-based CSP, helmet headers.
@@ -45,7 +50,8 @@ rating graphs on profiles, data export and account deletion (GDPR), and basic an
 
 - **Hosting:** decided: Oracle Cloud Always Free VM (home region Madrid preferred), behind a Cloudflare Tunnel.
   Portable by design: moving provider means copying the SQLite file and repointing DNS.
-- **Email provider:** any SMTP provider works (e.g. Resend or Brevo free tiers); set `SMTP_URL` and `MAIL_FROM`.
+- **Email provider:** any SMTP provider works (e.g. Resend or Brevo free tiers); set `SMTP_URL` and `MAIL_FROM`,
+  and name the provider on the privacy page (`packages/web/src/routes/privacy/+page.svelte`).
 - **Site name and domain:** decided: **UTTT**, at `uttt.org` (registered at Cloudflare, 2026-10). `u3t.org` as a
   redirect is a maybe, if the site takes off.
 - **Publish the repository** and set `SOURCE_URL` in `packages/web/src/routes/+layout.svelte` before deploying:

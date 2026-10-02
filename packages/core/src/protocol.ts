@@ -63,6 +63,11 @@ export const EnableTwoFactorBody = z.object({
   code: z.string().regex(/^\d{6}$/, 'Enter the 6-digit code from your app'),
 });
 
+export const DeleteAccountBody = z.object({
+  password: z.string().min(1).max(128),
+  code: z.string().max(20).optional(),
+});
+
 export const DisableTwoFactorBody = z.object({ password: z.string().min(1).max(128) });
 
 /** How long a player must be gone from a running game before the opponent may claim it. */

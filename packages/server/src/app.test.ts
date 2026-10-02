@@ -394,3 +394,43 @@ test('the health check reports a working database', async () => {
   const app = await newApp();
   expect((await app.inject({ method: 'GET', url: '/api/health' })).json()).toEqual({ ok: true });
 });
+
+test('users can download all their data', async () => {
+  const app = await newApp();
+  const alice = await signedUp(app, 'alice');
+  const { gameId, x } = await pair(alice, await signedUp(app, 'bob'));
+  x.send({ type: 'resign', gameId });
+  await x.next('game');
+
+  const response = await alice.request('GET', '/api/account/export');
+  expect(response.headers['content-disposition']).toContain('uttt-alice.json');
+  const data = response.json();
+  expect(data.account).toMatchObject({ username: 'alice', email: 'alice@example.com' });
+  expect(data.sessions).toHaveLength(1);
+  expect(data.ratings.blitz.games).toBe(0); // casual game
+  expect(data.games).toHaveLength(1);
+  expect(data.games[0]).toMatchObject({ termination: 'resign', moves: [] });
+});
+
+test('deleting an account removes it and anonymizes its games', async () => {
+  const app = await newApp();
+  const alice = await signedUp(app, 'alice');
+  const bob = await signedUp(app, 'bob');
+  const { gameId, x } = await pair(alice, bob);
+
+  const remove = (password: string) => alice.request('POST', '/api/account/delete', { password });
+  expect((await remove('wrong password')).statusCode).toBe(403);
+  expect((await remove(PASSWORD)).json().error).toMatch('current game');
+
+  x.send({ type: 'resign', gameId });
+  await x.next('game');
+  expect((await remove(PASSWORD)).json()).toEqual({ user: null });
+
+  expect((await alice.request('GET', '/api/me')).json().user).toBeNull();
+  expect((await bob.request('GET', '/api/users/alice')).statusCode).toBe(404);
+  const [game] = (await bob.request('GET', '/api/users/bob')).json().games;
+  const names = [game.players.x.username, game.players.o.username];
+  expect(names.sort()).toEqual(['bob', null].sort());
+  // The name is free again.
+  await signedUp(app, 'alice');
+});

@@ -1,4 +1,11 @@
 # Continuous backup of the database to S3-compatible storage (Cloudflare R2). Values come from .env.
+
+# Any moment in the last 7 days can be restored. Older backups are deleted, so data from deleted
+# accounts is gone from backups within a week (the privacy policy promises this).
+snapshot:
+  interval: 24h
+  retention: 168h
+
 dbs:
   - path: /data/uttt.db
     replica:

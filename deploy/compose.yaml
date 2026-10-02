@@ -5,8 +5,16 @@
 # backup:  streams every database change to cloud storage (Litestream).
 # tunnel:  connects to Cloudflare, which serves https://uttt.org; no ports are opened on the server.
 
+# Rotated logs: at most 3 × 10 MB per service.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
 x-litestream: &litestream
   image: docker.io/litestream/litestream:0.5.17
+  logging: *logging
   user: '1000:1000'
   env_file: .env
   volumes:
@@ -23,6 +31,7 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile
     restart: unless-stopped
+    logging: *logging
     env_file: .env
     volumes:
       - ./data:/data
@@ -41,6 +50,7 @@ services:
     image: docker.io/cloudflare/cloudflared:2026.9.3
     command: tunnel --no-autoupdate run
     restart: unless-stopped
+    logging: *logging
     environment:
       TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:

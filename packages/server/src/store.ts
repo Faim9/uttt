@@ -413,6 +413,37 @@ export class Store {
     return this.db.select().from(games).where(isNull(games.termination)).all().map(toInit);
   }
 
+  /**
+   * Deletes an account and everything tied to it (sessions, ratings, email links). Its games stay, since
+   * they're also the opponents' records, but are anonymized.
+   */
+  deleteUser(userId: number): void {
+    this.db.transaction(() => {
+      this.db
+        .update(games)
+        .set({ xUserId: null, xUsername: null, xKey: 'deleted' })
+        .where(eq(games.xUserId, userId))
+        .run();
+      this.db
+        .update(games)
+        .set({ oUserId: null, oUsername: null, oKey: 'deleted' })
+        .where(eq(games.oUserId, userId))
+        .run();
+      this.db.delete(users).where(eq(users.id, userId)).run();
+    });
+  }
+
+  /** Every game the user played, for their data export. */
+  allGames(userId: number): GameState[] {
+    return this.db
+      .select()
+      .from(games)
+      .where(or(eq(games.xUserId, userId), eq(games.oUserId, userId)))
+      .orderBy(desc(games.createdAt))
+      .all()
+      .map(toState);
+  }
+
   recentGames(userId: number, limit = 20): GameState[] {
     return this.db
       .select()
