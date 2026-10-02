@@ -36,6 +36,15 @@ export const SignupBody = z.object({
   password: Password,
 });
 
+/** Tokens from emailed links: 32 random bytes, base64url. */
+const EmailToken = z.string().regex(/^[A-Za-z0-9_-]{43}$/, 'This link is invalid');
+
+export const EmailTokenBody = z.object({ token: EmailToken });
+
+export const ResetRequestBody = z.object({ email: z.email('Invalid email').max(254) });
+
+export const ResetPasswordBody = z.object({ token: EmailToken, password: Password });
+
 export const ChangePasswordBody = z.object({
   current: z.string().min(1).max(128),
   password: Password,
@@ -74,6 +83,8 @@ export type ClientMessage = z.infer<typeof ClientMessage>;
 export interface User {
   id: number;
   username: string;
+  /** Rated play needs a verified email. */
+  emailVerified: boolean;
 }
 
 export interface GamePlayer {

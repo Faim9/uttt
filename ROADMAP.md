@@ -38,7 +38,7 @@ work is finished or priorities change. The target product is described in PILLAR
 
 - **Hosting:** deferred until there's budget. The site is one process + one SQLite file, so a free VM (Oracle
   Cloud Always Free), a home machine behind Cloudflare Tunnel, or a ~$5/month VPS all work.
-- **Email provider** (blocks priority 3): e.g. Resend or Brevo free tiers.
+- **Email provider:** any SMTP provider works (e.g. Resend or Brevo free tiers); set `SMTP_URL` and `MAIL_FROM`.
 - **Site name and domain.**
 - **Publish the repository** and set `SOURCE_URL` in `packages/web/src/routes/+layout.svelte` before deploying:
   the AGPL requires offering the source to the site's users.

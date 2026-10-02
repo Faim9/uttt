@@ -1,10 +1,32 @@
 import { hash, verify } from '@node-rs/argon2';
-import { LoginBody, SignupBody, type User } from '@uttt/core';
+import {
+  EmailTokenBody,
+  LoginBody,
+  ResetPasswordBody,
+  ResetRequestBody,
+  SignupBody,
+  type User,
+} from '@uttt/core';
 import type { CookieSerializeOptions } from '@fastify/cookie';
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { randomBytes } from 'node:crypto';
 import { BREACHED_MESSAGE, type BreachCheck } from './breach.ts';
+import type { Emails } from './email.ts';
+import type { Hub } from './hub.ts';
 import { hashToken, type Store } from './store.ts';
+
+/** What the HTTP routes depend on. */
+export interface Services {
+  store: Store;
+  hub: Hub;
+  isBreached: BreachCheck;
+  emails: Emails;
+}
+
+/** Sends email in the background: a slow or failing mail server must not fail the request. */
+export function deliver(request: FastifyRequest, email: Promise<void>): void {
+  email.catch((error) => request.log.error(error, 'Email delivery failed'));
+}
 
 /** Who is behind a request: a signed-in user, or a guest identified by a random cookie. */
 export interface Identity {
@@ -53,7 +75,7 @@ export function identify(store: Store, request: FastifyRequest): Identity | null
 }
 
 export const authRoutes =
-  (store: Store, isBreached: BreachCheck): FastifyPluginAsync =>
+  ({ store, hub, isBreached, emails }: Services): FastifyPluginAsync =>
   async (app) => {
     function startSession(request: FastifyRequest, reply: FastifyReply, user: User) {
       const token = store.createSession(user.id, request.headers['user-agent'] ?? 'Unknown device');
@@ -81,6 +103,7 @@ export const authRoutes =
       }
       if (await isBreached(password)) return reply.code(400).send({ error: BREACHED_MESSAGE });
       const user = store.createUser(username, email, await hash(password));
+      deliver(request, emails.verification({ ...user, email }));
       return startSession(request, reply, user);
     });
 
@@ -91,7 +114,35 @@ export const authRoutes =
       if (!user || !valid) {
         return reply.code(401).send({ error: 'Invalid username or password' });
       }
-      return startSession(request, reply, { id: user.id, username: user.username });
+      const emailVerified = user.emailVerifiedAt !== null;
+      return startSession(request, reply, { id: user.id, username: user.username, emailVerified });
+    });
+
+    /** Verification links work without a session: they may be opened on another device. */
+    app.post('/api/verify-email', strictLimit, async (request, reply) => {
+      const userId = store.useEmailToken(EmailTokenBody.parse(request.body).token, 'verify');
+      if (!userId) return reply.code(400).send({ error: 'This link is invalid or has expired' });
+      store.markEmailVerified(userId);
+      return { ok: true };
+    });
+
+    /** Answers the same whether or not the email is registered, so it can't be used to find accounts. */
+    app.post('/api/password-reset/request', strictLimit, async (request) => {
+      const user = store.userByEmail(ResetRequestBody.parse(request.body).email);
+      if (user) deliver(request, emails.passwordReset(user));
+      return { ok: true };
+    });
+
+    /** Resetting signs out every device. Following the link also proves the email address. */
+    app.post('/api/password-reset', strictLimit, async (request, reply) => {
+      const { token, password } = ResetPasswordBody.parse(request.body);
+      if (await isBreached(password)) return reply.code(400).send({ error: BREACHED_MESSAGE });
+      const userId = store.useEmailToken(token, 'reset');
+      if (!userId) return reply.code(400).send({ error: 'This link is invalid or has expired' });
+      store.setPassword(userId, await hash(password));
+      store.markEmailVerified(userId);
+      hub.endSessions(store.deleteOtherSessions(userId));
+      return { ok: true };
     });
 
     app.post('/api/logout', async (request, reply) => {

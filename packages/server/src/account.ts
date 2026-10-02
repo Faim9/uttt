@@ -2,10 +2,8 @@ import { hash, verify } from '@node-rs/argon2';
 import { ChangePasswordBody, type User } from '@uttt/core';
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
-import { signedIn, strictLimit } from './auth.ts';
-import { BREACHED_MESSAGE, type BreachCheck } from './breach.ts';
-import type { Hub } from './hub.ts';
-import type { Store } from './store.ts';
+import { deliver, signedIn, strictLimit, type Services } from './auth.ts';
+import { BREACHED_MESSAGE } from './breach.ts';
 
 const SessionBody = z.object({ id: z.string().regex(/^[0-9a-f]{64}$/) });
 
@@ -14,9 +12,9 @@ interface Session {
   token: string;
 }
 
-/** Settings for the signed-in user: sessions and password. Every route requires a session. */
+/** Settings for the signed-in user: email, password, and sessions. Every route requires a session. */
 export const accountRoutes =
-  (store: Store, hub: Hub, isBreached: BreachCheck): FastifyPluginAsync =>
+  ({ store, hub, isBreached, emails }: Services): FastifyPluginAsync =>
   async (app) => {
     /** Resolves the session once, rejecting guests, and hands it to the handler. */
     const withSession =
@@ -27,10 +25,15 @@ export const accountRoutes =
         return handler(session, request, reply);
       };
 
-    const overview = ({ user, token }: Session) => ({
-      ...store.account(user.id),
-      sessions: store.sessions(user.id, token),
-    });
+    const overview = ({ user, token }: Session) => {
+      const account = store.account(user.id);
+      return {
+        username: account?.username,
+        email: account?.email,
+        emailVerified: Boolean(account?.emailVerifiedAt),
+        sessions: store.sessions(user.id, token),
+      };
+    };
 
     app.get('/api/account', withSession(overview));
 
@@ -47,6 +50,18 @@ export const accountRoutes =
         if (await isBreached(password)) return reply.code(400).send({ error: BREACHED_MESSAGE });
         store.setPassword(session.user.id, await hash(password));
         hub.endSessions(store.deleteOtherSessions(session.user.id, session.token));
+        return overview(session);
+      }),
+    );
+
+    app.post(
+      '/api/account/verify-email',
+      strictLimit,
+      withSession((session, request) => {
+        const account = store.account(session.user.id);
+        if (account && !account.emailVerifiedAt) {
+          deliver(request, emails.verification({ ...session.user, email: account.email }));
+        }
         return overview(session);
       }),
     );

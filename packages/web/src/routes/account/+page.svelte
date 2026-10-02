@@ -4,6 +4,7 @@
   interface Account {
     username: string;
     email: string;
+    emailVerified: boolean;
     sessions: {
       id: string;
       createdAt: string;
@@ -78,6 +79,23 @@
   <section class="card">
     <h2>Account</h2>
     <p><strong>{account.username}</strong> · {account.email}</p>
+    {#if account.emailVerified}
+      <p class="muted">Email confirmed.</p>
+    {:else}
+      <p>
+        Confirm your email to play rated games: follow the link we sent you.
+        <button
+          class="button"
+          onclick={() =>
+            load(
+              api<Account>('POST', '/api/account/verify-email'),
+              `We sent a new link to ${account?.email}.`,
+            )}
+        >
+          Send a new link
+        </button>
+      </p>
+    {/if}
   </section>
 
   <section class="card">

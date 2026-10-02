@@ -71,7 +71,8 @@
   </button>
   <p class="muted">
     {#if mode === 'login'}
-      New here? <a href="/signup">Create an account</a>
+      New here? <a href="/signup">Create an account</a> ·
+      <a href="/reset-password">Forgot your password?</a>
     {:else}
       Already have an account? <a href="/login">Sign in</a>
     {/if}

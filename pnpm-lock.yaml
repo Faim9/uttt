@@ -74,6 +74,9 @@ importers:
       fastify:
         specifier: ^5.12.5
         version: 5.12.5
+      nodemailer:
+        specifier: ^10.0.13
+        version: 10.0.13
       zod:
         specifier: ^4.6.5
         version: 4.6.5
@@ -1673,6 +1676,10 @@ packages:
   node-addon-api@8.9.2:
     resolution: {integrity: sha512-VijLXbi3UACN69I0JVXJsX4tjACjNoQDgv2gTF6sx2wWEi8tkSg2eX8p5gSIFi8z2+DL3oHmY6OyKce38SDolg==}
     engines: {node: ^18 || ^20 || >= 21}
+
+  nodemailer@10.0.13:
+    resolution: {integrity: sha512-SzG86OlvcW/NNhUFC6uROMwRTL4n7MswfQqC/T8mhkmnY1YVa23zUEMYi4ijSeXSl9GLz9ZeTJDUatEDuY5FeQ==}
+    engines: {node: '>=20.0.0'}
 
   obug@2.2.1:
     resolution: {integrity: sha512-XrsrhT5sybtKI6wakr2SPOlGZWWYbUXZ7a0jT8/QOeAPau+1X/bSegNe5YR75oJmEZQbKningirmGOEJCIk61Q==}
@@ -3366,6 +3373,8 @@ snapshots:
   natural-compare@1.4.0: {}
 
   node-addon-api@8.9.2: {}
+
+  nodemailer@10.0.13: {}
 
   obug@2.2.1: {}
 

@@ -9,6 +9,7 @@ import { accountRoutes } from './account.ts';
 import { apiRoutes } from './api.ts';
 import { authRoutes, identify } from './auth.ts';
 import { isBreached as checkBreaches, type BreachCheck } from './breach.ts';
+import { Emails, smtpMailer, type SendMail } from './email.ts';
 import { Hub } from './hub.ts';
 import type { Store } from './store.ts';
 
@@ -17,8 +18,12 @@ export interface AppOptions {
   /** The built web app to serve; in development Vite serves it instead. */
   webRoot?: string;
   logger?: boolean;
+  /** Where the site is reachable, for links in emails. */
+  publicUrl?: string;
   /** Breached-password check; tests replace it to stay offline. */
   isBreached?: BreachCheck;
+  /** Email transport; tests replace it to read the emails. */
+  sendMail?: SendMail;
 }
 
 /**
@@ -39,7 +44,9 @@ export async function buildApp({
   store,
   webRoot,
   logger = false,
+  publicUrl = process.env.PUBLIC_URL ?? 'http://localhost:5173',
   isBreached = checkBreaches,
+  sendMail,
 }: AppOptions) {
   const app = Fastify({ logger, trustProxy: process.env.TRUST_PROXY === 'true' });
 
@@ -68,8 +75,10 @@ export async function buildApp({
 
   const hub = new Hub(store, app.log);
   app.addHook('onClose', async () => hub.close());
-  await app.register(authRoutes(store, isBreached));
-  await app.register(accountRoutes(store, hub, isBreached));
+  const emails = new Emails(store, sendMail ?? smtpMailer(app.log), publicUrl);
+  const services = { store, hub, isBreached, emails };
+  await app.register(authRoutes(services));
+  await app.register(accountRoutes(services));
   await app.register(apiRoutes(store, hub));
 
   app.get('/ws', { websocket: true }, (socket, request) => {

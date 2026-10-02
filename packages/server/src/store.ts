@@ -19,7 +19,7 @@ import type { GameInit, LiveGame } from './game.ts';
 import { DEFAULT_RATING, PROVISIONAL_DEVIATION, decay, rate, type Rating } from './glicko.ts';
 import * as schema from './schema.ts';
 
-const { users, sessions, ratings, games } = schema;
+const { users, sessions, emailTokens, ratings, games } = schema;
 
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
@@ -52,11 +52,12 @@ export class Store {
   // Users and sessions
 
   createUser(username: string, email: string, passwordHash: string): User {
-    return this.db
+    const user = this.db
       .insert(users)
       .values({ username, email: email.toLowerCase(), passwordHash, createdAt: new Date() })
       .returning({ id: users.id, username: users.username })
       .get();
+    return { ...user, emailVerified: false };
   }
 
   userByName(username: string) {
@@ -83,10 +84,49 @@ export class Store {
 
   account(userId: number) {
     return this.db
-      .select({ username: users.username, email: users.email, createdAt: users.createdAt })
+      .select({
+        username: users.username,
+        email: users.email,
+        emailVerifiedAt: users.emailVerifiedAt,
+        createdAt: users.createdAt,
+      })
       .from(users)
       .where(eq(users.id, userId))
       .get();
+  }
+
+  userByEmail(email: string) {
+    return this.db
+      .select({ id: users.id, username: users.username, email: users.email })
+      .from(users)
+      .where(eq(users.email, email.toLowerCase()))
+      .get();
+  }
+
+  markEmailVerified(userId: number): void {
+    this.db.update(users).set({ emailVerifiedAt: new Date() }).where(eq(users.id, userId)).run();
+  }
+
+  /** Returns a new single-use token for an emailed link, replacing earlier ones for the same purpose. */
+  createEmailToken(userId: number, purpose: 'verify' | 'reset', ttlMs: number): string {
+    const token = randomBytes(32).toString('base64url');
+    const sameKind = and(eq(emailTokens.userId, userId), eq(emailTokens.purpose, purpose));
+    this.db.delete(emailTokens).where(sameKind).run();
+    this.db
+      .insert(emailTokens)
+      .values({ id: hashToken(token), userId, purpose, expiresAt: new Date(Date.now() + ttlMs) })
+      .run();
+    return token;
+  }
+
+  /** Consumes an emailed token, returning its user if it was valid and unexpired. */
+  useEmailToken(token: string, purpose: 'verify' | 'reset'): number | undefined {
+    const row = this.db
+      .delete(emailTokens)
+      .where(and(eq(emailTokens.id, hashToken(token)), eq(emailTokens.purpose, purpose)))
+      .returning()
+      .get();
+    return row && row.expiresAt.getTime() > Date.now() ? row.userId : undefined;
   }
 
   passwordHash(userId: number): string | undefined {
@@ -130,6 +170,7 @@ export class Store {
       .select({
         id: users.id,
         username: users.username,
+        emailVerifiedAt: users.emailVerifiedAt,
         expiresAt: sessions.expiresAt,
         lastSeenAt: sessions.lastSeenAt,
       })
@@ -153,7 +194,7 @@ export class Store {
         .where(eq(sessions.id, id))
         .run();
     }
-    return { id: row.id, username: row.username };
+    return { id: row.id, username: row.username, emailVerified: row.emailVerifiedAt !== null };
   }
 
   /** The user's signed-in devices, newest activity first; `current` marks the one making the request. */

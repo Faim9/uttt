@@ -11,12 +11,28 @@ const PASSWORD = 'correct horse battery';
 /** The offline stand-in for Have I Been Pwned treats exactly this password as breached. */
 const BREACHED = 'password123';
 
+/** Emails the apps under test "sent". */
+const mailbox: { to: string; subject: string; text: string }[] = [];
+
 afterEach(async () => {
   await Promise.all(apps.splice(0).map((app) => app.close()));
+  mailbox.length = 0;
 });
 
+/** The token from the latest emailed link to `path` sent to `to`. */
+function emailedToken(to: string, path: string): string {
+  const email = mailbox.findLast((message) => message.to === to && message.text.includes(path));
+  const token = email?.text.match(/token=([\w-]+)/)?.[1];
+  if (!token) throw new Error(`No ${path} email for ${to}`);
+  return token;
+}
+
 async function newApp(store = new Store(':memory:')) {
-  const app = await buildApp({ store, isBreached: async (password) => password === BREACHED });
+  const app = await buildApp({
+    store,
+    isBreached: async (password) => password === BREACHED,
+    sendMail: async (message) => void mailbox.push(message),
+  });
   apps.push(app);
   return app;
 }
@@ -71,14 +87,20 @@ function messages(socket: WebSocket) {
   return { next, send, socket };
 }
 
-async function signedUp(app: App, username: string) {
+/** Signs up a new user and, unless told otherwise, follows the emailed verification link. */
+async function signedUp(app: App, username: string, { verify = true } = {}) {
   const user = await visitor(app);
+  const email = `${username}@example.com`;
   const response = await user.request('POST', '/api/signup', {
     username,
-    email: `${username}@example.com`,
+    email,
     password: PASSWORD,
   });
   expect(response.statusCode).toBe(200);
+  if (verify) {
+    const token = emailedToken(email, '/verify-email');
+    expect((await user.request('POST', '/api/verify-email', { token })).statusCode).toBe(200);
+  }
   return user;
 }
 
@@ -102,7 +124,7 @@ test('sign up, sign in, and sign out', async () => {
   const app = await newApp();
   const alice = await signedUp(app, 'alice');
   expect((await alice.request('GET', '/api/me')).json()).toEqual({
-    user: { id: 1, username: 'alice' },
+    user: { id: 1, username: 'alice', emailVerified: true },
   });
 
   const taken = await (
@@ -133,7 +155,7 @@ test('sign up, sign in, and sign out', async () => {
     login: 'alice@example.com',
     password: PASSWORD,
   });
-  expect(right.json()).toEqual({ user: { id: 1, username: 'alice' } });
+  expect(right.json()).toEqual({ user: { id: 1, username: 'alice', emailVerified: true } });
 });
 
 test('rejects cross-origin requests and WebSocket handshakes', async () => {
@@ -288,6 +310,44 @@ test('changing the password needs the current one and signs out other devices', 
   const login = await phone.request('POST', '/api/login', {
     login: 'alice',
     password: 'a new password',
+  });
+  expect(login.statusCode).toBe(200);
+});
+
+test('rated play needs a verified email; verification links work once', async () => {
+  const app = await newApp();
+  const alice = await signedUp(app, 'alice', { verify: false });
+  const socket = await alice.connect();
+  socket.send({ type: 'seek', timeControl: '3+2', rated: true });
+  expect((await socket.next('error')).message).toBe('Verify your email to play rated games');
+
+  const token = emailedToken('alice@example.com', '/verify-email');
+  expect((await alice.request('POST', '/api/verify-email', { token })).statusCode).toBe(200);
+  expect((await alice.request('POST', '/api/verify-email', { token })).statusCode).toBe(400);
+  expect((await alice.request('GET', '/api/me')).json().user.emailVerified).toBe(true);
+});
+
+test('a password reset link sets a new password and signs out every device', async () => {
+  const app = await newApp();
+  const alice = await signedUp(app, 'alice');
+  const stranger = await visitor(app);
+
+  const ask = (email: string) => stranger.request('POST', '/api/password-reset/request', { email });
+  expect((await ask('nobody@example.com')).json()).toEqual({ ok: true });
+  expect(mailbox.some((message) => message.to === 'nobody@example.com')).toBe(false);
+  await ask('alice@example.com');
+  const token = emailedToken('alice@example.com', '/reset-password');
+
+  const reset = (password: string) =>
+    stranger.request('POST', '/api/password-reset', { token, password });
+  expect((await reset(BREACHED)).statusCode).toBe(400);
+  expect((await reset('a brand new password')).statusCode).toBe(200);
+  expect((await reset('another password')).statusCode).toBe(400);
+
+  expect((await alice.request('GET', '/api/me')).json().user).toBeNull();
+  const login = await stranger.request('POST', '/api/login', {
+    login: 'alice',
+    password: 'a brand new password',
   });
   expect(login.statusCode).toBe(200);
 });

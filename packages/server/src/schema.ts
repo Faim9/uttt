@@ -18,6 +18,8 @@ export const users = sqliteTable(
     email: text().notNull().unique(),
     passwordHash: text().notNull(),
     createdAt: integer({ mode: 'timestamp_ms' }).notNull(),
+    /** Null until the user follows the link in the verification email. */
+    emailVerifiedAt: integer({ mode: 'timestamp_ms' }),
   },
   (t) => [uniqueIndex('users_username_lower').on(sql`lower(${t.username})`)],
 );
@@ -33,6 +35,17 @@ export const sessions = sqliteTable('sessions', {
   lastSeenAt: integer({ mode: 'timestamp_ms' }).notNull(),
   /** Shown on the sessions page so users can tell their devices apart. */
   userAgent: text().notNull(),
+});
+
+/** Single-use links sent by email, to verify an address or reset a password. */
+export const emailTokens = sqliteTable('email_tokens', {
+  /** SHA-256 of the token; the token itself only exists in the email. */
+  id: text().primaryKey(),
+  userId: integer()
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  purpose: text({ enum: ['verify', 'reset'] }).notNull(),
+  expiresAt: integer({ mode: 'timestamp_ms' }).notNull(),
 });
 
 /** Glicko-2 ratings, one row per user and category. */

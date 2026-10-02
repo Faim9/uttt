@@ -284,5 +284,8 @@ export class Hub {
 }
 
 function requireAccountIfRated({ client, rated }: { client: Client; rated: boolean }): void {
-  if (rated && !client.identity.user) throw new GameError('Sign in to play rated games');
+  if (!rated) return;
+  const { user } = client.identity;
+  if (!user) throw new GameError('Sign in to play rated games');
+  if (!user.emailVerified) throw new GameError('Verify your email to play rated games');
 }

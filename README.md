@@ -45,6 +45,19 @@ pnpm start      # production: one process serves the site and the API (PORT, HOS
 
 Data lives in one SQLite file (`uttt.db` by default); schema migrations run on startup.
 
+Production settings (environment variables):
+
+| Variable        | Purpose                                                                          |
+| --------------- | -------------------------------------------------------------------------------- |
+| `PUBLIC_URL`    | Required. The site's address, used in emailed links (e.g. `https://example.com`) |
+| `SMTP_URL`      | Email delivery, from any provider (e.g. `smtps://user:pass@smtp.example.com`)    |
+| `MAIL_FROM`     | Sender address, e.g. `UTTT <noreply@example.com>`                                |
+| `PORT`, `HOST`  | Where to listen (default `127.0.0.1:3000`)                                       |
+| `DATABASE_PATH` | SQLite file location                                                             |
+| `TRUST_PROXY`   | `true` behind a reverse proxy, so rate limits see real client addresses          |
+
+Without `SMTP_URL`, emails (verification and password-reset links) are written to the server log instead.
+
 ## Project layout
 
 ```

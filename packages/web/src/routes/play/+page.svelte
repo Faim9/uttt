@@ -14,10 +14,13 @@
   let error = $state('');
   let copied = $state(false);
 
-  const canRate = $derived(session.user !== null);
+  /** Why rated play is unavailable, if it is. */
+  const ratedBlocker = $derived(
+    !session.user ? 'signin' : !session.user.emailVerified ? 'verify' : null,
+  );
 
   $effect(() => {
-    if (!canRate) rated = false;
+    if (ratedBlocker) rated = false;
   });
 
   // The server forgets seeks and challenges when the connection drops or we leave the page.
@@ -82,10 +85,16 @@
 
 <h1>Play online</h1>
 
-<label class="rated" title={canRate ? '' : 'Sign in to play rated games'}>
-  <input type="checkbox" bind:checked={rated} disabled={!canRate} />
+<label class="rated">
+  <input type="checkbox" bind:checked={rated} disabled={ratedBlocker !== null} />
   Rated
-  {#if !canRate}<span class="muted">— <a href="/login">sign in</a> to play rated games</span>{/if}
+  {#if ratedBlocker === 'signin'}
+    <span class="muted">— <a href="/login">sign in</a> to play rated games</span>
+  {:else if ratedBlocker === 'verify'}
+    <span class="muted"
+      >— confirm your email to play rated games (see <a href="/account">settings</a>)</span
+    >
+  {/if}
 </label>
 
 {#if error}
