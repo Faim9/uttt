@@ -20,6 +20,12 @@ export const users = sqliteTable(
     createdAt: integer({ mode: 'timestamp_ms' }).notNull(),
     /** Null until the user follows the link in the verification email. */
     emailVerifiedAt: integer({ mode: 'timestamp_ms' }),
+    /** Two-factor authentication: the TOTP secret, null when 2FA is off. */
+    totpSecret: text(),
+    /** The last time step a code was accepted for, so codes can't be replayed. */
+    totpLastStep: integer(),
+    /** JSON array of SHA-256 hashes of the unused recovery codes. */
+    recoveryCodes: text({ mode: 'json' }).$type<string[]>(),
   },
   (t) => [uniqueIndex('users_username_lower').on(sql`lower(${t.username})`)],
 );

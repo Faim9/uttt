@@ -1,10 +1,12 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { authenticate } from './session.svelte.ts';
+  import { ApiError, authenticate } from './session.svelte.ts';
 
   let { mode }: { mode: 'login' | 'signup' } = $props();
 
-  let fields = $state({ username: '', email: '', login: '', password: '' });
+  let fields = $state({ username: '', email: '', login: '', password: '', code: '' });
+  /** Set once the server says this account needs a two-factor code. */
+  let needsCode = $state(false);
   let error = $state('');
   let busy = $state(false);
 
@@ -13,13 +15,18 @@
     busy = true;
     error = '';
     try {
-      const { username, email, login, password } = fields;
-      await authenticate(
-        mode,
-        mode === 'login' ? { login, password } : { username, email, password },
-      );
+      const { username, email, login, password, code } = fields;
+      const body =
+        mode === 'signup'
+          ? { username, email, password }
+          : { login, password, code: needsCode ? code : undefined };
+      await authenticate(mode, body);
       goto('/play');
     } catch (e) {
+      if (e instanceof ApiError && e.data.twoFactor && !needsCode) {
+        needsCode = true;
+        return;
+      }
       error = (e as Error).message;
     } finally {
       busy = false;
@@ -61,6 +68,18 @@
       required
     />
   </label>
+
+  {#if needsCode}
+    <label>
+      Authentication code
+      <input
+        bind:value={fields.code}
+        autocomplete="one-time-code"
+        placeholder="6-digit code or a recovery code"
+        required
+      />
+    </label>
+  {/if}
 
   {#if error}
     <p class="error" role="alert">{error}</p>

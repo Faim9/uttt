@@ -3,6 +3,7 @@ import { afterEach, expect, test } from 'vitest';
 import type { WebSocket } from 'ws';
 import { buildApp } from './app.ts';
 import { Store } from './store.ts';
+import { codeAt, currentStep } from './two-factor.ts';
 
 type App = Awaited<ReturnType<typeof buildApp>>;
 const HEADERS = { host: 'uttt.test', origin: 'https://uttt.test' };
@@ -350,4 +351,40 @@ test('a password reset link sets a new password and signs out every device', asy
     password: 'a brand new password',
   });
   expect(login.statusCode).toBe(200);
+});
+
+test('two-factor authentication: setup, login with a code or a recovery code, and disabling', async () => {
+  const app = await newApp();
+  const alice = await signedUp(app, 'alice');
+  const { secret, uri } = (await alice.request('POST', '/api/account/2fa/setup')).json();
+  expect(uri).toContain(`secret=${secret}`);
+
+  // Captured once, so the codes stay right even if a 30 s step boundary passes mid-test.
+  const step = currentStep();
+  const enable = (code: string) =>
+    alice.request('POST', '/api/account/2fa/enable', { secret, code });
+  expect((await enable(codeAt(secret, step + 5))).statusCode).toBe(400);
+  const enabled = (await enable(codeAt(secret, step))).json();
+  expect(enabled.twoFactor).toBe(true);
+  expect(enabled.recoveryCodes).toHaveLength(10);
+
+  const phone = await visitor(app);
+  const login = (code?: string) =>
+    phone.request('POST', '/api/login', { login: 'alice', password: PASSWORD, code });
+  expect((await login()).json()).toMatchObject({ twoFactor: true });
+  expect((await login('000000')).statusCode).toBe(401);
+  // The setup code's step is used up; the next step's code (allowed for clock drift) works once.
+  expect((await login(codeAt(secret, step))).statusCode).toBe(401);
+  expect((await login(codeAt(secret, step + 1))).statusCode).toBe(200);
+  expect((await login(codeAt(secret, step + 1))).statusCode).toBe(401);
+
+  const [recovery] = enabled.recoveryCodes;
+  expect((await login(recovery.toUpperCase())).statusCode).toBe(200);
+  expect((await login(recovery)).statusCode).toBe(401);
+
+  const disable = (password: string) =>
+    alice.request('POST', '/api/account/2fa/disable', { password });
+  expect((await disable('wrong password')).statusCode).toBe(403);
+  expect((await disable(PASSWORD)).json().twoFactor).toBe(false);
+  expect((await login()).statusCode).toBe(200);
 });

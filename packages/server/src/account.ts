@@ -1,9 +1,21 @@
 import { hash, verify } from '@node-rs/argon2';
-import { ChangePasswordBody, type User } from '@uttt/core';
+import {
+  ChangePasswordBody,
+  DisableTwoFactorBody,
+  EnableTwoFactorBody,
+  type User,
+} from '@uttt/core';
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { deliver, signedIn, strictLimit, type Services } from './auth.ts';
 import { BREACHED_MESSAGE } from './breach.ts';
+import {
+  hashRecoveryCode,
+  matchingStep,
+  newRecoveryCodes,
+  newSecret,
+  otpauthUri,
+} from './two-factor.ts';
 
 const SessionBody = z.object({ id: z.string().regex(/^[0-9a-f]{64}$/) });
 
@@ -31,6 +43,7 @@ export const accountRoutes =
         username: account?.username,
         email: account?.email,
         emailVerified: Boolean(account?.emailVerifiedAt),
+        twoFactor: store.twoFactor(user.id) !== null,
         sessions: store.sessions(user.id, token),
       };
     };
@@ -62,6 +75,50 @@ export const accountRoutes =
         if (account && !account.emailVerifiedAt) {
           deliver(request, emails.verification({ ...session.user, email: account.email }));
         }
+        return overview(session);
+      }),
+    );
+
+    /** Step 1 of enabling two-factor: a fresh secret for the authenticator app. Nothing is stored yet. */
+    app.post(
+      '/api/account/2fa/setup',
+      withSession(({ user }) => {
+        const secret = newSecret();
+        return { secret, uri: otpauthUri(secret, user.username) };
+      }),
+    );
+
+    /** Step 2: a valid code proves the app is set up; the recovery codes are shown only now. */
+    app.post(
+      '/api/account/2fa/enable',
+      strictLimit,
+      withSession((session, request, reply) => {
+        const { secret, code } = EnableTwoFactorBody.parse(request.body);
+        if (store.twoFactor(session.user.id)) {
+          return reply.code(409).send({ error: 'Two-factor authentication is already on' });
+        }
+        const step = matchingStep(secret, code);
+        if (step === null) {
+          return reply
+            .code(400)
+            .send({ error: "That code didn't match. Check that your device's clock is right." });
+        }
+        const recoveryCodes = newRecoveryCodes();
+        store.enableTwoFactor(session.user.id, secret, step, recoveryCodes.map(hashRecoveryCode));
+        return { ...overview(session), recoveryCodes };
+      }),
+    );
+
+    app.post(
+      '/api/account/2fa/disable',
+      strictLimit,
+      withSession(async (session, request, reply) => {
+        const { password } = DisableTwoFactorBody.parse(request.body);
+        const currentHash = store.passwordHash(session.user.id);
+        if (!currentHash || !(await verify(currentHash, password))) {
+          return reply.code(403).send({ error: 'Your password is incorrect' });
+        }
+        store.disableTwoFactor(session.user.id);
         return overview(session);
       }),
     );

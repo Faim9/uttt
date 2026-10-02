@@ -1,10 +1,12 @@
 <script lang="ts">
   import { api, session } from '#lib/session.svelte.ts';
+  import TwoFactorSettings from '#lib/TwoFactorSettings.svelte';
 
   interface Account {
     username: string;
     email: string;
     emailVerified: boolean;
+    twoFactor: boolean;
     sessions: {
       id: string;
       createdAt: string;
@@ -123,6 +125,11 @@
       <button class="button primary">Change password</button>
     </form>
   </section>
+
+  <TwoFactorSettings
+    enabled={account.twoFactor}
+    onchange={() => load(api<Account>('GET', '/api/account'))}
+  />
 
   <section class="card">
     <h2>Signed-in devices</h2>

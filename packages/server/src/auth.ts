@@ -14,6 +14,7 @@ import { BREACHED_MESSAGE, type BreachCheck } from './breach.ts';
 import type { Emails } from './email.ts';
 import type { Hub } from './hub.ts';
 import { hashToken, type Store } from './store.ts';
+import { hashRecoveryCode, matchingStep } from './two-factor.ts';
 
 /** What the HTTP routes depend on. */
 export interface Services {
@@ -26,6 +27,23 @@ export interface Services {
 /** Sends email in the background: a slow or failing mail server must not fail the request. */
 export function deliver(request: FastifyRequest, email: Promise<void>): void {
   email.catch((error) => request.log.error(error, 'Email delivery failed'));
+}
+
+/** Checks a second factor: a current authenticator code, or an unused recovery code (used up here). */
+function checkSecondFactor(store: Store, userId: number, code: string): boolean {
+  const twoFactor = store.twoFactor(userId);
+  if (!twoFactor) return true;
+  const step = matchingStep(twoFactor.secret, code.trim(), twoFactor.lastStep);
+  if (step !== null) {
+    store.useSecondFactor(userId, { step });
+    return true;
+  }
+  const hash = hashRecoveryCode(code);
+  if (!twoFactor.recoveryCodes.includes(hash)) return false;
+  store.useSecondFactor(userId, {
+    recoveryCodes: twoFactor.recoveryCodes.filter((h) => h !== hash),
+  });
+  return true;
 }
 
 /** Who is behind a request: a signed-in user, or a guest identified by a random cookie. */
@@ -108,11 +126,20 @@ export const authRoutes =
     });
 
     app.post('/api/login', strictLimit, async (request, reply) => {
-      const { login, password } = LoginBody.parse(request.body);
+      const { login, password, code } = LoginBody.parse(request.body);
       const user = store.userByLogin(login);
       const valid = await verify(user?.passwordHash ?? DUMMY_HASH, password);
       if (!user || !valid) {
         return reply.code(401).send({ error: 'Invalid username or password' });
+      }
+      // `twoFactor` tells the client to ask for a code and send the login again.
+      if (user.totpSecret && !code) {
+        return reply
+          .code(401)
+          .send({ error: 'Enter the code from your authenticator app', twoFactor: true });
+      }
+      if (code && !checkSecondFactor(store, user.id, code)) {
+        return reply.code(401).send({ error: 'That code is not valid', twoFactor: true });
       }
       const emailVerified = user.emailVerifiedAt !== null;
       return startSession(request, reply, { id: user.id, username: user.username, emailVerified });

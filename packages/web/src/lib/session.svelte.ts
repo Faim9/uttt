@@ -1,6 +1,16 @@
 import type { ClientMessage, ServerMessage, User } from '@uttt/core';
 
-/** Calls the JSON API; failed requests throw with the server's error message. */
+/** A failed API call, with the server's message and response body. */
+export class ApiError extends Error {
+  readonly data: Record<string, unknown>;
+
+  constructor(data: Record<string, unknown>) {
+    super(typeof data.error === 'string' ? data.error : 'Something went wrong');
+    this.data = data;
+  }
+}
+
+/** Calls the JSON API; failed requests throw an `ApiError`. */
 export async function api<T>(method: 'GET' | 'POST', path: string, body?: object): Promise<T> {
   const response = await fetch(path, {
     method,
@@ -8,7 +18,7 @@ export async function api<T>(method: 'GET' | 'POST', path: string, body?: object
     body: body && JSON.stringify(body),
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error ?? 'Something went wrong');
+  if (!response.ok) throw new ApiError(data);
   return data;
 }
 

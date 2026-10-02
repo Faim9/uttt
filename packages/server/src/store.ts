@@ -129,6 +129,54 @@ export class Store {
     return row && row.expiresAt.getTime() > Date.now() ? row.userId : undefined;
   }
 
+  /** The user's two-factor settings, or null when two-factor authentication is off. */
+  twoFactor(userId: number) {
+    const row = this.db
+      .select({
+        secret: users.totpSecret,
+        lastStep: users.totpLastStep,
+        recoveryCodes: users.recoveryCodes,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .get();
+    if (!row?.secret) return null;
+    return {
+      secret: row.secret,
+      lastStep: row.lastStep ?? -1,
+      recoveryCodes: row.recoveryCodes ?? [],
+    };
+  }
+
+  /** Turns two-factor on, given the step of the code that proved setup worked. */
+  enableTwoFactor(
+    userId: number,
+    secret: string,
+    step: number,
+    recoveryCodeHashes: string[],
+  ): void {
+    this.db
+      .update(users)
+      .set({ totpSecret: secret, totpLastStep: step, recoveryCodes: recoveryCodeHashes })
+      .where(eq(users.id, userId))
+      .run();
+  }
+
+  disableTwoFactor(userId: number): void {
+    this.db
+      .update(users)
+      .set({ totpSecret: null, totpLastStep: null, recoveryCodes: null })
+      .where(eq(users.id, userId))
+      .run();
+  }
+
+  /** Records a used code's step, or the recovery codes left, after a successful second factor. */
+  useSecondFactor(userId: number, used: { step: number } | { recoveryCodes: string[] }): void {
+    const values =
+      'step' in used ? { totpLastStep: used.step } : { recoveryCodes: used.recoveryCodes };
+    this.db.update(users).set(values).where(eq(users.id, userId)).run();
+  }
+
   passwordHash(userId: number): string | undefined {
     const row = this.db
       .select({ hash: users.passwordHash })

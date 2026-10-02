@@ -54,7 +54,16 @@ export const LoginBody = z.object({
   /** Username or email. */
   login: z.string().min(1).max(254),
   password: z.string().min(1).max(128),
+  /** Authenticator or recovery code, for accounts with two-factor authentication. */
+  code: z.string().max(20).optional(),
 });
+
+export const EnableTwoFactorBody = z.object({
+  secret: z.string().regex(/^[A-Z2-7]{32}$/),
+  code: z.string().regex(/^\d{6}$/, 'Enter the 6-digit code from your app'),
+});
+
+export const DisableTwoFactorBody = z.object({ password: z.string().min(1).max(128) });
 
 const Id = z.string().regex(/^[A-Za-z0-9]{8}$/);
 const GameAction = (type: 'resign' | 'draw' | 'abort') =>
