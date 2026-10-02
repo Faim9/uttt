@@ -23,15 +23,22 @@ export function categoryOf(timeControl: TimeControl): Category {
   return estimateMs < 480_000 ? 'blitz' : 'rapid';
 }
 
+const Password = z
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .max(128, 'Password must be at most 128 characters');
+
 export const SignupBody = z.object({
   username: z
     .string()
     .regex(/^[A-Za-z0-9_-]{3,20}$/, 'Username must be 3–20 letters, digits, _ or -'),
   email: z.email('Invalid email').max(254),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(128, 'Password must be at most 128 characters'),
+  password: Password,
+});
+
+export const ChangePasswordBody = z.object({
+  current: z.string().min(1).max(128),
+  password: Password,
 });
 
 export const LoginBody = z.object({

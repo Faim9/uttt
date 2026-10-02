@@ -43,6 +43,7 @@
     <span class="account">
       {#if session.user}
         <a href="/@{session.user.username}">{session.user.username}</a>
+        <a href="/account">Settings</a>
         <button class="link" onclick={signOut}>Sign out</button>
       {:else if session.ready}
         <a href="/login">Sign in</a>

@@ -48,6 +48,7 @@ function send(client: Client, message: ServerMessage): void {
 
 /** Real-time play: WebSocket clients, matchmaking, challenges, and the games in progress. */
 export class Hub {
+  private readonly clients = new Set<Client>();
   private readonly games = new Map<string, LiveGame>();
   private readonly watchers = new Map<string, Set<Client>>();
   private readonly challenges = new Map<string, Challenge>();
@@ -69,8 +70,17 @@ export class Hub {
 
   connect(socket: WebSocket, identity: Identity): void {
     const client: Client = { socket, identity, window: { start: Date.now(), count: 0 } };
+    this.clients.add(client);
     socket.on('message', (data) => this.receive(client, String(data)));
     socket.on('close', () => this.disconnect(client));
+  }
+
+  /** Disconnects sockets opened with these (now revoked) sessions; they reconnect as guests. */
+  endSessions(sessionIds: string[]): void {
+    for (const client of this.clients) {
+      const { sessionId } = client.identity;
+      if (sessionId && sessionIds.includes(sessionId)) client.socket.close(4001, 'Signed out');
+    }
   }
 
   challenge(id: string) {
@@ -263,6 +273,7 @@ export class Hub {
   }
 
   private disconnect(client: Client): void {
+    this.clients.delete(client);
     this.seeks = this.seeks.filter((seek) => seek.client !== client);
     this.cancelChallenges(client);
     for (const [gameId, watchers] of this.watchers) {

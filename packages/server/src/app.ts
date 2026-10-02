@@ -5,8 +5,10 @@ import fastifyStatic from '@fastify/static';
 import websocket from '@fastify/websocket';
 import Fastify, { type FastifyRequest } from 'fastify';
 import { ZodError } from 'zod';
+import { accountRoutes } from './account.ts';
 import { apiRoutes } from './api.ts';
 import { authRoutes, identify } from './auth.ts';
+import { isBreached as checkBreaches, type BreachCheck } from './breach.ts';
 import { Hub } from './hub.ts';
 import type { Store } from './store.ts';
 
@@ -15,6 +17,8 @@ export interface AppOptions {
   /** The built web app to serve; in development Vite serves it instead. */
   webRoot?: string;
   logger?: boolean;
+  /** Breached-password check; tests replace it to stay offline. */
+  isBreached?: BreachCheck;
 }
 
 /**
@@ -31,7 +35,12 @@ function sameOrigin(request: FastifyRequest): boolean {
   }
 }
 
-export async function buildApp({ store, webRoot, logger = false }: AppOptions) {
+export async function buildApp({
+  store,
+  webRoot,
+  logger = false,
+  isBreached = checkBreaches,
+}: AppOptions) {
   const app = Fastify({ logger, trustProxy: process.env.TRUST_PROXY === 'true' });
 
   // The CSP is set by SvelteKit as a <meta> tag with hashes of its inline scripts.
@@ -59,7 +68,8 @@ export async function buildApp({ store, webRoot, logger = false }: AppOptions) {
 
   const hub = new Hub(store, app.log);
   app.addHook('onClose', async () => hub.close());
-  await app.register(authRoutes(store));
+  await app.register(authRoutes(store, isBreached));
+  await app.register(accountRoutes(store, hub, isBreached));
   await app.register(apiRoutes(store, hub));
 
   app.get('/ws', { websocket: true }, (socket, request) => {

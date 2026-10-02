@@ -22,6 +22,7 @@ import * as schema from './schema.ts';
 const { users, sessions, ratings, games } = schema;
 
 const DAY_MS = 86_400_000;
+const HOUR_MS = 3_600_000;
 const SESSION_DAYS = 30;
 /** Players inactive for longer drop off the leaderboard (but keep their rating). */
 const LEADERBOARD_ACTIVE_DAYS = 30;
@@ -33,7 +34,7 @@ export interface PlayerRating extends Rating {
 
 type GameRow = typeof games.$inferSelect;
 
-const hashToken = (token: string) => createHash('sha256').update(token).digest('hex');
+export const hashToken = (token: string) => createHash('sha256').update(token).digest('hex');
 const lower = (column: typeof users.username) => sql`lower(${column})`;
 
 /** All database access. SQLite through Drizzle; schema migrations run on startup. */
@@ -80,38 +81,96 @@ export class Store {
       .get();
   }
 
+  account(userId: number) {
+    return this.db
+      .select({ username: users.username, email: users.email, createdAt: users.createdAt })
+      .from(users)
+      .where(eq(users.id, userId))
+      .get();
+  }
+
+  passwordHash(userId: number): string | undefined {
+    const row = this.db
+      .select({ hash: users.passwordHash })
+      .from(users)
+      .where(eq(users.id, userId))
+      .get();
+    return row?.hash;
+  }
+
+  setPassword(userId: number, passwordHash: string): void {
+    this.db.update(users).set({ passwordHash }).where(eq(users.id, userId)).run();
+  }
+
   /** Returns a new session token. Only its hash is stored. */
-  createSession(userId: number): string {
+  createSession(userId: number, userAgent: string): string {
     const token = randomBytes(32).toString('base64url');
-    const expiresAt = new Date(Date.now() + SESSION_DAYS * DAY_MS);
+    const now = new Date();
     this.db
       .insert(sessions)
-      .values({ id: hashToken(token), userId, expiresAt })
+      .values({
+        id: hashToken(token),
+        userId,
+        expiresAt: new Date(now.getTime() + SESSION_DAYS * DAY_MS),
+        createdAt: now,
+        lastSeenAt: now,
+        userAgent: userAgent.slice(0, 300),
+      })
       .run();
     return token;
   }
 
-  /** Resolves a session token to its user, extending sessions that are halfway to expiry. */
+  /**
+   * Resolves a session token to its user. Sessions halfway to expiry are extended, and "last seen" is
+   * updated at most hourly, so most requests don't write.
+   */
   userBySession(token: string): User | undefined {
     const id = hashToken(token);
     const row = this.db
-      .select({ id: users.id, username: users.username, expiresAt: sessions.expiresAt })
+      .select({
+        id: users.id,
+        username: users.username,
+        expiresAt: sessions.expiresAt,
+        lastSeenAt: sessions.lastSeenAt,
+      })
       .from(sessions)
       .innerJoin(users, eq(sessions.userId, users.id))
       .where(eq(sessions.id, id))
       .get();
     if (!row) return undefined;
 
-    const remainingMs = row.expiresAt.getTime() - Date.now();
+    const now = Date.now();
+    const remainingMs = row.expiresAt.getTime() - now;
     if (remainingMs <= 0) {
-      this.deleteSession(token);
+      this.db.delete(sessions).where(eq(sessions.id, id)).run();
       return undefined;
     }
-    if (remainingMs < (SESSION_DAYS / 2) * DAY_MS) {
-      const expiresAt = new Date(Date.now() + SESSION_DAYS * DAY_MS);
-      this.db.update(sessions).set({ expiresAt }).where(eq(sessions.id, id)).run();
+    if (remainingMs < (SESSION_DAYS / 2) * DAY_MS || now - row.lastSeenAt.getTime() > HOUR_MS) {
+      const expiresAt = new Date(now + SESSION_DAYS * DAY_MS);
+      this.db
+        .update(sessions)
+        .set({ expiresAt, lastSeenAt: new Date(now) })
+        .where(eq(sessions.id, id))
+        .run();
     }
     return { id: row.id, username: row.username };
+  }
+
+  /** The user's signed-in devices, newest activity first; `current` marks the one making the request. */
+  sessions(userId: number, currentToken: string) {
+    const currentId = hashToken(currentToken);
+    return this.db
+      .select({
+        id: sessions.id,
+        createdAt: sessions.createdAt,
+        lastSeenAt: sessions.lastSeenAt,
+        userAgent: sessions.userAgent,
+      })
+      .from(sessions)
+      .where(and(eq(sessions.userId, userId), gt(sessions.expiresAt, new Date())))
+      .orderBy(desc(sessions.lastSeenAt))
+      .all()
+      .map((session) => ({ ...session, current: session.id === currentId }));
   }
 
   deleteSession(token: string): void {
@@ -119,6 +178,27 @@ export class Store {
       .delete(sessions)
       .where(eq(sessions.id, hashToken(token)))
       .run();
+  }
+
+  /** Signs out one of the user's sessions by its id, as listed by `sessions`; returns the ids removed. */
+  deleteSessionById(userId: number, id: string): string[] {
+    return this.db
+      .delete(sessions)
+      .where(and(eq(sessions.userId, userId), eq(sessions.id, id)))
+      .returning({ id: sessions.id })
+      .all()
+      .map((row) => row.id);
+  }
+
+  /** Signs out all the user's sessions except the one holding `keepToken`; returns the ids removed. */
+  deleteOtherSessions(userId: number, keepToken?: string): string[] {
+    const keep = keepToken ? ne(sessions.id, hashToken(keepToken)) : undefined;
+    return this.db
+      .delete(sessions)
+      .where(and(eq(sessions.userId, userId), keep))
+      .returning({ id: sessions.id })
+      .all()
+      .map((row) => row.id);
   }
 
   // Ratings

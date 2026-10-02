@@ -29,6 +29,10 @@ export const sessions = sqliteTable('sessions', {
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   expiresAt: integer({ mode: 'timestamp_ms' }).notNull(),
+  createdAt: integer({ mode: 'timestamp_ms' }).notNull(),
+  lastSeenAt: integer({ mode: 'timestamp_ms' }).notNull(),
+  /** Shown on the sessions page so users can tell their devices apart. */
+  userAgent: text().notNull(),
 });
 
 /** Glicko-2 ratings, one row per user and category. */

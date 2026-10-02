@@ -7,13 +7,16 @@ import { Store } from './store.ts';
 type App = Awaited<ReturnType<typeof buildApp>>;
 const HEADERS = { host: 'uttt.test', origin: 'https://uttt.test' };
 const apps: App[] = [];
+const PASSWORD = 'correct horse battery';
+/** The offline stand-in for Have I Been Pwned treats exactly this password as breached. */
+const BREACHED = 'password123';
 
 afterEach(async () => {
   await Promise.all(apps.splice(0).map((app) => app.close()));
 });
 
 async function newApp(store = new Store(':memory:')) {
-  const app = await buildApp({ store });
+  const app = await buildApp({ store, isBreached: async (password) => password === BREACHED });
   apps.push(app);
   return app;
 }
@@ -73,7 +76,7 @@ async function signedUp(app: App, username: string) {
   const response = await user.request('POST', '/api/signup', {
     username,
     email: `${username}@example.com`,
-    password: 'correct horse battery',
+    password: PASSWORD,
   });
   expect(response.statusCode).toBe(200);
   return user;
@@ -128,7 +131,7 @@ test('sign up, sign in, and sign out', async () => {
   expect(wrong.statusCode).toBe(401);
   const right = await alice.request('POST', '/api/login', {
     login: 'alice@example.com',
-    password: 'correct horse battery',
+    password: PASSWORD,
   });
   expect(right.json()).toEqual({ user: { id: 1, username: 'alice' } });
 });
@@ -230,4 +233,61 @@ test('a cancelled challenge can no longer be accepted', async () => {
   const accepter = await (await visitor(app)).connect();
   accepter.send({ type: 'acceptChallenge', id });
   expect((await accepter.next('error')).message).toMatch('expired or was cancelled');
+});
+
+test('breached passwords are refused', async () => {
+  const app = await newApp();
+  const response = await (
+    await visitor(app)
+  ).request('POST', '/api/signup', {
+    username: 'dave',
+    email: 'dave@example.com',
+    password: BREACHED,
+  });
+  expect(response.statusCode).toBe(400);
+  expect(response.json().error).toMatch('data breach');
+});
+
+test('account settings need a session', async () => {
+  const app = await newApp();
+  expect((await (await visitor(app)).request('GET', '/api/account')).statusCode).toBe(401);
+});
+
+test('signing out other devices ends their sessions and live connections', async () => {
+  const app = await newApp();
+  const laptop = await signedUp(app, 'alice');
+  const phone = await visitor(app);
+  await phone.request('POST', '/api/login', { login: 'alice', password: PASSWORD });
+  const phoneSocket = await phone.connect();
+
+  const { sessions } = (await laptop.request('GET', '/api/account')).json();
+  expect(sessions).toHaveLength(2);
+  expect(sessions.filter((s: { current: boolean }) => s.current)).toHaveLength(1);
+
+  const closed = new Promise((resolve) => phoneSocket.socket.on('close', resolve));
+  const after = (await laptop.request('POST', '/api/account/sessions/revoke-others')).json();
+  expect(after.sessions).toHaveLength(1);
+  await closed;
+  expect((await phone.request('GET', '/api/me')).json().user).toBeNull();
+  expect((await laptop.request('GET', '/api/me')).json().user.username).toBe('alice');
+});
+
+test('changing the password needs the current one and signs out other devices', async () => {
+  const app = await newApp();
+  const laptop = await signedUp(app, 'alice');
+  const phone = await visitor(app);
+  await phone.request('POST', '/api/login', { login: 'alice', password: PASSWORD });
+
+  const change = (current: string, password: string) =>
+    laptop.request('POST', '/api/account/password', { current, password });
+  expect((await change('wrong password', 'a new password')).statusCode).toBe(403);
+  expect((await change(PASSWORD, BREACHED)).statusCode).toBe(400);
+  expect((await change(PASSWORD, 'a new password')).statusCode).toBe(200);
+
+  expect((await phone.request('GET', '/api/me')).json().user).toBeNull();
+  const login = await phone.request('POST', '/api/login', {
+    login: 'alice',
+    password: 'a new password',
+  });
+  expect(login.statusCode).toBe(200);
 });
