@@ -1,5 +1,6 @@
 import {
   clockOf,
+  DISCONNECT_GRACE_MS,
   isLegal,
   other,
   play,
@@ -64,6 +65,8 @@ export class LiveGame {
   private turnStartedAt = Date.now();
   private readonly quotaGain: number;
   private readonly lagQuota: Record<Player, number>;
+  /** When each player's last connection to the game dropped, or null while connected. */
+  private readonly goneSince: Record<Player, number | null> = { x: null, o: null };
   private timer: ReturnType<typeof setTimeout> | undefined;
   private readonly onChange: (game: LiveGame) => void;
 
@@ -124,6 +127,24 @@ export class LiveGame {
     this.onChange(this);
   }
 
+  /** Records whether a player has a live connection to the game. */
+  setPresence(side: Player, present: boolean): void {
+    if (this.termination !== null || present === (this.goneSince[side] === null)) return;
+    this.goneSince[side] = present ? null : Date.now();
+    this.onChange(this);
+  }
+
+  /** Ends the game after the opponent has been gone for the grace period: as a win, or a draw. */
+  claim(key: string, result: 'win' | 'draw'): void {
+    const side = this.playerSide(key);
+    const goneSince = this.goneSince[other(side)];
+    if (goneSince === null) throw new GameError('Your opponent is still connected');
+    if (Date.now() - goneSince < DISCONNECT_GRACE_MS) {
+      throw new GameError('Give your opponent a little longer to reconnect');
+    }
+    this.end(result === 'win' ? side : 'draw', 'disconnect');
+  }
+
   abort(key: string): void {
     this.playerSide(key);
     if (this.clocksRunning) throw new GameError('Too late to abort; resign instead');
@@ -144,9 +165,15 @@ export class LiveGame {
       clocks,
       running,
       drawOffer: this.drawOffer,
+      absence: { x: this.absence('x', now), o: this.absence('o', now) },
       termination: this.termination,
       outcome: this.outcome,
     };
+  }
+
+  private absence(side: Player, now: number): number | null {
+    const since = this.goneSince[side];
+    return since === null || this.termination !== null ? null : now - since;
   }
 
   private get clocksRunning(): boolean {

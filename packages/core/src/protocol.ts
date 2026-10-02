@@ -65,6 +65,9 @@ export const EnableTwoFactorBody = z.object({
 
 export const DisableTwoFactorBody = z.object({ password: z.string().min(1).max(128) });
 
+/** How long a player must be gone from a running game before the opponent may claim it. */
+export const DISCONNECT_GRACE_MS = 30_000;
+
 const Id = z.string().regex(/^[A-Za-z0-9]{8}$/);
 const GameAction = (type: 'resign' | 'draw' | 'abort') =>
   z.object({ type: z.literal(type), gameId: Id });
@@ -86,6 +89,8 @@ export const ClientMessage = z.discriminatedUnion('type', [
   GameAction('draw'),
   GameAction('resign'),
   GameAction('abort'),
+  /** After the opponent has been gone for the grace period: take the win, or settle for a draw. */
+  z.object({ type: z.literal('claim'), gameId: Id, result: z.enum(['win', 'draw']) }),
 ]);
 export type ClientMessage = z.infer<typeof ClientMessage>;
 
@@ -104,7 +109,7 @@ export interface GamePlayer {
   ratingDiff: number | null;
 }
 
-export type Termination = 'line' | 'resign' | 'timeout' | 'agreement' | 'abort';
+export type Termination = 'line' | 'resign' | 'timeout' | 'agreement' | 'abort' | 'disconnect';
 
 export interface GameState {
   id: string;
@@ -117,6 +122,8 @@ export interface GameState {
   /** Whose clock is running, if any. */
   running: Player | null;
   drawOffer: Player | null;
+  /** How long each player has been disconnected, in ms, or null while they're here. */
+  absence: Record<Player, number | null>;
   /** Null while the game is in progress. */
   termination: Termination | null;
   /** Null while in progress and for aborted games. */

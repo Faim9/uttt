@@ -453,6 +453,7 @@ export function toState(row: GameRow): GameState {
     clocks: { x: row.xClock, o: row.oClock },
     running: null,
     drawOffer: null,
+    absence: { x: null, o: null },
     termination: row.termination,
     outcome: row.outcome,
   };

@@ -95,7 +95,7 @@ export const games = sqliteTable(
     moves: text().notNull(),
     xClock: integer().notNull(),
     oClock: integer().notNull(),
-    termination: text({ enum: ['line', 'resign', 'timeout', 'agreement', 'abort'] }),
+    termination: text({ enum: ['line', 'resign', 'timeout', 'agreement', 'abort', 'disconnect'] }),
     outcome: text({ enum: ['x', 'o', 'draw'] }),
     createdAt: integer({ mode: 'timestamp_ms' }).notNull(),
     endedAt: integer({ mode: 'timestamp_ms' }),

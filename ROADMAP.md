@@ -3,10 +3,11 @@
 What's built, what's next, and in what order. This is the single place for project status: update it when
 work is finished or priorities change. The target product is described in PILLARS.md.
 
-## Next, in priority order (set by the owner, 2026-10-02)
+## Next, in priority order
 
-1. **Disconnects:** grace period, then the opponent may claim victory. Today a disconnected player's clock
-   simply runs out.
+All priorities set on 2026-10-02 are done; the owner sets the next ones. Candidates, from PILLARS.md and
+the deferred list: hosting the site for real tests, spectating / TV, social features (follow, block),
+rating graphs on profiles, data export and account deletion (GDPR), and basic anti-cheat.
 
 ## Done
 
@@ -28,6 +29,8 @@ work is finished or priorities change. The target product is described in PILLAR
 - **Clock lag compensation** (after lichess's LagTracker): the server pings every connection to estimate its
   lag and refunds it on each move from a quota (refills ≤1 s per move, capped at 7×); the flag waits out the
   quota so moves in transit still count.
+- **Disconnects:** a player whose last connection to a running game drops is shown as gone; after 30 s the
+  opponent may claim the win or a draw ("won by abandonment"). Coming back resets the wait.
 - **Ratings:** Glicko-2 per category (bullet / blitz / rapid), profiles with recent games, leaderboard.
 - **Security baseline:** same-origin checks on unsafe requests and WebSocket handshakes, rate limits (HTTP and
   per-socket), Zod validation of all input, hash-based CSP, helmet headers.

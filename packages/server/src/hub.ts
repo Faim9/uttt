@@ -155,6 +155,8 @@ export class Hub {
         return this.liveGame(message.gameId).resign(key);
       case 'abort':
         return this.liveGame(message.gameId).abort(key);
+      case 'claim':
+        return this.liveGame(message.gameId).claim(key, message.result);
     }
   }
 
@@ -289,7 +291,10 @@ export class Hub {
     if (live) {
       const watchers = this.watchers.get(gameId) ?? new Set();
       this.watchers.set(gameId, watchers.add(client));
-      return send(client, { type: 'game', game: live.state(), you: live.sideOf(key) });
+      const side = live.sideOf(key);
+      send(client, { type: 'game', game: live.state(), you: side });
+      if (side) live.setPresence(side, true);
+      return;
     }
     const row = this.store.game(gameId);
     if (!row) throw new GameError('Game not found');
@@ -308,8 +313,13 @@ export class Hub {
     this.seeks = this.seeks.filter((seek) => seek.client !== client);
     this.cancelChallenges(client);
     for (const [gameId, watchers] of this.watchers) {
-      watchers.delete(client);
+      if (!watchers.delete(client)) continue;
       if (watchers.size === 0) this.watchers.delete(gameId);
+      // A player whose last connection to a running game drops is marked as gone.
+      const game = this.games.get(gameId);
+      const side = game?.sideOf(client.identity.key);
+      const stillHere = [...watchers].some((c) => c.identity.key === client.identity.key);
+      if (game && side && !stillHere) game.setPresence(side, false);
     }
   }
 }

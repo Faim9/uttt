@@ -1,4 +1,4 @@
-import { legalMoves, parseMove } from '@uttt/core';
+import { DISCONNECT_GRACE_MS, legalMoves, parseMove } from '@uttt/core';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { FIRST_MOVE_MS, GameError, LiveGame, type Seat } from './game.ts';
 
@@ -135,4 +135,33 @@ test('a move still in transit when the clock runs out counts', () => {
 
   vi.advanceTimersByTime(61_200); // O has no lag to show for it: past clock + quota, the flag falls.
   expect(game.termination).toBe('timeout');
+});
+
+test('after the grace period, the opponent of a disconnected player can claim the game', () => {
+  const game = newGame();
+  game.move('alice', parseMove('5-5'));
+  game.move('bob', parseMove('5-1'));
+  expect(() => game.claim('bob', 'win')).toThrow('still connected');
+
+  game.setPresence('x', false);
+  expect(game.state().absence).toEqual({ x: 0, o: null });
+  vi.advanceTimersByTime(DISCONNECT_GRACE_MS - 1);
+  expect(() => game.claim('bob', 'win')).toThrow('a little longer');
+
+  // Coming back resets the grace period.
+  game.setPresence('x', true);
+  game.setPresence('x', false);
+  vi.advanceTimersByTime(DISCONNECT_GRACE_MS);
+  game.claim('bob', 'win');
+  expect(game).toMatchObject({ outcome: 'o', termination: 'disconnect' });
+});
+
+test('the opponent of a disconnected player may settle for a draw instead', () => {
+  const game = newGame();
+  game.move('alice', parseMove('5-5'));
+  game.move('bob', parseMove('5-1'));
+  game.setPresence('o', false);
+  vi.advanceTimersByTime(DISCONNECT_GRACE_MS);
+  game.claim('alice', 'draw');
+  expect(game).toMatchObject({ outcome: 'draw', termination: 'disconnect' });
 });

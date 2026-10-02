@@ -6,6 +6,7 @@ const HOW: Record<NonNullable<GameState['termination']>, string> = {
   timeout: 'time',
   agreement: 'agreement',
   abort: '',
+  disconnect: 'abandonment',
 };
 
 /** E.g. "X won by resignation", "Draw by agreement", "Game aborted". */

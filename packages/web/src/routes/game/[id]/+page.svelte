@@ -1,6 +1,13 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { formatMove, other, replay, type GameState, type Player } from '@uttt/core';
+  import {
+    DISCONNECT_GRACE_MS,
+    formatMove,
+    other,
+    replay,
+    type GameState,
+    type Player,
+  } from '@uttt/core';
   import Board from '#lib/Board.svelte';
   import { analysisLink, resultText } from '#lib/game.ts';
   import PlayerBar from '#lib/PlayerBar.svelte';
@@ -15,6 +22,16 @@
   let error = $state('');
 
   const position = $derived(game ? replay(game.moves) : null);
+  /** How long your opponent had been gone when the last update came; null while they're here. */
+  const opponentAbsence = $derived(
+    game && you && game.termination === null ? game.absence[other(you)] : null,
+  );
+  /** Ms until you may claim the game. */
+  const claimIn = $derived(
+    opponentAbsence === null
+      ? null
+      : Math.max(0, DISCONNECT_GRACE_MS - opponentAbsence - (now - receivedAt)),
+  );
   const active = $derived(game !== null && game.termination === null);
   /** Board orientation follows the viewer: your side is shown at the bottom. */
   const bottom = $derived<Player>(you ?? 'x');
@@ -24,7 +41,7 @@
       if (message.type === 'game' && message.game.id === gameId) {
         game = message.game;
         you = message.you;
-        receivedAt = Date.now();
+        receivedAt = now = Date.now();
         error = '';
       } else if (message.type === 'error') {
         error = message.message;
@@ -38,7 +55,7 @@
   });
 
   $effect(() => {
-    if (!game?.running) return;
+    if (!game?.running && opponentAbsence === null) return;
     const timer = setInterval(() => (now = Date.now()), 100);
     return () => clearInterval(timer);
   });
@@ -47,6 +64,11 @@
     if (!game) return 0;
     const elapsed = game.running === side ? now - receivedAt : 0;
     return Math.max(0, game.clocks[side] - elapsed);
+  }
+
+  function claim(result: 'win' | 'draw') {
+    error = '';
+    socket.send({ type: 'claim', gameId, result });
   }
 
   function act(type: 'move' | 'draw' | 'resign' | 'abort', move = 0) {
@@ -117,6 +139,21 @@
           {#if game.drawOffer === other(you)}
             <p class="muted">Your opponent offers a draw.</p>
           {/if}
+          {#if claimIn !== null}
+            <div class="left" role="status">
+              <p>Your opponent left the game.</p>
+              {#if claimIn > 0}
+                <p class="muted">
+                  If they don't come back, you can claim the game in {Math.ceil(claimIn / 1000)}s.
+                </p>
+              {:else}
+                <div class="actions">
+                  <button class="button primary" onclick={() => claim('win')}>Claim victory</button>
+                  <button class="button" onclick={() => claim('draw')}>Call it a draw</button>
+                </div>
+              {/if}
+            </div>
+          {/if}
         {:else if !active}
           <div class="actions">
             <a class="button primary" href={analysisLink(game.moves, { review: true })}>
@@ -163,6 +200,18 @@
 
   .error {
     color: var(--o);
+  }
+
+  .left {
+    margin-top: 1rem;
+    padding: 0.5rem 0.75rem;
+    border-left: 4px solid var(--mistake);
+    border-radius: 4px;
+    background: var(--bg);
+  }
+
+  .left p {
+    margin: 0.25rem 0;
   }
 
   /* One row per move pair: number, X's move, O's move. */
