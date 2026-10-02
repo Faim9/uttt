@@ -5,12 +5,10 @@ work is finished or priorities change. The target product is described in PILLAR
 
 ## Next, in priority order (set by the owner, 2026-10-02)
 
-1. **Rating-based matchmaking:** pair players close in rating, widening the range the longer they wait, so
-   climbing the ladder brings stronger opponents. Today pairing is first-come within a pool.
-2. **Account security + email service:** email verification, password reset, breached-password check, 2FA,
+1. **Account security + email service:** email verification, password reset, breached-password check, 2FA,
    session management page. Needed before hosting publicly for real tests.
-3. **Clock lag compensation:** don't charge players for network transit time.
-4. **Disconnects:** grace period, then the opponent may claim victory. Today a disconnected player's clock
+2. **Clock lag compensation:** don't charge players for network transit time.
+3. **Disconnects:** grace period, then the opponent may claim victory. Today a disconnected player's clock
    simply runs out.
 
 ## Done
@@ -24,6 +22,8 @@ work is finished or priorities change. The target product is described in PILLAR
   Evaluates each position at 10k playouts across parallel workers (~1–2 s per game), classifies every move
   (best / good / inaccuracy / mistake / blunder by win-chance lost: 10 / 20 / 30%), per-player accuracy,
   eval graph, jump to each player's next mistake, and "show best move".
+- **Rating-based matchmaking** (after lichess's pool): pairs by rating gap minus a wait bonus that grows every
+  2 s wave, so the accepted gap starts at ~100 points and widens while waiting; provisional players pair together.
 - **Ratings:** Glicko-2 per category (bullet / blitz / rapid), profiles with recent games, leaderboard.
 - **Security baseline:** same-origin checks on unsafe requests and WebSocket handshakes, rate limits (HTTP and
   per-socket), Zod validation of all input, hash-based CSP, helmet headers.

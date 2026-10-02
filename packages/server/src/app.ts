@@ -58,6 +58,7 @@ export async function buildApp({ store, webRoot, logger = false }: AppOptions) {
   });
 
   const hub = new Hub(store, app.log);
+  app.addHook('onClose', async () => hub.close());
   await app.register(authRoutes(store));
   await app.register(apiRoutes(store, hub));
 

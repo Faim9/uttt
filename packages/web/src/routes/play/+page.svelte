@@ -4,6 +4,8 @@
 
   let rated = $state(false);
   let seeking = $state<TimeControl | null>(null);
+  let seekStart = $state(0);
+  let now = $state(Date.now());
   let challenge = $state({
     timeControl: '5+3' as TimeControl,
     color: 'random' as Player | 'random',
@@ -30,6 +32,13 @@
     socket.send({ type: 'cancelChallenge' });
   });
 
+  // Ticks the "searching" time; the accepted rating gap widens as it grows.
+  $effect(() => {
+    if (!seeking) return;
+    const timer = setInterval(() => (now = Date.now()), 1000);
+    return () => clearInterval(timer);
+  });
+
   $effect(() =>
     socket.listen((message) => {
       if (message.type === 'challengeCreated') {
@@ -49,6 +58,7 @@
     } else {
       socket.send({ type: 'seek', timeControl, rated });
       seeking = timeControl;
+      seekStart = now = Date.now();
     }
   }
 
@@ -94,7 +104,9 @@
       >
         <strong>{timeControl}</strong>
         <span class="muted">
-          {seeking === timeControl ? 'Searching… click to cancel' : categoryOf(timeControl)}
+          {seeking === timeControl
+            ? `Searching ${Math.floor((now - seekStart) / 1000)}s · click to cancel`
+            : categoryOf(timeControl)}
         </span>
       </button>
     {/each}

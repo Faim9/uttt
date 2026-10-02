@@ -10,10 +10,14 @@ import { randomInt } from 'node:crypto';
 import type { WebSocket } from 'ws';
 import type { Identity } from './auth.ts';
 import { GameError, LiveGame, type GameInit, type Seat } from './game.ts';
+import { DEFAULT_RATING } from './glicko.ts';
+import { matchmake, type PoolMember } from './matchmaking.ts';
 import { toState, type Store } from './store.ts';
 
 /** Per-connection flood protection: more messages than this per second closes the socket. */
 const MAX_MESSAGES_PER_SECOND = 20;
+/** Waiting players are re-paired this often; each wave unpaired widens the rating gap they accept. */
+const WAVE_MS = 2000;
 const ID_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 interface Client {
@@ -22,13 +26,16 @@ interface Client {
   window: { start: number; count: number };
 }
 
-interface Seek {
+interface Seek extends PoolMember {
   client: Client;
   timeControl: TimeControl;
   rated: boolean;
 }
 
-interface Challenge extends Seek {
+interface Challenge {
+  client: Client;
+  timeControl: TimeControl;
+  rated: boolean;
   color: Player | 'random';
 }
 
@@ -47,11 +54,17 @@ export class Hub {
   private seeks: Seek[] = [];
   private readonly store: Store;
   private readonly log: FastifyBaseLogger;
+  private readonly waves: ReturnType<typeof setInterval>;
 
   constructor(store: Store, log: FastifyBaseLogger) {
     this.store = store;
     this.log = log;
     for (const init of store.activeGames()) this.addGame(init);
+    this.waves = setInterval(() => this.pairSeeks(true), WAVE_MS);
+  }
+
+  close(): void {
+    clearInterval(this.waves);
   }
 
   connect(socket: WebSocket, identity: Identity): void {
@@ -93,7 +106,7 @@ export class Hub {
     const { key } = client.identity;
     switch (message.type) {
       case 'seek':
-        return this.seek({ client, ...message });
+        return this.seek(client, message.timeControl, message.rated);
       case 'cancelSeek':
         this.seeks = this.seeks.filter((seek) => seek.client !== client);
         return;
@@ -116,23 +129,46 @@ export class Hub {
     }
   }
 
-  /** Pairs with the longest-waiting compatible seek, or waits for one. */
-  private seek(seek: Seek): void {
-    requireAccountIfRated(seek);
-    this.seeks = this.seeks.filter((s) => s.client !== seek.client);
-    const match = this.seeks.find(
-      (s) =>
-        s.timeControl === seek.timeControl &&
-        s.rated === seek.rated &&
-        s.client.identity.key !== seek.client.identity.key,
-    );
-    if (!match) {
-      this.seeks.push(seek);
-      return;
+  /** Joins the pool for a time control; guests count as provisional 1500s. */
+  private seek(client: Client, timeControl: TimeControl, rated: boolean): void {
+    requireAccountIfRated({ client, rated });
+    const { key, user } = client.identity;
+    const rating = user
+      ? this.store.rating(user.id, categoryOf(timeControl))
+      : { ...DEFAULT_RATING, provisional: true };
+    this.seeks = this.seeks.filter((s) => s.client !== client);
+    this.seeks.push({
+      client,
+      timeControl,
+      rated,
+      key,
+      rating: rating.rating,
+      provisional: rating.provisional,
+      misses: 0,
+    });
+    this.pairSeeks(false);
+  }
+
+  /**
+   * Pairs each pool (time control + rated) by rating. Runs on every new seek, so equal players meet at once,
+   * and on a timer, where every wave a player stays unpaired widens the gap they accept.
+   */
+  private pairSeeks(wave: boolean): void {
+    const pools = new Map<string, Seek[]>();
+    for (const seek of this.seeks) {
+      const pool = `${seek.timeControl} ${seek.rated}`;
+      pools.set(pool, [...(pools.get(pool) ?? []), seek]);
     }
-    this.seeks = this.seeks.filter((s) => s !== match);
-    const [x, o] = randomSide() === 'x' ? [seek.client, match.client] : [match.client, seek.client];
-    this.startGame(x, o, seek.timeControl, seek.rated);
+    const paired = new Set<Seek>();
+    for (const pool of pools.values()) {
+      for (const [a, b] of matchmake(pool)) {
+        paired.add(a).add(b);
+        const [x, o] = randomSide() === 'x' ? [a.client, b.client] : [b.client, a.client];
+        this.startGame(x, o, a.timeControl, a.rated);
+      }
+    }
+    this.seeks = this.seeks.filter((seek) => !paired.has(seek));
+    if (wave) for (const seek of this.seeks) seek.misses++;
   }
 
   private createChallenge(challenge: Challenge): void {
@@ -236,6 +272,6 @@ export class Hub {
   }
 }
 
-function requireAccountIfRated({ client, rated }: Seek): void {
+function requireAccountIfRated({ client, rated }: { client: Client; rated: boolean }): void {
   if (rated && !client.identity.user) throw new GameError('Sign in to play rated games');
 }

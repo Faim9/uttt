@@ -74,5 +74,6 @@ own name.
 
 ## Credits
 
-- Move accuracy uses the formula from [lichess](https://lichess.org) (AGPL-3.0).
+- From [lichess](https://lichess.org) (AGPL-3.0): the move accuracy formula, and the matchmaking scoring
+  (`packages/server/src/matchmaking.ts`, after lila's `MatchMaking.scala`).
 - Ratings follow Mark Glickman's [Glicko-2 paper](http://www.glicko.net/glicko/glicko2.pdf).
