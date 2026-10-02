@@ -5,8 +5,8 @@ work is finished or priorities change. The target product is described in PILLAR
 
 ## Next, in priority order
 
-1. **Launch for real tests:** server (Oracle, pending capacity), private GitHub repo, then follow
-   docs/deploy.md. Make the repository public at launch and set `SOURCE_URL`.
+1. **Launch for real tests:** server (Oracle, pending capacity), then follow docs/deploy.md. The code is
+   at https://github.com/Faim9/uttt (private until launch); at launch, make it public and set `SOURCE_URL`.
 
 After that, the owner sets priorities. Candidates: spectating / TV, social features (follow, block), rating
 graphs on profiles, online rematch, basic anti-cheat.
