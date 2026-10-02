@@ -43,10 +43,11 @@ rating graphs on profiles, data export and account deletion (GDPR), and basic an
 
 ## Open decisions
 
-- **Hosting:** deferred until there's budget. The site is one process + one SQLite file, so a free VM (Oracle
+- **Hosting:** Oracle Cloud Always Free VM (home region: Madrid preferred), behind a Cloudflare Tunnel. The site is one process + one SQLite file, so a free VM (Oracle
   Cloud Always Free), a home machine behind Cloudflare Tunnel, or a ~$5/month VPS all work.
 - **Email provider:** any SMTP provider works (e.g. Resend or Brevo free tiers); set `SMTP_URL` and `MAIL_FROM`.
-- **Site name and domain.**
+- **Site name and domain:** decided: **UTTT**, at `uttt.org` (registered at Cloudflare, 2026-10). `u3t.org` as a
+  redirect is a maybe, if the site takes off.
 - **Publish the repository** and set `SOURCE_URL` in `packages/web/src/routes/+layout.svelte` before deploying:
   the AGPL requires offering the source to the site's users.
 - **Logo.**
