@@ -35,6 +35,17 @@ export interface GameInit {
 export const FIRST_MOVE_MS = 30_000;
 
 /**
+ * Lag compensation, after lichess's LagTracker (scalachess, AGPL-3.0): each move is refunded the mover's
+ * network lag, but only out of a quota that refills by this much per move (up to 1 s, less in fast games),
+ * starts at 3× that, and is capped at 7×. Real lag is forgiven; claiming more gains almost nothing.
+ */
+function lagQuotaGain(timeControl: TimeControl): number {
+  const { initialMs, incrementMs } = clockOf(timeControl);
+  const estimatedSeconds = (initialMs + 40 * incrementMs) / 1000;
+  return Math.min(1000, estimatedSeconds * 4 + 150);
+}
+
+/**
  * A game in progress. The server is the only authority on moves and clocks.
  * Clocks start once both players have made their first move.
  */
@@ -51,6 +62,8 @@ export class LiveGame {
   outcome: Outcome | null = null;
 
   private turnStartedAt = Date.now();
+  private readonly quotaGain: number;
+  private readonly lagQuota: Record<Player, number>;
   private timer: ReturnType<typeof setTimeout> | undefined;
   private readonly onChange: (game: LiveGame) => void;
 
@@ -64,6 +77,8 @@ export class LiveGame {
     this.clocks = init.clocks ?? { x: initialMs, o: initialMs };
     this.position = replay(this.moves);
     this.onChange = onChange;
+    this.quotaGain = lagQuotaGain(init.timeControl);
+    this.lagQuota = { x: 3 * this.quotaGain, o: 3 * this.quotaGain };
     this.schedule();
   }
 
@@ -72,13 +87,18 @@ export class LiveGame {
     return this.seats.o.key === key ? 'o' : null;
   }
 
-  move(key: string, move: number): void {
+  /** `lagMs` is the mover's estimated one-way network delay, refunded within their lag quota. */
+  move(key: string, move: number, lagMs = 0): void {
     const side = this.playerSide(key);
     if (side !== this.position.turn) throw new GameError('Not your turn');
     if (!isLegal(this.position, move)) throw new GameError('Illegal move');
 
     if (this.clocksRunning) {
-      this.clocks[side] -= Date.now() - this.turnStartedAt;
+      const elapsed = Date.now() - this.turnStartedAt;
+      const refund = Math.min(Math.max(lagMs, 0), this.lagQuota[side], elapsed);
+      const quota = this.lagQuota[side] - refund + this.quotaGain;
+      this.lagQuota[side] = Math.min(quota, 7 * this.quotaGain);
+      this.clocks[side] -= elapsed - refund;
       if (this.clocks[side] <= 0) return this.flag();
       this.clocks[side] += clockOf(this.timeControl).incrementMs;
     }
@@ -143,8 +163,10 @@ export class LiveGame {
 
   private schedule(): void {
     clearTimeout(this.timer);
+    // The flag waits out the mover's lag quota too, so a move still in transit can arrive and count.
+    const { turn } = this.position;
     this.timer = this.clocksRunning
-      ? setTimeout(() => this.flag(), this.clocks[this.position.turn])
+      ? setTimeout(() => this.flag(), this.clocks[turn] + this.lagQuota[turn])
       : setTimeout(() => this.end(null, 'abort'), FIRST_MOVE_MS);
   }
 

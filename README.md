@@ -88,5 +88,6 @@ own name.
 ## Credits
 
 - From [lichess](https://lichess.org) (AGPL-3.0): the move accuracy formula, and the matchmaking scoring
-  (`packages/server/src/matchmaking.ts`, after lila's `MatchMaking.scala`).
+  (`packages/server/src/matchmaking.ts`, after lila's `MatchMaking.scala`), and clock lag compensation
+  (`packages/server/src/game.ts`, after scalachess's `LagTracker.scala`).
 - Ratings follow Mark Glickman's [Glicko-2 paper](http://www.glicko.net/glicko/glicko2.pdf).

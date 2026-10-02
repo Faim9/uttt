@@ -54,7 +54,7 @@ test('running out of time loses', () => {
   const game = newGame('1+0');
   game.move('alice', parseMove('5-5'));
   game.move('bob', parseMove('5-1'));
-  vi.advanceTimersByTime(60_000);
+  vi.advanceTimersByTime(60_000 + 3 * 390); // the clock, plus the lag quota a move in transit may use
   expect(game.termination).toBe('timeout');
   expect(game.outcome).toBe('o');
   expect(game.state().clocks.x).toBe(0);
@@ -99,4 +99,40 @@ test('a decided position ends the game with that outcome', () => {
   expect(game.termination).toBe('line');
   expect(game.outcome).toBe(game.position.outcome);
   expect(game.state().running).toBeNull();
+});
+
+test("network lag is refunded from the mover's lag quota", () => {
+  const game = newGame('3+2');
+  game.move('alice', parseMove('5-5'));
+  game.move('bob', parseMove('5-1'));
+  vi.advanceTimersByTime(5000);
+  game.move('alice', parseMove('1-9'), 300);
+  expect(game.clocks.x).toBe(180_000 - 4700 + 2000);
+});
+
+test('claimed lag beyond the quota is not refunded', () => {
+  // 1+0: the quota starts at 3 × 390 ms and refills 390 ms per move.
+  const game = newGame('1+0');
+  game.move('alice', parseMove('5-5'));
+  game.move('bob', parseMove('5-1'));
+  vi.advanceTimersByTime(3000);
+  game.move('alice', parseMove('1-9'), 5000);
+  expect(game.clocks.x).toBe(60_000 - (3000 - 1170));
+  game.move('bob', parseMove('9-1'));
+  vi.advanceTimersByTime(3000);
+  game.move('alice', parseMove('1-5'), 5000);
+  expect(game.clocks.x).toBe(58_170 - (3000 - 390));
+});
+
+test('a move still in transit when the clock runs out counts', () => {
+  const game = newGame('1+0');
+  game.move('alice', parseMove('5-5'));
+  game.move('bob', parseMove('5-1'));
+  vi.advanceTimersByTime(60_500);
+  expect(game.termination).toBeNull();
+  game.move('alice', parseMove('1-9'), 800);
+  expect(game.clocks.x).toBe(300);
+
+  vi.advanceTimersByTime(61_200); // O has no lag to show for it: past clock + quota, the flag falls.
+  expect(game.termination).toBe('timeout');
 });

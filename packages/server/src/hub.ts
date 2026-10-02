@@ -16,14 +16,20 @@ import { toState, type Store } from './store.ts';
 
 /** Per-connection flood protection: more messages than this per second closes the socket. */
 const MAX_MESSAGES_PER_SECOND = 20;
-/** Waiting players are re-paired this often; each wave unpaired widens the rating gap they accept. */
-const WAVE_MS = 2000;
+/**
+ * Every tick, waiting players are re-paired (each wave unpaired widens the rating gap they accept) and
+ * every connection is pinged to measure its lag.
+ */
+const TICK_MS = 2000;
 const ID_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 interface Client {
   socket: WebSocket;
   identity: Identity;
   window: { start: number; count: number };
+  /** Estimated one-way network delay in ms (half the ping round trip, smoothed). */
+  lag: number;
+  pingSentAt: number;
 }
 
 interface Seek extends PoolMember {
@@ -55,22 +61,35 @@ export class Hub {
   private seeks: Seek[] = [];
   private readonly store: Store;
   private readonly log: FastifyBaseLogger;
-  private readonly waves: ReturnType<typeof setInterval>;
+  private readonly ticker: ReturnType<typeof setInterval>;
 
   constructor(store: Store, log: FastifyBaseLogger) {
     this.store = store;
     this.log = log;
     for (const init of store.activeGames()) this.addGame(init);
-    this.waves = setInterval(() => this.pairSeeks(true), WAVE_MS);
+    this.ticker = setInterval(() => {
+      this.pairSeeks(true);
+      this.pingClients();
+    }, TICK_MS);
   }
 
   close(): void {
-    clearInterval(this.waves);
+    clearInterval(this.ticker);
   }
 
   connect(socket: WebSocket, identity: Identity): void {
-    const client: Client = { socket, identity, window: { start: Date.now(), count: 0 } };
+    const client: Client = {
+      socket,
+      identity,
+      window: { start: Date.now(), count: 0 },
+      lag: 0,
+      pingSentAt: 0,
+    };
     this.clients.add(client);
+    socket.on('pong', () => {
+      const oneWay = (Date.now() - client.pingSentAt) / 2;
+      client.lag = client.lag === 0 ? oneWay : 0.7 * client.lag + 0.3 * oneWay;
+    });
     socket.on('message', (data) => this.receive(client, String(data)));
     socket.on('close', () => this.disconnect(client));
   }
@@ -129,7 +148,7 @@ export class Hub {
       case 'watch':
         return this.watch(client, message.gameId);
       case 'move':
-        return this.liveGame(message.gameId).move(key, message.move);
+        return this.liveGame(message.gameId).move(key, message.move, client.lag);
       case 'draw':
         return this.liveGame(message.gameId).draw(key);
       case 'resign':
@@ -163,6 +182,18 @@ export class Hub {
    * Pairs each pool (time control + rated) by rating. Runs on every new seek, so equal players meet at once,
    * and on a timer, where every wave a player stays unpaired widens the gap they accept.
    */
+  /**
+   * Browsers answer WebSocket pings automatically, so lag is measured by the server. A client that delays
+   * its answers to look laggier gains at most its lag quota.
+   */
+  private pingClients(): void {
+    for (const client of this.clients) {
+      if (client.socket.readyState !== client.socket.OPEN) continue;
+      client.pingSentAt = Date.now();
+      client.socket.ping();
+    }
+  }
+
   private pairSeeks(wave: boolean): void {
     const pools = new Map<string, Seek[]>();
     for (const seek of this.seeks) {

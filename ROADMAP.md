@@ -5,8 +5,7 @@ work is finished or priorities change. The target product is described in PILLAR
 
 ## Next, in priority order (set by the owner, 2026-10-02)
 
-1. **Clock lag compensation:** don't charge players for network transit time.
-2. **Disconnects:** grace period, then the opponent may claim victory. Today a disconnected player's clock
+1. **Disconnects:** grace period, then the opponent may claim victory. Today a disconnected player's clock
    simply runs out.
 
 ## Done
@@ -26,6 +25,9 @@ work is finished or priorities change. The target product is described in PILLAR
   connections), password change, breached-password check (Have I Been Pwned, k-anonymity), email verification
   (required for rated play), password reset by email (any SMTP provider), and two-factor authentication
   (TOTP with replay protection, plus 10 single-use recovery codes).
+- **Clock lag compensation** (after lichess's LagTracker): the server pings every connection to estimate its
+  lag and refunds it on each move from a quota (refills ≤1 s per move, capped at 7×); the flag waits out the
+  quota so moves in transit still count.
 - **Ratings:** Glicko-2 per category (bullet / blitz / rapid), profiles with recent games, leaderboard.
 - **Security baseline:** same-origin checks on unsafe requests and WebSocket handshakes, rate limits (HTTP and
   per-socket), Zod validation of all input, hash-based CSP, helmet headers.
