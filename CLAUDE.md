@@ -40,8 +40,10 @@ migrations run automatically on startup. Run typecheck, lint, and test before co
 - **TypeScript is pinned to 6.0.x** until typescript-eslint supports TS 7.
 - `core` is consumed as TS source (no build step); imports use explicit `.ts` extensions. The server runs
   `.ts` directly with Node's built-in type stripping, so only erasable TS syntax is allowed.
-- The server rejects unsafe requests and WebSocket handshakes whose Origin doesn't match Host, so the Vite
-  dev proxy must keep `changeOrigin: false`.
+- The server rejects unsafe requests and WebSocket handshakes whose Origin isn't `PUBLIC_URL` (default
+  `http://localhost:5173`), so in development open the site at exactly that address.
+- Production runs from `deploy/` (Dockerfile, compose with Litestream backups and a Cloudflare Tunnel);
+  see docs/deploy.md. Data lives in `deploy/data` on the server.
 - The CSP is a `<meta>` tag SvelteKit adds to the build (configured in `vite.config.ts`); it's absent in dev.
 
 @PILLARS.md

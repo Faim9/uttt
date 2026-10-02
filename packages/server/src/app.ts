@@ -27,18 +27,16 @@ export interface AppOptions {
 }
 
 /**
- * Browsers always send Origin on cross-site POSTs and WebSocket handshakes, so requiring it to match
- * the host blocks CSRF and cross-site WebSocket hijacking.
+ * The header holding the visitor's real address when a trusted proxy sits in front, e.g.
+ * `cf-connecting-ip` behind Cloudflare. Only set it when the proxy is the only way in: anyone else
+ * could forge the header.
  */
-function sameOrigin(request: FastifyRequest): boolean {
-  const origin = request.headers.origin;
-  if (!origin) return false;
-  try {
-    return new URL(origin).host === request.headers.host;
-  } catch {
-    return false;
-  }
-}
+const CLIENT_IP_HEADER = process.env.CLIENT_IP_HEADER?.toLowerCase();
+
+const clientIp = (request: FastifyRequest) => {
+  const forwarded = CLIENT_IP_HEADER && request.headers[CLIENT_IP_HEADER];
+  return typeof forwarded === 'string' ? forwarded : request.ip;
+};
 
 export async function buildApp({
   store,
@@ -48,18 +46,21 @@ export async function buildApp({
   isBreached = checkBreaches,
   sendMail,
 }: AppOptions) {
-  const app = Fastify({ logger, trustProxy: process.env.TRUST_PROXY === 'true' });
+  const app = Fastify({ logger });
+  const siteOrigin = new URL(publicUrl).origin;
 
   // The CSP is set by SvelteKit as a <meta> tag with hashes of its inline scripts.
   await app.register(helmet, { contentSecurityPolicy: false });
-  await app.register(rateLimit, { max: 300, timeWindow: '1 minute' });
+  await app.register(rateLimit, { max: 300, timeWindow: '1 minute', keyGenerator: clientIp });
   await app.register(cookie);
   await app.register(websocket, { options: { maxPayload: 4096 } });
 
+  // Browsers always send Origin on cross-site POSTs and WebSocket handshakes, so requiring the site's
+  // own origin blocks CSRF and cross-site WebSocket hijacking.
   app.addHook('onRequest', async (request, reply) => {
     const unsafe = !['GET', 'HEAD'].includes(request.method);
     const upgrade = request.headers.upgrade?.toLowerCase() === 'websocket';
-    if ((unsafe || upgrade) && !sameOrigin(request)) {
+    if ((unsafe || upgrade) && request.headers.origin !== siteOrigin) {
       return reply.code(403).send({ error: 'Cross-origin request blocked' });
     }
   });

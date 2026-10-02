@@ -12,3 +12,12 @@ if (production && !process.env.PUBLIC_URL)
 const store = new Store(process.env.DATABASE_PATH ?? 'uttt.db');
 const app = await buildApp({ store, webRoot: production ? webRoot : undefined, logger: true });
 await app.listen({ port: Number(process.env.PORT ?? 3000), host: process.env.HOST ?? '127.0.0.1' });
+
+// Containers stop with SIGTERM: finish requests and close the database cleanly.
+for (const signal of ['SIGTERM', 'SIGINT'] as const) {
+  process.once(signal, async () => {
+    await app.close();
+    store.close();
+    process.exit(0);
+  });
+}

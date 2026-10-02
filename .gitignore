@@ -2,3 +2,5 @@ node_modules
 build
 .svelte-kit
 *.db*
+deploy/.env
+deploy/data

@@ -1,0 +1,11 @@
+# Continuous backup of the database to S3-compatible storage (Cloudflare R2). Values come from .env.
+dbs:
+  - path: /data/uttt.db
+    replica:
+      type: s3
+      bucket: ${BACKUP_BUCKET}
+      path: uttt
+      endpoint: ${BACKUP_ENDPOINT}
+      region: auto
+      access-key-id: ${BACKUP_ACCESS_KEY_ID}
+      secret-access-key: ${BACKUP_SECRET_ACCESS_KEY}

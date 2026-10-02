@@ -31,6 +31,7 @@ function emailedToken(to: string, path: string): string {
 async function newApp(store = new Store(':memory:')) {
   const app = await buildApp({
     store,
+    publicUrl: 'https://uttt.test',
     isBreached: async (password) => password === BREACHED,
     sendMail: async (message) => void mailbox.push(message),
   });
@@ -387,4 +388,9 @@ test('two-factor authentication: setup, login with a code or a recovery code, an
   expect((await disable('wrong password')).statusCode).toBe(403);
   expect((await disable(PASSWORD)).json().twoFactor).toBe(false);
   expect((await login()).statusCode).toBe(200);
+});
+
+test('the health check reports a working database', async () => {
+  const app = await newApp();
+  expect((await app.inject({ method: 'GET', url: '/api/health' })).json()).toEqual({ ok: true });
 });

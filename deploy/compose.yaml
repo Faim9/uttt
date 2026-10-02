@@ -1,0 +1,47 @@
+# Production: run `docker compose up -d --build` from this folder. See docs/deploy.md.
+#
+# restore: on first start, fetches the latest backup if there is no database yet.
+# app:     the site (web + API) on port 3000, reachable only inside this network.
+# backup:  streams every database change to cloud storage (Litestream).
+# tunnel:  connects to Cloudflare, which serves https://uttt.org; no ports are opened on the server.
+
+x-litestream: &litestream
+  image: docker.io/litestream/litestream:0.5.17
+  user: '1000:1000'
+  env_file: .env
+  volumes:
+    - ./data:/data
+    - ./litestream.yml:/etc/litestream.yml:ro
+
+services:
+  restore:
+    <<: *litestream
+    command: restore -if-db-not-exists -if-replica-exists /data/uttt.db
+
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/data
+    depends_on:
+      restore:
+        condition: service_completed_successfully
+
+  backup:
+    <<: *litestream
+    command: replicate
+    restart: unless-stopped
+    depends_on:
+      - app
+
+  tunnel:
+    image: docker.io/cloudflare/cloudflared:2026.9.3
+    command: tunnel --no-autoupdate run
+    restart: unless-stopped
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - app

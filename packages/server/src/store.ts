@@ -41,12 +41,24 @@ const lower = (column: typeof users.username) => sql`lower(${column})`;
 export class Store {
   private readonly db;
 
+  private readonly sqlite: Database.Database;
+
   constructor(path: string) {
     const sqlite = new Database(path);
+    this.sqlite = sqlite;
     sqlite.pragma('journal_mode = WAL');
     sqlite.pragma('foreign_keys = ON');
     this.db = drizzle({ client: sqlite, schema, casing: 'snake_case' });
     migrate(this.db, { migrationsFolder: fileURLToPath(new URL('../drizzle', import.meta.url)) });
+  }
+
+  close(): void {
+    this.sqlite.close();
+  }
+
+  /** Throws if the database is unusable. */
+  ping(): void {
+    this.db.run(sql`select 1`);
   }
 
   // Users and sessions
