@@ -54,8 +54,9 @@ covers 10 GB, far more than needed):
 
 1. **Create bucket** named `uttt-backups`. Under location, choose the **EU** jurisdiction.
 2. **Manage API tokens → Create API token**: permission **Object Read & Write**, applied to
-   `uttt-backups` only. Copy the **Access Key ID**, **Secret Access Key**, and the **endpoint** URL
-   (`https://<account-id>.r2.cloudflarestorage.com`). The secret is shown once.
+   `uttt-backups` only. Copy the **Access Key ID**, **Secret Access Key**, and the **EU** endpoint
+   (`https://<account-id>.eu.r2.cloudflarestorage.com`; an EU bucket isn't reachable at the other one).
+   The secret is shown once.
 
 ## 5. Create the tunnel (Cloudflare Zero Trust)
 
