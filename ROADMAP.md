@@ -5,8 +5,9 @@ work is finished or priorities change. The target product is described in PILLAR
 
 ## Next, in priority order
 
-1. **Launch for real tests:** server (Oracle, pending capacity), then follow docs/deploy.md. The code is
-   at https://github.com/Faim9/uttt (private until launch); at launch, make it public and set `SOURCE_URL`.
+1. **Launch for real tests:** hosted from the owner's computer for now (docs/deploy.md, "On your own
+   computer"); move to a server when one is available. The code is at https://github.com/Faim9/uttt
+   (private until launch); at launch, make it public and set `SOURCE_URL`.
 
 After that, the owner sets priorities. Candidates: spectating / TV, social features (follow, block), rating
 graphs on profiles, online rematch, basic anti-cheat.
@@ -48,8 +49,9 @@ graphs on profiles, online rematch, basic anti-cheat.
 
 ## Open decisions
 
-- **Hosting:** decided: Oracle Cloud Always Free VM (home region Madrid preferred), behind a Cloudflare Tunnel.
-  Portable by design: moving provider means copying the SQLite file and repointing DNS.
+- **Hosting:** the owner's computer for tests, behind a Cloudflare Tunnel. Oracle Cloud Always Free (Madrid)
+  had no capacity when we tried; retry it or pick another server later. Portable by design: a new server restores
+  the latest backup on first start. Name the host on the privacy page when it's a provider.
 - **Email provider:** any SMTP provider works (e.g. Resend or Brevo free tiers); set `SMTP_URL` and `MAIL_FROM`,
   and name the provider on the privacy page (`packages/web/src/routes/privacy/+page.svelte`).
 - **Site name and domain:** decided: **UTTT**, at `uttt.org` (registered at Cloudflare, 2026-10). `u3t.org` as a

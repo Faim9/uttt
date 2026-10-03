@@ -33,7 +33,7 @@
 
   <h2>Who else handles it</h2>
   <ul>
-    <li><strong>Oracle Cloud</strong> runs the server, in Madrid (EU).</li>
+    <li>The server is a computer run by Faim9, in the EU.</li>
     <li>
       <strong>Cloudflare</strong> delivers the site to your browser and stores our encrypted backups in
       the EU.

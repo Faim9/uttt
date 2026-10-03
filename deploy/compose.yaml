@@ -4,6 +4,8 @@
 # app:     the site (web + API) on port 3000, reachable only inside this network.
 # backup:  streams every database change to cloud storage (Litestream).
 # tunnel:  connects to Cloudflare, which serves https://uttt.org; no ports are opened on the server.
+#
+# The `z` on mounted files lets containers read them where SELinux is on (Fedora); elsewhere it does nothing.
 
 # Rotated logs: at most 3 × 10 MB per service.
 x-logging: &logging
@@ -18,8 +20,8 @@ x-litestream: &litestream
   user: '1000:1000'
   env_file: .env
   volumes:
-    - ./data:/data
-    - ./litestream.yml:/etc/litestream.yml:ro
+    - ./data:/data:z
+    - ./litestream.yml:/etc/litestream.yml:ro,z
 
 services:
   restore:
@@ -34,7 +36,7 @@ services:
     logging: *logging
     env_file: .env
     volumes:
-      - ./data:/data
+      - ./data:/data:z
     depends_on:
       restore:
         condition: service_completed_successfully

@@ -9,7 +9,7 @@ Cloudflare R2. Moving to another server is: set up the new one with these steps,
 restores the latest backup.
 
 You need: the server (Ubuntu, reachable over SSH), the `uttt.org` domain on Cloudflare, and access to the
-GitHub repository.
+GitHub repository. To host from your own computer instead, see [On your own computer](#on-your-own-computer).
 
 ## 1. Connect and update the server
 
@@ -106,6 +106,37 @@ dashboard for `uttt.org` → **Email → Email Routing**, enable it (it adds the
 **Routing rules → Create address**: `privacy` → your personal email. Confirm the verification email
 Cloudflare sends to your inbox.
 
+## On your own computer
+
+For tests, your own computer (Fedora) can host the site. The tunnel opens no ports and hides your home
+address, and the site runs in containers, without access to your files. It's online only while the
+computer is on and the site is started. Accounts and games carry over to a server later through the
+backups (see [Restoring or moving](#restoring-or-moving)).
+
+Do steps 4 and 5 (backups and tunnel). Then, once, install what lets this guide's `docker compose`
+commands run on Podman, Fedora's built-in container tool:
+
+```sh
+sudo dnf install docker-compose podman-docker
+sudo touch /etc/containers/nodocker
+systemctl --user enable --now podman.socket
+```
+
+(`nodocker` silences a notice the `docker` command would otherwise print every time.)
+
+Do step 6 in the project's `deploy` folder, but create the data folder with:
+
+```sh
+mkdir data && podman unshare chown 1000:1000 data
+```
+
+Podman runs containers without root, so the site's user (1000) maps to a different user on your
+computer; `podman unshare` sets the owner as the containers see it. Use it the same way for anything
+else in `data`, e.g. `podman unshare rm -rf data` to delete it.
+
+Start the site with `docker compose up -d --build` (step 7) and stop it with `docker compose down`. It
+doesn't start again by itself after a reboot.
+
 ## Everyday tasks
 
 **Update to the latest code:**
@@ -138,4 +169,5 @@ nothing changes for visitors.
   address in the browser (`https://uttt.org`, no trailing slash).
 - **`app` keeps restarting:** `docker compose logs app` shows why; a missing `PUBLIC_URL` stops it on
   purpose.
-- **Permission errors about `/data`:** run `sudo chown -R 1000:1000 data` in `~/uttt/deploy`.
+- **Permission errors about `/data`:** run `sudo chown -R 1000:1000 data` in `~/uttt/deploy`
+  (on your own computer: `podman unshare chown -R 1000:1000 data`).
