@@ -1,4 +1,4 @@
-<article class="card">
+<article class="card document">
   <h1>Privacy</h1>
   <p class="muted">Last updated October 2026.</p>
 
@@ -63,26 +63,3 @@
     complain to your data protection authority.
   </p>
 </article>
-
-<style>
-  article {
-    max-width: 44rem;
-    margin: 0 auto;
-  }
-
-  h1 {
-    margin: 0;
-  }
-
-  article h2 {
-    margin-top: 1.75rem;
-    font-size: 1rem;
-    text-transform: none;
-    letter-spacing: 0;
-    color: var(--text);
-  }
-
-  li {
-    margin-bottom: 0.5rem;
-  }
-</style>

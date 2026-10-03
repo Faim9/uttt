@@ -105,6 +105,12 @@
       Already have an account? <a href="/login">Sign in</a>
     {/if}
   </p>
+  {#if mode === 'signup'}
+    <p class="muted">
+      By signing up, you agree to the <a href="/terms">terms</a> and the
+      <a href="/privacy">privacy policy</a>.
+    </p>
+  {/if}
 </form>
 
 <style>

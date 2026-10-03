@@ -5,12 +5,17 @@ work is finished or priorities change. The target product is described in PILLAR
 
 ## Next, in priority order
 
-1. **Launch for real tests:** hosted from the owner's computer for now (docs/deploy.md, "On your own
-   computer"); move to a server when one is available. The code is at https://github.com/Faim9/uttt
-   (private until launch); at launch, make it public and set `SOURCE_URL`.
+1. **Soft launch** (still hosted from the owner's computer, docs/deploy.md "On your own computer"). Done:
+   security review fixes, Turnstile on sign-up, Dependabot, terms of use. Left:
+   - Owner, in dashboards: R2 token with write access, Turnstile widget keys, an email provider
+     (`SMTP_URL`, `MAIL_FROM`), Cloudflare "Always Use HTTPS", Dependabot alerts on GitHub.
+   - Impressum (German law): decide on the address to publish, then add the page.
+   - Make https://github.com/Faim9/uttt public and set `SOURCE_URL`.
+2. **Public launch:** move to a rented server (separates the site from the owner's home network, runs
+   24/7), basic admin tools (ban, rename, delete a game) with an audit log, an uptime alert, online rematch.
 
-After that, the owner sets priorities. Candidates: spectating / TV, social features (follow, block), rating
-graphs on profiles, online rematch, basic anti-cheat.
+After that, the owner sets priorities. Candidates: basic anti-cheat, spectating / TV, social features
+(follow, block), rating graphs on profiles.
 
 ## Done
 
@@ -40,7 +45,10 @@ graphs on profiles, online rematch, basic anti-cheat.
 - **Privacy (GDPR):** privacy page, download-my-data (JSON), account deletion (games kept, anonymized).
 - **Ratings:** Glicko-2 per category (bullet / blitz / rapid), profiles with recent games, leaderboard.
 - **Security baseline:** same-origin checks on unsafe requests and WebSocket handshakes, rate limits (HTTP and
-  per-socket), Zod validation of all input, hash-based CSP, helmet headers.
+  per-socket), Zod validation of all input, hash-based CSP, helmet headers. After a review before launch:
+  two-factor locks for 15 minutes after 5 wrong codes, at most 50 live connections per address, at most one
+  email of each kind per user per minute, Cloudflare Turnstile on sign-up, weekly Dependabot updates.
+- **Terms of use** page, linked from the footer and the sign-up form.
 
 ## Later
 

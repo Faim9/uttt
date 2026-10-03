@@ -59,7 +59,10 @@
 
 <!-- The author credit is an attribution the license requires forks to keep (see README, "License"). -->
 <footer>
-  <p>Created by Faim9, with AI assistance (Claude). · <a href="/privacy">Privacy</a></p>
+  <p>
+    Created by Faim9, with AI assistance (Claude). · <a href="/terms">Terms</a> ·
+    <a href="/privacy">Privacy</a>
+  </p>
   <p>
     Free software under the
     <a href="https://www.gnu.org/licenses/agpl-3.0.html" rel="license">GNU AGPL v3</a

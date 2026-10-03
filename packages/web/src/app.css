@@ -109,6 +109,28 @@ textarea {
   color: var(--muted);
 }
 
+/* Text pages like the privacy policy and terms. */
+.document {
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+.document h1 {
+  margin: 0;
+}
+
+.document h2 {
+  margin-top: 1.75rem;
+  font-size: 1rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text);
+}
+
+.document li {
+  margin-bottom: 0.5rem;
+}
+
 /* Board on the left, side panel on the right; stacked on narrow screens. */
 .board-layout {
   display: grid;
