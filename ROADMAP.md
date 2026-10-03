@@ -18,7 +18,8 @@ graphs on profiles, online rematch, basic anti-cheat.
 - **Web:** board UI, play vs. computer (6 levels), analysis board (variation tree, live engine eval, import/export,
   share links).
 - **Online play:** accounts (Argon2id, DB sessions), guest play, quick pairing in five time controls, challenge
-  links, server-authoritative games with clocks, resign / draw / abort, games restored after a server restart.
+  links, server-authoritative games with clocks, resign (with confirmation) / draw / abort, games restored after
+  a server restart. Your move shows the instant you click; the server confirms it in the background.
 - **Post-game review:** "Review game" after every game (online and vs. computer) and on the analysis board.
   Evaluates each position at 10k playouts across parallel workers (~1–2 s per game), classifies every move
   (best / good / inaccuracy / mistake / blunder by win-chance lost: 10 / 20 / 30%), per-player accuracy,

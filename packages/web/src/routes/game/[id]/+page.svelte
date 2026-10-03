@@ -20,8 +20,17 @@
   let receivedAt = $state(0);
   let now = $state(Date.now());
   let error = $state('');
+  /** Your last move, shown at once while the server confirms it (`ply` is its 1-based number). */
+  let sent = $state<{ move: number; ply: number; at: number } | null>(null);
+  let confirmingResign = $state(false);
 
-  const position = $derived(game ? replay(game.moves) : null);
+  const unconfirmed = $derived(
+    game?.termination === null && sent && game.moves.length < sent.ply ? sent : null,
+  );
+  const moves = $derived(
+    game ? (unconfirmed ? [...game.moves, unconfirmed.move] : game.moves) : [],
+  );
+  const position = $derived(game ? replay(moves) : null);
   /** How long your opponent had been gone when the last update came; null while they're here. */
   const opponentAbsence = $derived(
     game && you && game.termination === null ? game.absence[other(you)] : null,
@@ -45,6 +54,7 @@
         error = '';
       } else if (message.type === 'error') {
         error = message.message;
+        sent = null;
       }
     }),
   );
@@ -60,9 +70,11 @@
     return () => clearInterval(timer);
   });
 
+  /** Your clock stops when you move, not when the server's confirmation arrives. */
   function clock(side: Player): number {
     if (!game) return 0;
-    const elapsed = game.running === side ? now - receivedAt : 0;
+    const until = unconfirmed?.at ?? now;
+    const elapsed = game.running === side ? until - receivedAt : 0;
     return Math.max(0, game.clocks[side] - elapsed);
   }
 
@@ -71,10 +83,16 @@
     socket.send({ type: 'claim', gameId, result });
   }
 
-  function act(type: 'move' | 'draw' | 'resign' | 'abort', move = 0) {
+  function play(move: number) {
     error = '';
-    if (type === 'move') socket.send({ type, gameId, move });
-    else socket.send({ type, gameId });
+    sent = { move, ply: moves.length + 1, at: Date.now() };
+    socket.send({ type: 'move', gameId, move });
+  }
+
+  function act(type: 'draw' | 'resign' | 'abort') {
+    error = '';
+    confirmingResign = false;
+    socket.send({ type, gameId });
   }
 
   function status(): string {
@@ -93,19 +111,19 @@
         side={other(bottom)}
         player={game.players[other(bottom)]}
         clock={clock(other(bottom))}
-        running={game.running === other(bottom)}
+        running={!unconfirmed && game.running === other(bottom)}
       />
       <Board
         {position}
-        lastMove={game.moves.at(-1) ?? null}
+        lastMove={moves.at(-1) ?? null}
         disabled={!active || position.turn !== you}
-        onmove={(move) => act('move', move)}
+        onmove={play}
       />
       <PlayerBar
         side={bottom}
         player={game.players[bottom]}
         clock={clock(bottom)}
-        running={game.running === bottom}
+        running={!unconfirmed && game.running === bottom}
       />
     </div>
 
@@ -121,8 +139,12 @@
           <div class="actions">
             {#if game.moves.length < 2}
               <button class="button" onclick={() => act('abort')}>Abort</button>
+            {:else if confirmingResign}
+              <span class="confirm">Resign this game?</span>
+              <button class="button primary" onclick={() => act('resign')}>Yes, resign</button>
+              <button class="button" onclick={() => (confirmingResign = false)}>Cancel</button>
             {:else}
-              <button class="button" onclick={() => act('resign')}>Resign</button>
+              <button class="button" onclick={() => (confirmingResign = true)}>Resign</button>
               {#if game.drawOffer === other(you)}
                 <button class="button primary" onclick={() => act('draw')}>Accept draw</button>
               {:else}
@@ -167,7 +189,7 @@
       <section class="card">
         <h2>Moves</h2>
         <div class="moves">
-          {#each game.moves as move, i (i)}
+          {#each moves as move, i (i)}
             {#if i % 2 === 0}<span class="muted">{i / 2 + 1}.</span>{/if}
             <span>{formatMove(move)}</span>
           {/each}
@@ -196,6 +218,11 @@
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 0.75rem;
+  }
+
+  .confirm {
+    align-self: center;
+    font-weight: 600;
   }
 
   .error {
