@@ -33,6 +33,9 @@ export interface AppOptions {
  */
 const CLIENT_IP_HEADER = process.env.CLIENT_IP_HEADER?.toLowerCase();
 
+/** Generous for several tabs, and for players sharing an address (a school, a mobile network). */
+const MAX_SOCKETS_PER_IP = 50;
+
 const clientIp = (request: FastifyRequest) => {
   const forwarded = CLIENT_IP_HEADER && request.headers[CLIENT_IP_HEADER];
   return typeof forwarded === 'string' ? forwarded : request.ip;
@@ -77,14 +80,25 @@ export async function buildApp({
   const hub = new Hub(store, app.log);
   app.addHook('onClose', async () => hub.close());
   const emails = new Emails(store, sendMail ?? smtpMailer(app.log), publicUrl);
-  const services = { store, hub, isBreached, emails };
+  const services = { store, hub, isBreached, emails, secondFactorFailures: new Map() };
   await app.register(authRoutes(services));
   await app.register(accountRoutes(services));
   await app.register(apiRoutes(store, hub));
 
+  // Open connections per visitor address, capped so one visitor can't exhaust the server's memory.
+  const socketsPerIp = new Map<string, number>();
   app.get('/ws', { websocket: true }, (socket, request) => {
     const identity = identify(store, request);
     if (!identity) return socket.close(1008, 'Load the site first to get a guest identity');
+    const ip = clientIp(request);
+    const open = socketsPerIp.get(ip) ?? 0;
+    if (open >= MAX_SOCKETS_PER_IP) return socket.close(1008, 'Too many connections');
+    socketsPerIp.set(ip, open + 1);
+    socket.on('close', () => {
+      const left = (socketsPerIp.get(ip) ?? 1) - 1;
+      if (left > 0) socketsPerIp.set(ip, left);
+      else socketsPerIp.delete(ip);
+    });
     hub.connect(socket, identity);
   });
 

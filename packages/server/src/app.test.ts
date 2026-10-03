@@ -390,6 +390,45 @@ test('two-factor authentication: setup, login with a code or a recovery code, an
   expect((await login()).statusCode).toBe(200);
 });
 
+test('after five wrong two-factor codes, even a right one is refused for a while', async () => {
+  const app = await newApp();
+  const alice = await signedUp(app, 'alice');
+  const { secret } = (await alice.request('POST', '/api/account/2fa/setup')).json();
+  const step = currentStep();
+  await alice.request('POST', '/api/account/2fa/enable', { secret, code: codeAt(secret, step) });
+
+  const login = (code: string) =>
+    alice.request('POST', '/api/login', { login: 'alice', password: PASSWORD, code });
+  for (let i = 0; i < 5; i++) expect((await login('000000')).statusCode).toBe(401);
+  const locked = await login(codeAt(secret, step + 1));
+  expect(locked.statusCode).toBe(429);
+  expect(locked.json().error).toMatch('Too many wrong codes');
+});
+
+test('emails of one kind go to a user at most once a minute', async () => {
+  const app = await newApp();
+  const alice = await signedUp(app, 'alice', { verify: false });
+  await alice.request('POST', '/api/account/verify-email');
+  const stranger = await visitor(app);
+  const ask = () =>
+    stranger.request('POST', '/api/password-reset/request', { email: 'alice@example.com' });
+  await ask();
+  await ask();
+  expect(mailbox.map((message) => message.subject)).toEqual([
+    'Confirm your email',
+    'Reset your password',
+  ]);
+});
+
+test('one address can hold at most 50 live connections', async () => {
+  const app = await newApp();
+  const guest = await visitor(app);
+  await Promise.all(Array.from({ length: 50 }, () => guest.connect()));
+  const { socket } = await guest.connect();
+  const code = await new Promise((resolve) => socket.on('close', resolve));
+  expect(code).toBe(1008);
+});
+
 test('the health check reports a working database', async () => {
   const app = await newApp();
   expect((await app.inject({ method: 'GET', url: '/api/health' })).json()).toEqual({ ok: true });

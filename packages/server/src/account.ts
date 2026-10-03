@@ -36,8 +36,9 @@ interface Session {
 
 /** Settings for the signed-in user: email, password, and sessions. Every route requires a session. */
 export const accountRoutes =
-  ({ store, hub, isBreached, emails }: Services): FastifyPluginAsync =>
+  (services: Services): FastifyPluginAsync =>
   async (app) => {
+    const { store, hub, isBreached, emails } = services;
     /** Resolves the session once, rejecting guests, and hands it to the handler. */
     const withSession =
       (handler: (session: Session, request: FastifyRequest, reply: FastifyReply) => unknown) =>
@@ -166,7 +167,7 @@ export const accountRoutes =
         if (!currentHash || !(await verify(currentHash, password))) {
           return reply.code(403).send({ error: 'Your password is incorrect' });
         }
-        if (store.twoFactor(user.id) && !(code && checkSecondFactor(store, user.id, code))) {
+        if (store.twoFactor(user.id) && !(code && checkSecondFactor(services, user.id, code))) {
           return reply
             .code(403)
             .send({ error: 'Enter a valid authentication code', twoFactor: true });

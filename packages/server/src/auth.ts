@@ -22,6 +22,11 @@ export interface Services {
   hub: Hub;
   isBreached: BreachCheck;
   emails: Emails;
+  /**
+   * Wrong second-factor codes per user. Per-address rate limits alone would let someone who has the
+   * password guess the 6-digit code from many addresses.
+   */
+  secondFactorFailures: Map<number, { count: number; since: number }>;
 }
 
 /** Sends email in the background: a slow or failing mail server must not fail the request. */
@@ -29,20 +34,40 @@ export function deliver(request: FastifyRequest, email: Promise<void>): void {
   email.catch((error) => request.log.error(error, 'Email delivery failed'));
 }
 
-/** Checks a second factor: a current authenticator code, or an unused recovery code (used up here). */
-export function checkSecondFactor(store: Store, userId: number, code: string): boolean {
+const MAX_SECOND_FACTOR_FAILURES = 5;
+const SECOND_FACTOR_LOCK_MS = 15 * 60_000;
+
+/**
+ * Checks a second factor: a current authenticator code, or an unused recovery code (used up here).
+ * After too many wrong codes, throws until the lock expires.
+ */
+export function checkSecondFactor(
+  { store, secondFactorFailures }: Services,
+  userId: number,
+  code: string,
+): boolean {
   const twoFactor = store.twoFactor(userId);
   if (!twoFactor) return true;
+  const last = secondFactorFailures.get(userId);
+  const failures = last && Date.now() - last.since < SECOND_FACTOR_LOCK_MS ? last : null;
+  if (failures && failures.count >= MAX_SECOND_FACTOR_FAILURES) {
+    const error = new Error('Too many wrong codes. Try again in 15 minutes.');
+    throw Object.assign(error, { statusCode: 429 });
+  }
+
   const step = matchingStep(twoFactor.secret, code.trim(), twoFactor.lastStep);
+  const hash = hashRecoveryCode(code);
   if (step !== null) {
     store.useSecondFactor(userId, { step });
-    return true;
+  } else if (twoFactor.recoveryCodes.includes(hash)) {
+    const recoveryCodes = twoFactor.recoveryCodes.filter((h) => h !== hash);
+    store.useSecondFactor(userId, { recoveryCodes });
+  } else {
+    const count = (failures?.count ?? 0) + 1;
+    secondFactorFailures.set(userId, { count, since: failures?.since ?? Date.now() });
+    return false;
   }
-  const hash = hashRecoveryCode(code);
-  if (!twoFactor.recoveryCodes.includes(hash)) return false;
-  store.useSecondFactor(userId, {
-    recoveryCodes: twoFactor.recoveryCodes.filter((h) => h !== hash),
-  });
+  secondFactorFailures.delete(userId);
   return true;
 }
 
@@ -97,8 +122,9 @@ export function identify(store: Store, request: FastifyRequest): Identity | null
 }
 
 export const authRoutes =
-  ({ store, hub, isBreached, emails }: Services): FastifyPluginAsync =>
+  (services: Services): FastifyPluginAsync =>
   async (app) => {
+    const { store, hub, isBreached, emails } = services;
     function startSession(request: FastifyRequest, reply: FastifyReply, user: User) {
       const token = store.createSession(user.id, request.headers['user-agent'] ?? 'Unknown device');
       reply.setCookie(SESSION_COOKIE, token, { ...cookie, maxAge: 30 * 24 * 3600 });
@@ -142,7 +168,7 @@ export const authRoutes =
           .code(401)
           .send({ error: 'Enter the code from your authenticator app', twoFactor: true });
       }
-      if (code && !checkSecondFactor(store, user.id, code)) {
+      if (code && !checkSecondFactor(services, user.id, code)) {
         return reply.code(401).send({ error: 'That code is not valid', twoFactor: true });
       }
       const emailVerified = user.emailVerifiedAt !== null;

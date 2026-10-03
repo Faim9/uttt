@@ -6,6 +6,8 @@ export type SendMail = (message: { to: string; subject: string; text: string }) 
 
 const VERIFY_TTL_MS = 48 * 3_600_000;
 const RESET_TTL_MS = 3_600_000;
+/** At most one email of each kind per user in this time, so nobody can flood someone's inbox. */
+const RESEND_AFTER_MS = 60_000;
 
 /**
  * Sends through `SMTP_URL` (e.g. `smtps://user:pass@smtp.provider.com`), which every email provider
@@ -32,6 +34,7 @@ export class Emails {
   private readonly store: Store;
   private readonly send: SendMail;
   private readonly publicUrl: string;
+  private readonly lastSent = new Map<string, number>();
 
   constructor(store: Store, send: SendMail, publicUrl: string) {
     this.store = store;
@@ -39,7 +42,17 @@ export class Emails {
     this.publicUrl = publicUrl;
   }
 
+  /** Whether an email of this kind went to the user too recently to send another. */
+  private tooSoon(purpose: 'verify' | 'reset', userId: number): boolean {
+    const key = `${purpose} ${userId}`;
+    const now = Date.now();
+    if (now - (this.lastSent.get(key) ?? 0) < RESEND_AFTER_MS) return true;
+    this.lastSent.set(key, now);
+    return false;
+  }
+
   verification(user: { id: number; username: string; email: string }): Promise<void> {
+    if (this.tooSoon('verify', user.id)) return Promise.resolve();
     const token = this.store.createEmailToken(user.id, 'verify', VERIFY_TTL_MS);
     return this.send({
       to: user.email,
@@ -54,6 +67,7 @@ export class Emails {
   }
 
   passwordReset(user: { id: number; username: string; email: string }): Promise<void> {
+    if (this.tooSoon('reset', user.id)) return Promise.resolve();
     const token = this.store.createEmailToken(user.id, 'reset', RESET_TTL_MS);
     return this.send({
       to: user.email,
