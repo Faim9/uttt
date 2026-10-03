@@ -20,6 +20,10 @@ updates:
     directory: /deploy
     schedule:
       interval: weekly
+    ignore:
+      # A new Node.js major (e.g. 22 → 24) is a deliberate upgrade, tested first, not a weekly bump.
+      - dependency-name: node
+        update-types: ['version-update:semver-major']
   - package-ecosystem: docker-compose
     directory: /deploy
     schedule:
