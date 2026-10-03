@@ -2,6 +2,10 @@ import type { FastifyBaseLogger } from 'fastify';
 import nodemailer from 'nodemailer';
 import type { Store } from './store.ts';
 
+/**
+ * Plain text only: email providers (Brevo included) add open and click tracking to HTML emails, and the
+ * privacy policy promises no tracking. Plain text also keeps reset links from passing through the provider.
+ */
 export type SendMail = (message: { to: string; subject: string; text: string }) => Promise<void>;
 
 const VERIFY_TTL_MS = 48 * 3_600_000;

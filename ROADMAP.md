@@ -7,7 +7,6 @@ work is finished or priorities change. The target product is described in PILLAR
 
 1. **Soft launch** (still hosted from the owner's computer, docs/deploy.md "On your own computer"). Done:
    security review fixes, Turnstile on sign-up, Dependabot, terms of use. Left:
-   - Owner: finish Brevo (domain authentication, SMTP key into `SMTP_URL` and `MAIL_FROM`).
    - Impressum (German law): decide on the address to publish, then add the page.
    - Make https://github.com/Faim9/uttt public and set `SOURCE_URL`.
 2. **Public launch:** move to a rented server (separates the site from the owner's home network, runs
