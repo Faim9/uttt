@@ -39,8 +39,8 @@
       rather than bots (Turnstile), and stores our encrypted backups in the EU.
     </li>
     <li>
-      <strong>An email delivery service</strong> sends our two kinds of email: confirming your address
-      and resetting your password.
+      <strong>Brevo</strong> (France, EU) sends our two kinds of email: confirming your address and resetting
+      your password.
     </li>
     <li>
       <strong>Have I Been Pwned</strong> tells us whether a new password appeared in a data breach. Only

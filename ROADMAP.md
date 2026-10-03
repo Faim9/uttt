@@ -7,8 +7,7 @@ work is finished or priorities change. The target product is described in PILLAR
 
 1. **Soft launch** (still hosted from the owner's computer, docs/deploy.md "On your own computer"). Done:
    security review fixes, Turnstile on sign-up, Dependabot, terms of use. Left:
-   - Owner, in dashboards: R2 token with write access, Turnstile widget keys, an email provider
-     (`SMTP_URL`, `MAIL_FROM`), Cloudflare "Always Use HTTPS", Dependabot alerts on GitHub.
+   - Owner: finish Brevo (domain authentication, SMTP key into `SMTP_URL` and `MAIL_FROM`).
    - Impressum (German law): decide on the address to publish, then add the page.
    - Make https://github.com/Faim9/uttt public and set `SOURCE_URL`.
 2. **Public launch:** move to a rented server (separates the site from the owner's home network, runs
@@ -61,8 +60,8 @@ After that, the owner sets priorities. Candidates: basic anti-cheat, spectating 
 - **Hosting:** the owner's computer for tests, behind a Cloudflare Tunnel. Oracle Cloud Always Free (Madrid)
   had no capacity when we tried; retry it or pick another server later. Portable by design: a new server restores
   the latest backup on first start. Name the host on the privacy page when it's a provider.
-- **Email provider:** any SMTP provider works (e.g. Resend or Brevo free tiers); set `SMTP_URL` and `MAIL_FROM`,
-  and name the provider on the privacy page (`packages/web/src/routes/privacy/+page.svelte`).
+- **Email provider:** decided: Brevo (EU, free tier), named on the privacy page. Any SMTP provider works
+  through `SMTP_URL` and `MAIL_FROM`.
 - **Site name and domain:** decided: **UTTT**, at `uttt.org` (registered at Cloudflare, 2026-10). `u3t.org` as a
   redirect is a maybe, if the site takes off.
 - **Publish the repository** and set `SOURCE_URL` in `packages/web/src/routes/+layout.svelte` before deploying:
