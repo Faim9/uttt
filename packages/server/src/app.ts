@@ -9,6 +9,7 @@ import { accountRoutes } from './account.ts';
 import { apiRoutes } from './api.ts';
 import { authRoutes, identify } from './auth.ts';
 import { isBreached as checkBreaches, type BreachCheck } from './breach.ts';
+import { turnstile, type HumanCheck } from './captcha.ts';
 import { Emails, smtpMailer, type SendMail } from './email.ts';
 import { Hub } from './hub.ts';
 import type { Store } from './store.ts';
@@ -22,6 +23,8 @@ export interface AppOptions {
   publicUrl?: string;
   /** Breached-password check; tests replace it to stay offline. */
   isBreached?: BreachCheck;
+  /** Bot check on sign-up; tests replace it to stay offline. */
+  isHuman?: HumanCheck;
   /** Email transport; tests replace it to read the emails. */
   sendMail?: SendMail;
 }
@@ -47,6 +50,7 @@ export async function buildApp({
   logger = false,
   publicUrl = process.env.PUBLIC_URL ?? 'http://localhost:5173',
   isBreached = checkBreaches,
+  isHuman = turnstile(),
   sendMail,
 }: AppOptions) {
   const app = Fastify({ logger });
@@ -80,7 +84,14 @@ export async function buildApp({
   const hub = new Hub(store, app.log);
   app.addHook('onClose', async () => hub.close());
   const emails = new Emails(store, sendMail ?? smtpMailer(app.log), publicUrl);
-  const services = { store, hub, isBreached, emails, secondFactorFailures: new Map() };
+  const services = {
+    store,
+    hub,
+    isBreached,
+    isHuman,
+    emails,
+    secondFactorFailures: new Map(),
+  };
   await app.register(authRoutes(services));
   await app.register(accountRoutes(services));
   await app.register(apiRoutes(store, hub));

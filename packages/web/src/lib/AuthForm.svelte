@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import Captcha from './Captcha.svelte';
   import { ApiError, authenticate } from './session.svelte.ts';
 
   let { mode }: { mode: 'login' | 'signup' } = $props();
@@ -9,6 +10,8 @@
   let needsCode = $state(false);
   let error = $state('');
   let busy = $state(false);
+  let captcha = $state('');
+  let captchaCheck: Captcha | undefined = $state();
 
   async function submit(event: SubmitEvent) {
     event.preventDefault();
@@ -18,7 +21,7 @@
       const { username, email, login, password, code } = fields;
       const body =
         mode === 'signup'
-          ? { username, email, password }
+          ? { username, email, password, captcha: captcha || undefined }
           : { login, password, code: needsCode ? code : undefined };
       await authenticate(mode, body);
       goto('/play');
@@ -28,6 +31,8 @@
         return;
       }
       error = (e as Error).message;
+      captcha = '';
+      captchaCheck?.reset();
     } finally {
       busy = false;
     }
@@ -68,6 +73,10 @@
       required
     />
   </label>
+
+  {#if mode === 'signup'}
+    <Captcha ontoken={(token) => (captcha = token)} bind:this={captchaCheck} />
+  {/if}
 
   {#if needsCode}
     <label>

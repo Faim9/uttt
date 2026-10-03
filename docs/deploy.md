@@ -68,7 +68,12 @@ In the Cloudflare dashboard → **Zero Trust → Networks → Tunnels → Create
 3. **Public hostname**: domain `uttt.org` (leave subdomain empty), service type **HTTP**, URL `app:3000`.
    Save.
 
-## 6. Configure
+## 6. Create the bot check (Cloudflare Turnstile)
+
+In the Cloudflare dashboard → **Turnstile → Add widget**: name it `uttt`, add the hostname `uttt.org`,
+widget mode **Managed**, and create it. Copy the **Site Key** and the **Secret Key**.
+
+## 7. Configure
 
 ```sh
 cd ~/uttt/deploy
@@ -77,14 +82,14 @@ chmod 600 .env
 nano .env
 ```
 
-Fill in the tunnel token and the four backup values. Save with Ctrl+O, Enter, then exit with Ctrl+X.
+Fill in the tunnel token, the two Turnstile keys, and the backup values. Save with Ctrl+O, Enter, then exit with Ctrl+X.
 Then create the data folder, owned by the user the site runs as:
 
 ```sh
 mkdir data && sudo chown 1000:1000 data
 ```
 
-## 7. Start
+## 8. Start
 
 ```sh
 docker compose up -d --build
@@ -100,7 +105,7 @@ The first build takes a few minutes. Then:
 In the Cloudflare dashboard for `uttt.org` → **SSL/TLS → Edge Certificates**, turn on
 **Always Use HTTPS**.
 
-## 8. Privacy contact address
+## 9. Privacy contact address
 
 The privacy page lists `privacy@uttt.org`. Forward it to your own inbox for free: in the Cloudflare
 dashboard for `uttt.org` → **Email → Email Routing**, enable it (it adds the DNS records), then
@@ -114,8 +119,8 @@ address, and the site runs in containers, without access to your files. It's onl
 computer is on and the site is started. Accounts and games carry over to a server later through the
 backups (see [Restoring or moving](#restoring-or-moving)).
 
-Do steps 4 and 5 (backups and tunnel). Then, once, install what lets this guide's `docker compose`
-commands run on Podman, Fedora's built-in container tool:
+Do steps 4–6 (backups, tunnel, and bot check). Then, once, install what lets this guide's
+`docker compose` commands run on Podman, Fedora's built-in container tool:
 
 ```sh
 sudo dnf install docker-compose podman-docker
@@ -125,7 +130,7 @@ systemctl --user enable --now podman.socket
 
 (`nodocker` silences a notice the `docker` command would otherwise print every time.)
 
-Do step 6 in the project's `deploy` folder, but create the data folder with:
+Do step 7 in the project's `deploy` folder, but create the data folder with:
 
 ```sh
 mkdir data && podman unshare chown 1000:1000 data
@@ -135,7 +140,7 @@ Podman runs containers without root, so the site's user (1000) maps to a differe
 computer; `podman unshare` sets the owner as the containers see it. Use it the same way for anything
 else in `data`, e.g. `podman unshare rm -rf data` to delete it.
 
-Start the site with `docker compose up -d --build` (step 7) and stop it with `docker compose down`. It
+Start the site with `docker compose up -d --build` (step 8) and stop it with `docker compose down`. It
 doesn't start again by itself after a reboot.
 
 ## Everyday tasks
@@ -156,7 +161,7 @@ server reboot.
 
 ## Restoring or moving
 
-To check backups work, or to move to a new server: set up the new server with steps 1–6, but don't
+To check backups work, or to move to a new server: set up the new server with steps 1–7, but don't
 copy `deploy/data`. On `docker compose up`, the `restore` step finds no database and downloads the
 latest backup. Stop the old server first (`docker compose down`), so both don't write backups at once.
 If the new server has a different tunnel, update the public hostname; with the same tunnel token,

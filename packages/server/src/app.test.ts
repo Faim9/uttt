@@ -11,6 +11,8 @@ const apps: App[] = [];
 const PASSWORD = 'correct horse battery';
 /** The offline stand-in for Have I Been Pwned treats exactly this password as breached. */
 const BREACHED = 'password123';
+/** The offline stand-in for Turnstile rejects exactly this token. */
+const BOT = 'bot';
 
 /** Emails the apps under test "sent". */
 const mailbox: { to: string; subject: string; text: string }[] = [];
@@ -33,6 +35,7 @@ async function newApp(store = new Store(':memory:')) {
     store,
     publicUrl: 'https://uttt.test',
     isBreached: async (password) => password === BREACHED,
+    isHuman: async (captcha) => captcha !== BOT,
     sendMail: async (message) => void mailbox.push(message),
   });
   apps.push(app);
@@ -147,6 +150,17 @@ test('sign up, sign in, and sign out', async () => {
   });
   expect(weak.statusCode).toBe(400);
   expect(weak.json().error).toMatch('at least 8');
+
+  const bot = await (
+    await visitor(app)
+  ).request('POST', '/api/signup', {
+    username: 'bot',
+    email: 'bot@example.com',
+    password: 'a fine password',
+    captcha: BOT,
+  });
+  expect(bot.statusCode).toBe(400);
+  expect(bot.json().error).toMatch("confirm you're a person");
 
   await alice.request('POST', '/api/logout');
   expect((await alice.request('GET', '/api/me')).json()).toEqual({ user: null });

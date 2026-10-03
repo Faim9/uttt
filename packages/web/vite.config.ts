@@ -7,12 +7,14 @@ export default defineConfig({
     sveltekit({
       adapter: adapter({ fallback: '200.html' }),
       // Emitted as a <meta> tag with hashes of SvelteKit's inline scripts. Inline styles are allowed
-      // because Svelte's style: directives set style attributes.
+      // because Svelte's style: directives set style attributes. Cloudflare Turnstile (the bot check on
+      // sign-up) needs its script and frame.
       csp: {
         mode: 'hash',
         directives: {
           'default-src': ['self'],
-          'script-src': ['self'],
+          'script-src': ['self', 'https://challenges.cloudflare.com'],
+          'frame-src': ['https://challenges.cloudflare.com'],
           'style-src': ['self', 'unsafe-inline'],
           'img-src': ['self', 'data:'],
           'connect-src': ['self'],

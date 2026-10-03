@@ -49,14 +49,15 @@ Data lives in one SQLite file (`uttt.db` by default); schema migrations run on s
 
 Production settings (environment variables):
 
-| Variable           | Purpose                                                                                            |
-| ------------------ | -------------------------------------------------------------------------------------------------- |
-| `PUBLIC_URL`       | Required. The site's address, used in emailed links (e.g. `https://example.com`)                   |
-| `SMTP_URL`         | Email delivery, from any provider (e.g. `smtps://user:pass@smtp.example.com`)                      |
-| `MAIL_FROM`        | Sender address, e.g. `UTTT <noreply@example.com>`                                                  |
-| `PORT`, `HOST`     | Where to listen (default `127.0.0.1:3000`)                                                         |
-| `DATABASE_PATH`    | SQLite file location                                                                               |
-| `CLIENT_IP_HEADER` | Header with the visitor's real address from a trusted proxy (`cf-connecting-ip` behind Cloudflare) |
+| Variable                                     | Purpose                                                                                            |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `PUBLIC_URL`                                 | Required. The site's address, used in emailed links (e.g. `https://example.com`)                   |
+| `SMTP_URL`                                   | Email delivery, from any provider (e.g. `smtps://user:pass@smtp.example.com`)                      |
+| `MAIL_FROM`                                  | Sender address, e.g. `UTTT <noreply@example.com>`                                                  |
+| `PORT`, `HOST`                               | Where to listen (default `127.0.0.1:3000`)                                                         |
+| `DATABASE_PATH`                              | SQLite file location                                                                               |
+| `CLIENT_IP_HEADER`                           | Header with the visitor's real address from a trusted proxy (`cf-connecting-ip` behind Cloudflare) |
+| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile keys for the bot check on sign-up; without them, there's no check             |
 
 Without `SMTP_URL`, emails (verification and password-reset links) are written to the server log instead.
 

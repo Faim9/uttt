@@ -35,8 +35,8 @@
   <ul>
     <li>The server is a computer run by Faim9, in the EU.</li>
     <li>
-      <strong>Cloudflare</strong> delivers the site to your browser and stores our encrypted backups in
-      the EU.
+      <strong>Cloudflare</strong> delivers the site to your browser, checks that sign-ups come from people
+      rather than bots (Turnstile), and stores our encrypted backups in the EU.
     </li>
     <li>
       <strong>An email delivery service</strong> sends our two kinds of email: confirming your address

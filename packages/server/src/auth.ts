@@ -11,6 +11,7 @@ import type { CookieSerializeOptions } from '@fastify/cookie';
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { randomBytes } from 'node:crypto';
 import { BREACHED_MESSAGE, type BreachCheck } from './breach.ts';
+import { NOT_HUMAN_MESSAGE, type HumanCheck } from './captcha.ts';
 import type { Emails } from './email.ts';
 import type { Hub } from './hub.ts';
 import { hashToken, type Store } from './store.ts';
@@ -21,6 +22,7 @@ export interface Services {
   store: Store;
   hub: Hub;
   isBreached: BreachCheck;
+  isHuman: HumanCheck;
   emails: Emails;
   /**
    * Wrong second-factor codes per user. Per-address rate limits alone would let someone who has the
@@ -124,7 +126,7 @@ export function identify(store: Store, request: FastifyRequest): Identity | null
 export const authRoutes =
   (services: Services): FastifyPluginAsync =>
   async (app) => {
-    const { store, hub, isBreached, emails } = services;
+    const { store, hub, isBreached, isHuman, emails } = services;
     function startSession(request: FastifyRequest, reply: FastifyReply, user: User) {
       const token = store.createSession(user.id, request.headers['user-agent'] ?? 'Unknown device');
       reply.setCookie(SESSION_COOKIE, token, { ...cookie, maxAge: 30 * 24 * 3600 });
@@ -141,8 +143,13 @@ export const authRoutes =
       return { user: identity?.user ?? null };
     });
 
+    /** The public Turnstile key the sign-up form needs, or null when the check is off. */
+    app.get('/api/captcha', async () => ({ siteKey: process.env.TURNSTILE_SITE_KEY ?? null }));
+
     app.post('/api/signup', strictLimit, async (request, reply) => {
-      const { username, email, password } = SignupBody.parse(request.body);
+      const { username, email, password, captcha } = SignupBody.parse(request.body);
+      // First, so scripts can't use sign-up to find out which emails are registered.
+      if (!(await isHuman(captcha))) return reply.code(400).send({ error: NOT_HUMAN_MESSAGE });
       if (store.userByName(username)) {
         return reply.code(409).send({ error: 'That username is taken' });
       }

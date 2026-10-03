@@ -34,6 +34,8 @@ export const SignupBody = z.object({
     .regex(/^[A-Za-z0-9_-]{3,20}$/, 'Username must be 3–20 letters, digits, _ or -'),
   email: z.email('Invalid email').max(254),
   password: Password,
+  /** Cloudflare Turnstile's token, when the site has the check on. */
+  captcha: z.string().max(4096).optional(),
 });
 
 /** Tokens from emailed links: 32 random bytes, base64url. */
