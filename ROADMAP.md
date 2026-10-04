@@ -87,6 +87,10 @@ After that, the owner sets priorities:
   clocks; opening one follows it move by move.
 - **Time controls:** six quick-pairing pools (1+0, 2+1, 3+0, 3+2, 5+3, 10+5); challenges take any time
   control from 1+0 to 60+30.
+- **Learn to play:** six one-move lessons at /learn that teach the rules by doing them (nine boards, your
+  move picks their board, winning a small board, free moves after being sent to a closed board, not sending
+  the opponent where they win, winning the game), with hints for wrong moves. Linked from the lobby, the
+  rules card, and the menu.
 - **Sounds:** synthesized with Web Audio (no files): moves, a chime when a board is won, game start (also
   when a search finds an opponent while you browse), game end, a low-time warning under 10 s, and puzzle
   right/wrong. A Sound toggle next to the theme, remembered per browser.

@@ -190,6 +190,10 @@
         <strong>Play a friend</strong>
         <span>Send a link; the game starts when they open it</span>
       </button>
+      <a class="action" href="/learn">
+        <strong>Learn to play</strong>
+        <span>New to Ultimate Tic-Tac-Toe? Six quick lessons</span>
+      </a>
       <a class="action" href="/puzzles?id=daily">
         <strong>Daily puzzle</strong>
         <span>Find the winning move; a new one every day</span>
@@ -232,7 +236,10 @@
       Moves are written <strong>board-cell</strong>, both numbered 1–9 like a phone keypad:
       <code>5-3</code> is the center board, top-right cell.
     </p>
-    <a class="button primary" href="/computer">Try it against the computer</a>
+    <div class="rules-actions">
+      <a class="button primary" href="/learn">Learn by playing</a>
+      <a class="button" href="/computer">Try it against the computer</a>
+    </div>
   </div>
 </section>
 
@@ -481,6 +488,12 @@
     grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
     gap: 1.5rem;
     align-items: start;
+  }
+
+  .rules-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   .rules ol {

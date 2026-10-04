@@ -25,6 +25,7 @@
     { href: '/computer', label: 'Computer' },
     { href: '/analysis', label: 'Analysis' },
     { href: '/leaderboard', label: 'Leaderboard' },
+    { href: '/learn', label: 'Learn' },
   ];
 
   /** Classic follows the system's light or dark mode; the others are fixed looks. See app.css. */
