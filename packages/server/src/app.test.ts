@@ -278,6 +278,20 @@ test('challenges take any time control within the limits', async () => {
   expect(game.clocks.x).toBe(7 * 60_000);
 });
 
+test('live games are listed for spectators, strongest first, until they end', async () => {
+  const app = await newApp();
+  const guests = await pair(await visitor(app), await visitor(app));
+  const rated = await pair(await signedUp(app, 'alice'), await signedUp(app, 'bob'), true);
+  const spectator = await visitor(app);
+
+  const live = (await spectator.request('GET', '/api/games/live')).json();
+  expect(live.map((game: { id: string }) => game.id)).toEqual([rated.gameId, guests.gameId]);
+
+  guests.x.send({ type: 'resign', gameId: guests.gameId });
+  await guests.x.next('game');
+  expect((await spectator.request('GET', '/api/games/live')).json()).toHaveLength(1);
+});
+
 test('a cancelled challenge can no longer be accepted', async () => {
   const app = await newApp();
   const creator = await (await visitor(app)).connect();

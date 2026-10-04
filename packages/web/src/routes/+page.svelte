@@ -123,6 +123,10 @@
       <strong>Analysis board</strong>
       <span>Explore any position with the engine</span>
     </a>
+    <a class="action" href="/watch">
+      <strong>Watch live games</strong>
+      <span>See who's playing right now</span>
+    </a>
   </nav>
 </div>
 

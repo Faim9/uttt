@@ -1,6 +1,7 @@
 import {
   categoryOf,
   ClientMessage,
+  type GameState,
   type Player,
   type ServerMessage,
   type TimeControl,
@@ -107,6 +108,15 @@ export class Hub {
     return [...this.games.values()].some(
       (game) => game.seats.x.userId === userId || game.seats.o.userId === userId,
     );
+  }
+
+  /** Games in progress for spectators, strongest players first. */
+  liveGames(limit = 30): GameState[] {
+    const strength = ({ seats }: LiveGame) => (seats.x.rating ?? 0) + (seats.o.rating ?? 0);
+    return [...this.games.values()]
+      .sort((a, b) => strength(b) - strength(a))
+      .slice(0, limit)
+      .map((game) => game.state());
   }
 
   challenge(id: string) {

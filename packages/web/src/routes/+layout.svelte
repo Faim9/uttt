@@ -16,6 +16,7 @@
 
   const links = [
     { href: '/', label: 'Play' },
+    { href: '/watch', label: 'Watch' },
     { href: '/computer', label: 'Computer' },
     { href: '/analysis', label: 'Analysis' },
     { href: '/leaderboard', label: 'Leaderboard' },

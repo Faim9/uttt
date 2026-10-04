@@ -131,6 +131,9 @@
       <section class="card">
         <h2>{game.timeControl} · {game.rated ? 'Rated' : 'Casual'}</h2>
         <p class="status" aria-live="polite">{status()}</p>
+        {#if active && you === null}
+          <p class="muted">You're watching. <a href="/watch">More live games</a></p>
+        {/if}
         {#if error}
           <p class="error" role="alert">{error}</p>
         {/if}

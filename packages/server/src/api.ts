@@ -38,6 +38,8 @@ export const apiRoutes =
       return store.leaderboard(category);
     });
 
+    app.get('/api/games/live', async () => hub.liveGames());
+
     app.get('/api/challenges/:name', async (request, reply) => {
       const challenge = hub.challenge(Params.parse(request.params).name);
       return (
