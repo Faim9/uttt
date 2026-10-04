@@ -221,7 +221,7 @@
 
   .pools {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 0.75rem;
   }
 
@@ -348,10 +348,6 @@
     .lobby {
       grid-template-columns: minmax(0, 1fr);
       grid-template-areas: 'intro' 'pairing' 'actions';
-    }
-
-    .pools {
-      grid-template-columns: repeat(3, 1fr);
     }
 
     .learn {

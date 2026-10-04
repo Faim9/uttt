@@ -261,6 +261,23 @@ test('games in progress survive a server restart', async () => {
   expect(you).toBeNull();
 });
 
+test('challenges take any time control within the limits', async () => {
+  const app = await newApp();
+  const creator = await (await visitor(app)).connect();
+  creator.send({ type: 'createChallenge', timeControl: '61+0', rated: false, color: 'x' });
+  expect((await creator.next('error')).message).toBe('Invalid message');
+  creator.send({ type: 'createChallenge', timeControl: '7+4', rated: false, color: 'x' });
+  const { id } = await creator.next('challengeCreated');
+
+  const accepter = await (await visitor(app)).connect();
+  accepter.send({ type: 'acceptChallenge', id });
+  const { gameId } = await creator.next('gameStarted');
+  creator.send({ type: 'watch', gameId });
+  const { game } = await creator.next('game');
+  expect(game.timeControl).toBe('7+4');
+  expect(game.clocks.x).toBe(7 * 60_000);
+});
+
 test('a cancelled challenge can no longer be accepted', async () => {
   const app = await newApp();
   const creator = await (await visitor(app)).connect();

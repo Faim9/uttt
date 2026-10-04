@@ -1,12 +1,14 @@
 <script lang="ts">
-  import { TIME_CONTROLS, type Player, type TimeControl } from '@uttt/core';
+  import { isTimeControl, TIME_CONTROLS, type Player } from '@uttt/core';
   import { socket } from './session.svelte.ts';
 
   /** A dialog that creates a challenge link; the game starts when the friend opens it. */
   let { rated }: { rated: boolean } = $props();
 
   let dialog: HTMLDialogElement;
-  let timeControl = $state<TimeControl>('5+3');
+  let minutes = $state(5);
+  let increment = $state(3);
+  const timeControl = $derived(`${minutes}+${increment}`);
   let color = $state<Player | 'random'>('random');
   let link = $state<string | null>(null);
   let creating = $state(false);
@@ -38,6 +40,7 @@
 
   function create() {
     error = '';
+    if (!isTimeControl(timeControl)) return;
     creating = true;
     socket.send({ type: 'createChallenge', timeControl, color, rated });
   }
@@ -66,14 +69,33 @@
     </div>
     <p class="muted waiting">Waiting for your friend…</p>
   {:else}
-    <label>
-      Time control
-      <select bind:value={timeControl}>
-        {#each TIME_CONTROLS as value (value)}
-          <option {value}>{value}</option>
+    <fieldset>
+      <legend>Time control</legend>
+      <div class="presets">
+        {#each TIME_CONTROLS as preset (preset)}
+          <button
+            class="button"
+            aria-pressed={timeControl === preset}
+            onclick={() => ([minutes, increment] = preset.split('+').map(Number))}
+          >
+            {preset}
+          </button>
         {/each}
-      </select>
-    </label>
+      </div>
+      <div class="row">
+        <label>
+          Minutes
+          <input type="number" min="1" max="60" bind:value={minutes} />
+        </label>
+        <label>
+          Increment (seconds)
+          <input type="number" min="0" max="30" bind:value={increment} />
+        </label>
+      </div>
+      {#if !isTimeControl(timeControl)}
+        <p class="error">From 1 to 60 minutes, plus 0 to 30 seconds per move.</p>
+      {/if}
+    </fieldset>
     <label>
       You play
       <select bind:value={color}>
@@ -90,7 +112,11 @@
       >{link ? 'Cancel challenge' : 'Close'}</button
     >
     {#if !link}
-      <button class="button primary" disabled={!socket.connected || creating} onclick={create}>
+      <button
+        class="button primary"
+        disabled={!socket.connected || creating || !isTimeControl(timeControl)}
+        onclick={create}
+      >
         Create link
       </button>
     {/if}
@@ -130,6 +156,40 @@
     display: grid;
     gap: 0.3rem;
     font-weight: 500;
+  }
+
+  fieldset {
+    display: grid;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  legend {
+    margin-bottom: 0.4rem;
+    padding: 0;
+    font-weight: 500;
+  }
+
+  .presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .presets .button {
+    padding: 0.3rem 0.7rem;
+  }
+
+  .presets .button[aria-pressed='true'] {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-text);
+  }
+
+  .row label {
+    flex: 1;
   }
 
   select,

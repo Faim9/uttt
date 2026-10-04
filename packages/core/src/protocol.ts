@@ -3,9 +3,20 @@
 import { z } from 'zod';
 import type { Outcome, Player } from './rules.ts';
 
-/** Time controls as `<minutes>+<increment seconds>`. */
-export const TIME_CONTROLS = ['1+0', '2+1', '3+2', '5+3', '10+5'] as const;
-export type TimeControl = (typeof TIME_CONTROLS)[number];
+/** A time control as `<minutes>+<increment seconds>`, from 1+0 up to 60+30. */
+export type TimeControl = `${number}+${number}`;
+const TIME_CONTROL = /^([1-9]|[1-5]\d|60)\+([12]?\d|30)$/;
+
+export const isTimeControl = (value: unknown): value is TimeControl =>
+  typeof value === 'string' && TIME_CONTROL.test(value);
+
+export const TimeControl = z.custom<TimeControl>(
+  isTimeControl,
+  'Time controls go from 1+0 to 60+30',
+);
+
+/** The quick-pairing pools. Challenges may use any time control. */
+export const TIME_CONTROLS = ['1+0', '2+1', '3+0', '3+2', '5+3', '10+5'] as const;
 
 export const CATEGORIES = ['bullet', 'blitz', 'rapid'] as const;
 export type Category = (typeof CATEGORIES)[number];
@@ -84,7 +95,7 @@ export const ClientMessage = z.discriminatedUnion('type', [
   z.object({ type: z.literal('cancelSeek') }),
   z.object({
     type: z.literal('createChallenge'),
-    timeControl: z.enum(TIME_CONTROLS),
+    timeControl: TimeControl,
     rated: z.boolean(),
     color: z.enum(['x', 'o', 'random']),
   }),
