@@ -1,5 +1,8 @@
 <script lang="ts">
+  import { replaceState } from '$app/navigation';
+  import { page } from '$app/state';
   import { categoryOf, TIME_CONTROLS, type PoolTimeControl } from '@uttt/core';
+  import { onMount } from 'svelte';
   import DemoBoard from '#lib/DemoBoard.svelte';
   import FriendChallenge from '#lib/FriendChallenge.svelte';
   import { session, socket } from '#lib/session.svelte.ts';
@@ -10,6 +13,22 @@
   let now = $state(Date.now());
   let error = $state('');
   let friend: FriendChallenge | undefined = $state();
+  /** Set by "New opponent" after a game (`/?seek=3+2&rated`): starts looking as soon as we're connected. */
+  let autoSeek = $state<{ timeControl: PoolTimeControl; rated: boolean } | null>(null);
+
+  onMount(() => {
+    const timeControl = TIME_CONTROLS.find((pool) => pool === page.url.searchParams.get('seek'));
+    if (!timeControl) return;
+    autoSeek = { timeControl, rated: page.url.searchParams.has('rated') };
+    replaceState('/', {});
+  });
+
+  $effect(() => {
+    if (!autoSeek || !socket.connected || !session.ready) return;
+    rated = autoSeek.rated && ratedBlocker === null;
+    seek(autoSeek.timeControl);
+    autoSeek = null;
+  });
 
   /** Why rated play is unavailable, if it is. */
   const ratedBlocker = $derived(

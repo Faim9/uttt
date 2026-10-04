@@ -1,6 +1,7 @@
 import {
   categoryOf,
   ClientMessage,
+  other,
   type GameState,
   type Player,
   type ServerMessage,
@@ -22,6 +23,8 @@ const MAX_MESSAGES_PER_SECOND = 20;
  * every connection is pinged to measure its lag.
  */
 const TICK_MS = 2000;
+/** How long after a game its players can still agree to a rematch. */
+const REMATCH_MS = 5 * 60_000;
 const ID_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 interface Client {
@@ -37,6 +40,14 @@ interface Seek extends PoolMember {
   client: Client;
   timeControl: TimeControl;
   rated: boolean;
+}
+
+interface Rematch {
+  seats: Record<Player, Seat>;
+  timeControl: TimeControl;
+  rated: boolean;
+  offer: Player | null;
+  endedAt: number;
 }
 
 interface Challenge {
@@ -59,6 +70,8 @@ export class Hub {
   private readonly games = new Map<string, LiveGame>();
   private readonly watchers = new Map<string, Set<Client>>();
   private readonly challenges = new Map<string, Challenge>();
+  /** Finished games whose players may still agree to a rematch. */
+  private readonly rematches = new Map<string, Rematch>();
   private seeks: Seek[] = [];
   private readonly store: Store;
   private readonly log: FastifyBaseLogger;
@@ -71,6 +84,7 @@ export class Hub {
     this.ticker = setInterval(() => {
       this.pairSeeks(true);
       this.pingClients();
+      this.expireRematches();
     }, TICK_MS);
   }
 
@@ -174,6 +188,10 @@ export class Hub {
         return this.liveGame(message.gameId).abort(key);
       case 'claim':
         return this.liveGame(message.gameId).claim(key, message.result);
+      case 'rematch':
+        return this.rematch(client, message.gameId);
+      case 'cancelRematch':
+        return this.cancelRematch(client, message.gameId);
     }
   }
 
@@ -294,11 +312,61 @@ export class Hub {
       }
     }
     this.store.saveGame(game);
+    if (game.termination) {
+      const { timeControl, rated } = game;
+      this.rematches.set(game.id, { seats, timeControl, rated, offer: null, endedAt: Date.now() });
+    }
     const state = game.state();
     for (const client of this.watchers.get(game.id) ?? []) {
       send(client, { type: 'game', game: state, you: game.sideOf(client.identity.key) });
     }
     if (game.termination) this.watchers.delete(game.id);
+  }
+
+  /** Offers a rematch, or accepts the opponent's offer: then a new game starts with colors swapped. */
+  private rematch(client: Client, gameId: string): void {
+    const { rematch, side } = this.rematchFor(client, gameId);
+    const opponentKey = rematch.seats[other(side)].key;
+    const opponent = [...this.clients].findLast((c) => c.identity.key === opponentKey);
+    if (!opponent) throw new GameError('Your opponent has left');
+    if (rematch.offer !== other(side)) {
+      rematch.offer = side;
+      return this.notifyRematch(gameId, rematch);
+    }
+    this.rematches.delete(gameId);
+    const [x, o] = side === 'o' ? [client, opponent] : [opponent, client];
+    this.startGame(x, o, rematch.timeControl, rematch.rated);
+  }
+
+  private cancelRematch(client: Client, gameId: string): void {
+    const { rematch } = this.rematchFor(client, gameId);
+    rematch.offer = null;
+    this.notifyRematch(gameId, rematch);
+  }
+
+  private rematchFor(client: Client, gameId: string) {
+    const rematch = this.rematches.get(gameId);
+    if (!rematch) throw new GameError('Too late for a rematch');
+    const { key } = client.identity;
+    const side = rematch.seats.x.key === key ? 'x' : rematch.seats.o.key === key ? 'o' : null;
+    if (!side) throw new GameError('You did not play this game');
+    return { rematch, side } as const;
+  }
+
+  /** Tells every connection of both players who has offered a rematch. */
+  private notifyRematch(gameId: string, { seats, offer }: Rematch): void {
+    for (const client of this.clients) {
+      const { key } = client.identity;
+      if (key === seats.x.key || key === seats.o.key) {
+        send(client, { type: 'rematch', gameId, by: offer });
+      }
+    }
+  }
+
+  private expireRematches(): void {
+    for (const [id, { endedAt }] of this.rematches) {
+      if (Date.now() - endedAt > REMATCH_MS) this.rematches.delete(id);
+    }
   }
 
   /** Subscribes to a game's updates; works for live and finished games alike. */

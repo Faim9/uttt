@@ -102,7 +102,7 @@ export const RenameBody = z.object({ username: Username });
 export const DISCONNECT_GRACE_MS = 30_000;
 
 const Id = z.string().regex(/^[A-Za-z0-9]{8}$/);
-const GameAction = (type: 'resign' | 'draw' | 'abort') =>
+const GameAction = (type: 'resign' | 'draw' | 'abort' | 'rematch' | 'cancelRematch') =>
   z.object({ type: z.literal(type), gameId: Id });
 
 export const ClientMessage = z.discriminatedUnion('type', [
@@ -122,6 +122,10 @@ export const ClientMessage = z.discriminatedUnion('type', [
   GameAction('draw'),
   GameAction('resign'),
   GameAction('abort'),
+  /** After a game: offers a rematch, or accepts the opponent's offer. */
+  GameAction('rematch'),
+  /** Withdraws your rematch offer, or declines the opponent's. */
+  GameAction('cancelRematch'),
   /** After the opponent has been gone for the grace period: take the win, or settle for a draw. */
   z.object({ type: z.literal('claim'), gameId: Id, result: z.enum(['win', 'draw']) }),
 ]);
@@ -167,4 +171,6 @@ export type ServerMessage =
   | { type: 'game'; game: GameState; you: Player | null }
   | { type: 'gameStarted'; gameId: string }
   | { type: 'challengeCreated'; id: string }
+  /** Who has offered a rematch after `gameId`, or null once the offer is withdrawn or declined. */
+  | { type: 'rematch'; gameId: string; by: Player | null }
   | { type: 'error'; message: string };

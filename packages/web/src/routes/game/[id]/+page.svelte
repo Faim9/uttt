@@ -5,6 +5,7 @@
     formatMove,
     other,
     replay,
+    TIME_CONTROLS,
     type GameState,
     type Player,
   } from '@uttt/core';
@@ -23,6 +24,8 @@
   /** Your last move, shown at once while the server confirms it (`ply` is its 1-based number). */
   let sent = $state<{ move: number; ply: number; at: number } | null>(null);
   let confirmingResign = $state(false);
+  /** Who has offered a rematch since the game ended. */
+  let rematchBy = $state<Player | null>(null);
 
   const unconfirmed = $derived(
     game?.termination === null && sent && game.moves.length < sent.ply ? sent : null,
@@ -52,6 +55,8 @@
         you = message.you;
         receivedAt = now = Date.now();
         error = '';
+      } else if (message.type === 'rematch' && message.gameId === gameId) {
+        rematchBy = message.by;
       } else if (message.type === 'error') {
         error = message.message;
         sent = null;
@@ -89,7 +94,14 @@
     socket.send({ type: 'move', gameId, move });
   }
 
-  function act(type: 'draw' | 'resign' | 'abort') {
+  /** "New opponent" joins the same quick-pairing pool from the home page; custom time controls have none. */
+  const newOpponentLink = $derived(
+    game && (TIME_CONTROLS as readonly string[]).includes(game.timeControl)
+      ? `/?seek=${encodeURIComponent(game.timeControl)}${game.rated ? '&rated' : ''}`
+      : null,
+  );
+
+  function act(type: 'draw' | 'resign' | 'abort' | 'rematch' | 'cancelRematch') {
     error = '';
     confirmingResign = false;
     socket.send({ type, gameId });
@@ -117,6 +129,7 @@
         {position}
         lastMove={moves.at(-1) ?? null}
         disabled={!active || position.turn !== you}
+        over={!active}
         onmove={play}
       />
       <PlayerBar
@@ -180,11 +193,36 @@
             </div>
           {/if}
         {:else if !active}
+          {#if you}
+            {#if rematchBy === other(you)}
+              <p class="offer">Your opponent wants a rematch.</p>
+            {/if}
+            <div class="actions">
+              {#if rematchBy === other(you)}
+                <button class="button primary" onclick={() => act('rematch')}>Accept rematch</button
+                >
+                <button class="button" onclick={() => act('cancelRematch')}>Decline</button>
+              {:else if rematchBy === you}
+                <button class="button" onclick={() => act('cancelRematch')}>Cancel rematch</button>
+              {:else}
+                <button class="button primary" onclick={() => act('rematch')}>Rematch</button>
+              {/if}
+              <a class="button" href={newOpponentLink ?? '/'}>
+                {newOpponentLink ? 'New opponent' : 'New game'}
+              </a>
+            </div>
+            {#if rematchBy === you}
+              <p class="muted waiting">Waiting for your opponent…</p>
+            {/if}
+          {/if}
           <div class="actions">
-            <a class="button primary" href={analysisLink(game.moves, { review: true })}>
+            <a
+              class="button"
+              class:primary={!you}
+              href={analysisLink(game.moves, { review: true })}
+            >
               Review game
             </a>
-            <a class="button" href="/">New game</a>
           </div>
         {/if}
       </section>
@@ -221,6 +259,15 @@
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 0.75rem;
+  }
+
+  .offer {
+    margin: 0.75rem 0 0;
+    font-weight: 600;
+  }
+
+  .waiting {
+    margin: 0.5rem 0 0;
   }
 
   .confirm {

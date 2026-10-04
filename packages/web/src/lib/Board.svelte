@@ -8,13 +8,22 @@
     /** A move to highlight, e.g. the engine's suggestion. */
     hint?: number | null;
     disabled?: boolean;
+    /** The game ended off the board (resignation, time, agreement): nothing left to highlight. */
+    over?: boolean;
     onmove?: (move: number) => void;
   }
 
-  let { position, lastMove = null, hint = null, disabled = false, onmove }: Props = $props();
+  let {
+    position,
+    lastMove = null,
+    hint = null,
+    disabled = false,
+    over = false,
+    onmove,
+  }: Props = $props();
 
   const NINE = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-  const legal = $derived(new Set(legalMoves(position)));
+  const legal = $derived(new Set(over ? [] : legalMoves(position)));
   /** The boards to play in are highlighted even when it isn't your turn; cells are clickable only when it is. */
   const playable = $derived(disabled ? new Set<number>() : legal);
 </script>

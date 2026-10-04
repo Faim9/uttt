@@ -293,6 +293,34 @@ test('live games are listed for spectators, strongest first, until they end', as
   expect((await spectator.request('GET', '/api/games/live')).json()).toHaveLength(1);
 });
 
+test('after a game, both players agreeing to a rematch starts one with colors swapped', async () => {
+  const app = await newApp();
+  const [alice, bob] = [await visitor(app), await visitor(app)];
+  const { gameId, x, o } = await pair(alice, bob);
+  x.send({ type: 'resign', gameId });
+  await Promise.all([x.next('game'), o.next('game')]);
+
+  const stranger = await (await visitor(app)).connect();
+  stranger.send({ type: 'rematch', gameId });
+  expect((await stranger.next('error')).message).toBe('You did not play this game');
+
+  // Both players hear about every offer, their own included.
+  x.send({ type: 'rematch', gameId });
+  expect(await o.next('rematch')).toEqual({ type: 'rematch', gameId, by: 'x' });
+  expect((await x.next('rematch')).by).toBe('x');
+  o.send({ type: 'cancelRematch', gameId });
+  expect((await x.next('rematch')).by).toBeNull();
+  expect((await o.next('rematch')).by).toBeNull();
+
+  x.send({ type: 'rematch', gameId });
+  await o.next('rematch');
+  o.send({ type: 'rematch', gameId });
+  const { gameId: next } = await x.next('gameStarted');
+  expect((await o.next('gameStarted')).gameId).toBe(next);
+  x.send({ type: 'watch', gameId: next });
+  expect((await x.next('game')).you).toBe('o');
+});
+
 test('a cancelled challenge can no longer be accepted', async () => {
   const app = await newApp();
   const creator = await (await visitor(app)).connect();

@@ -5,8 +5,7 @@ work is finished or priorities change. The target product is described in PILLAR
 
 ## Next, in priority order
 
-1. **Public launch** (the owner skipped a soft launch): quick rematch and "new opponent" after a game; then
-   community: follow, block, rating graphs; then move to a rented server (separate from the owner's home
+1. **Public launch** (the owner skipped a soft launch): community: follow, block, rating graphs; then move to a rented server (separate from the owner's home
    network, runs 24/7) with an uptime alert, make the repository public (set `SOURCE_URL`), and launch.
 2. **Bring in players:** plan the launch so new visitors find opponents (owner and Claude to discuss).
 
@@ -47,6 +46,8 @@ After that, the owner sets priorities. Candidates: basic anti-cheat, puzzles, to
   two-factor locks for 15 minutes after 5 wrong codes, at most 50 live connections per address, at most one
   email of each kind per user per minute, Cloudflare Turnstile on sign-up, weekly Dependabot updates.
 - **Terms of use** page, linked from the footer and the sign-up form.
+- **After a game:** rematch (offer, accept or decline; colors swap; offers last 5 minutes) and "New opponent",
+  which goes back to the lobby already looking for a game in the same pool.
 - **Moderation:** players report players (cheating, abuse, username, other) from profiles. Admins (by email in
   `ADMIN_EMAILS`, with a confirmed email and two-factor on) review reports, close and reopen accounts (signed
   out at once, off the leaderboard), rename players (games too), and reset ratings; every action is logged.
