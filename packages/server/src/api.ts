@@ -1,6 +1,7 @@
 import { CATEGORIES } from '@uttt/core';
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
+import { signedIn } from './auth.ts';
 import type { Hub } from './hub.ts';
 import type { Store } from './store.ts';
 
@@ -25,10 +26,16 @@ export const apiRoutes =
           { rating: Math.round(r.rating), provisional: r.provisional, games: r.games },
         ]),
       );
+      // How the signed-in viewer relates to this player, for the Follow and Block buttons.
+      const viewer = signedIn(store, request)?.user.id;
       return {
         username: user.username,
         createdAt: user.createdAt,
         closed: user.closedAt !== null,
+        followers: store.followerCount(user.id),
+        following: viewer !== undefined && store.isFollowing(viewer, user.id),
+        blocked: viewer !== undefined && store.hasBlocked(viewer, user.id),
+        history: store.ratingHistory(user.id),
         ratings,
         games: store.recentGames(user.id),
       };

@@ -7,6 +7,8 @@
 export interface PoolMember {
   /** Players can't be paired with themselves (e.g. seeking from two tabs). */
   key: string;
+  /** Keys of players this member must not meet: blocked by them, or blocking them. */
+  avoid?: ReadonlySet<string>;
   rating: number;
   provisional: boolean;
   /** Pairing waves this member has waited through unpaired. */
@@ -21,7 +23,7 @@ const waitBonus = (member: PoolMember) => Math.min(member.misses * 12, 460);
 
 /** Lower is better; null means the pair may not play. */
 export function pairScore(a: PoolMember, b: PoolMember): number | null {
-  if (a.key === b.key) return null;
+  if (a.key === b.key || a.avoid?.has(b.key) || b.avoid?.has(a.key)) return null;
   const score =
     Math.abs(a.rating - b.rating) -
     Math.min(waitBonus(a), waitBonus(b)) -

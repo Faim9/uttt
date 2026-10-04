@@ -21,7 +21,18 @@ import type { GameInit, LiveGame } from './game.ts';
 import { DEFAULT_RATING, PROVISIONAL_DEVIATION, decay, rate, type Rating } from './glicko.ts';
 import * as schema from './schema.ts';
 
-const { users, sessions, emailTokens, ratings, games, reports, auditLog } = schema;
+const {
+  users,
+  sessions,
+  emailTokens,
+  ratings,
+  games,
+  reports,
+  auditLog,
+  follows,
+  blocks,
+  ratingHistory,
+} = schema;
 
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
@@ -343,7 +354,10 @@ export class Store {
 
   /** Back to a provisional 1500 in every category. */
   resetRatings(userId: number): void {
-    this.db.delete(ratings).where(eq(ratings.userId, userId)).run();
+    this.db.transaction(() => {
+      this.db.delete(ratings).where(eq(ratings.userId, userId)).run();
+      this.db.delete(ratingHistory).where(eq(ratingHistory.userId, userId)).run();
+    });
   }
 
   createReport(report: {
@@ -400,6 +414,91 @@ export class Store {
     return this.db.select().from(auditLog).orderBy(desc(auditLog.id)).limit(limit).all();
   }
 
+  // Follows and blocks
+
+  follow(followerId: number, followedId: number): void {
+    this.db
+      .insert(follows)
+      .values({ followerId, followedId, createdAt: new Date() })
+      .onConflictDoNothing()
+      .run();
+  }
+
+  unfollow(followerId: number, followedId: number): void {
+    this.db
+      .delete(follows)
+      .where(and(eq(follows.followerId, followerId), eq(follows.followedId, followedId)))
+      .run();
+  }
+
+  isFollowing(followerId: number, followedId: number): boolean {
+    const row = this.db
+      .select()
+      .from(follows)
+      .where(and(eq(follows.followerId, followerId), eq(follows.followedId, followedId)))
+      .get();
+    return row !== undefined;
+  }
+
+  followerCount(userId: number): number {
+    const row = this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(follows)
+      .where(eq(follows.followedId, userId))
+      .get();
+    return row?.count ?? 0;
+  }
+
+  /** The players `userId` follows, by name. */
+  following(userId: number) {
+    return this.db
+      .select({ id: users.id, username: users.username })
+      .from(follows)
+      .innerJoin(users, eq(follows.followedId, users.id))
+      .where(and(eq(follows.followerId, userId), isNull(users.closedAt)))
+      .orderBy(lower(users.username))
+      .all();
+  }
+
+  /** Blocking also ends follows both ways. */
+  block(blockerId: number, blockedId: number): void {
+    this.db.transaction(() => {
+      this.db
+        .insert(blocks)
+        .values({ blockerId, blockedId, createdAt: new Date() })
+        .onConflictDoNothing()
+        .run();
+      this.unfollow(blockerId, blockedId);
+      this.unfollow(blockedId, blockerId);
+    });
+  }
+
+  unblock(blockerId: number, blockedId: number): void {
+    this.db
+      .delete(blocks)
+      .where(and(eq(blocks.blockerId, blockerId), eq(blocks.blockedId, blockedId)))
+      .run();
+  }
+
+  hasBlocked(blockerId: number, blockedId: number): boolean {
+    const row = this.db
+      .select()
+      .from(blocks)
+      .where(and(eq(blocks.blockerId, blockerId), eq(blocks.blockedId, blockedId)))
+      .get();
+    return row !== undefined;
+  }
+
+  /** Player keys (`u:<id>`) the user must not be paired with: those they blocked, and those blocking them. */
+  blockedKeys(userId: number): Set<string> {
+    const rows = this.db
+      .select({ blocker: blocks.blockerId, blocked: blocks.blockedId })
+      .from(blocks)
+      .where(or(eq(blocks.blockerId, userId), eq(blocks.blockedId, userId)))
+      .all();
+    return new Set(rows.map((row) => `u:${row.blocker === userId ? row.blocked : row.blocker}`));
+  }
+
   // Ratings
 
   /** A player's current rating, with deviation grown for the time they've been inactive. */
@@ -434,18 +533,40 @@ export class Store {
         x: rate(before.x, [{ opponent: before.o, score: xScore }]),
         o: rate(before.o, [{ opponent: before.x, score: 1 - xScore }]),
       };
+      const now = new Date();
       for (const side of ['x', 'o'] as const) {
-        const values = { ...after[side], games: before[side].games + 1, updatedAt: new Date() };
+        const values = { ...after[side], games: before[side].games + 1, updatedAt: now };
         this.db
           .insert(ratings)
           .values({ userId: userIds[side], category, ...values })
           .onConflictDoUpdate({ target: [ratings.userId, ratings.category], set: values })
+          .run();
+        const rating = Math.round(after[side].rating);
+        this.db
+          .insert(ratingHistory)
+          .values({ userId: userIds[side], category, rating, at: now })
           .run();
       }
       const diff = (side: Player) =>
         Math.round(after[side].rating) - Math.round(before[side].rating);
       return { x: diff('x'), o: diff('o') };
     });
+  }
+
+  /** Each category's rating after every rated game, oldest first. */
+  ratingHistory(userId: number): Record<Category, { rating: number; at: Date }[]> {
+    const rows = this.db
+      .select()
+      .from(ratingHistory)
+      .where(eq(ratingHistory.userId, userId))
+      .orderBy(ratingHistory.at)
+      .all();
+    return Object.fromEntries(
+      CATEGORIES.map((category) => [
+        category,
+        rows.filter((row) => row.category === category).map(({ rating, at }) => ({ rating, at })),
+      ]),
+    ) as Record<Category, { rating: number; at: Date }[]>;
   }
 
   leaderboard(category: Category, limit = 50) {

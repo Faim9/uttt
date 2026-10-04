@@ -576,6 +576,74 @@ test('admins close, reopen, rename, and reset players, and every action is logge
   ]);
 });
 
+test('following shows who is online and what they are playing', async () => {
+  const app = await newApp();
+  const [alice, bob, carol] = [
+    await signedUp(app, 'alice'),
+    await signedUp(app, 'bob'),
+    await signedUp(app, 'carol'),
+  ];
+  expect((await alice.request('POST', '/api/users/alice/follow')).statusCode).toBe(400);
+  await alice.request('POST', '/api/users/bob/follow');
+  await alice.request('POST', '/api/users/carol/follow');
+  expect((await carol.request('GET', '/api/users/bob')).json()).toMatchObject({
+    followers: 1,
+    following: false,
+  });
+  expect((await alice.request('GET', '/api/users/bob')).json().following).toBe(true);
+
+  const { gameId } = await pair(bob, await visitor(app));
+  expect((await alice.request('GET', '/api/following')).json()).toEqual([
+    { username: 'bob', online: true, gameId },
+    { username: 'carol', online: false, gameId: null },
+  ]);
+  await alice.request('POST', '/api/users/carol/unfollow');
+  expect((await alice.request('GET', '/api/following')).json()).toHaveLength(1);
+});
+
+test('blocked players are never paired, and blocking ends follows', async () => {
+  const app = await newApp();
+  const [alice, bob] = [await signedUp(app, 'alice'), await signedUp(app, 'bob')];
+  await bob.request('POST', '/api/users/alice/follow');
+  await alice.request('POST', '/api/users/bob/block');
+  expect((await bob.request('GET', '/api/following')).json()).toEqual([]);
+  expect((await alice.request('GET', '/api/users/bob')).json().blocked).toBe(true);
+
+  // Seeking the same pool, they wait; a third player gets paired instead.
+  const [a, b] = [await alice.connect(), await bob.connect()];
+  a.send({ type: 'seek', timeControl: '3+2', rated: false });
+  b.send({ type: 'seek', timeControl: '3+2', rated: false });
+  const carol = await (await visitor(app)).connect();
+  carol.send({ type: 'seek', timeControl: '3+2', rated: false });
+  const { gameId } = await carol.next('gameStarted');
+  const paired = await Promise.race([a.next('gameStarted'), b.next('gameStarted')]);
+  expect(paired.gameId).toBe(gameId);
+
+  b.send({ type: 'cancelSeek' });
+  b.send({ type: 'createChallenge', timeControl: '5+3', rated: false, color: 'x' });
+  const { id } = await b.next('challengeCreated');
+  const blocked = await alice.connect();
+  blocked.send({ type: 'acceptChallenge', id });
+  expect((await blocked.next('error')).message).toBe("You can't play this player");
+});
+
+test('rated games build a rating history, which a ratings reset clears', async () => {
+  const app = await newApp();
+  const boss = await admin(app);
+  const [alice, bob] = [await signedUp(app, 'alice'), await signedUp(app, 'bob')];
+  const { gameId, x } = await pair(alice, bob, true);
+  x.send({ type: 'move', gameId, move: parseMove('5-5') });
+  await x.next('game');
+  x.send({ type: 'resign', gameId });
+  await x.next('game');
+
+  const { history } = (await bob.request('GET', '/api/users/alice')).json();
+  expect(history.blitz).toHaveLength(1);
+  expect(history.bullet).toEqual([]);
+  await boss.request('POST', '/api/admin/users/alice/reset-ratings');
+  expect((await bob.request('GET', '/api/users/alice')).json().history.blitz).toEqual([]);
+});
+
 test('the health check reports a working database', async () => {
   const app = await newApp();
   expect((await app.inject({ method: 'GET', url: '/api/health' })).json()).toEqual({ ok: true });

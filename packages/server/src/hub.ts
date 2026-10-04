@@ -124,6 +124,16 @@ export class Hub {
     );
   }
 
+  /** Whether a user is connected, and the game they're playing, if any; for the people following them. */
+  status(userId: number): { online: boolean; gameId: string | null } {
+    const key = `u:${userId}`;
+    const online = [...this.clients].some((client) => client.identity.key === key);
+    const game = [...this.games.values()].find(
+      ({ seats }) => seats.x.key === key || seats.o.key === key,
+    );
+    return { online, gameId: game?.id ?? null };
+  }
+
   /** Games in progress for spectators, strongest players first. */
   liveGames(limit = 30): GameState[] {
     const strength = ({ seats }: LiveGame) => (seats.x.rating ?? 0) + (seats.o.rating ?? 0);
@@ -210,6 +220,7 @@ export class Hub {
       key,
       rating: rating.rating,
       provisional: rating.provisional,
+      avoid: user ? this.store.blockedKeys(user.id) : undefined,
       misses: 0,
     });
     this.pairSeeks(false);
@@ -270,6 +281,7 @@ export class Hub {
       throw new GameError("You can't accept your own challenge");
     }
     requireAccountIfRated({ ...challenge, client });
+    this.refuseIfBlocked(challenge.client, client);
     this.challenges.delete(id);
     const creatorSide = challenge.color === 'random' ? randomSide() : challenge.color;
     const [x, o] = creatorSide === 'x' ? [challenge.client, client] : [client, challenge.client];
@@ -329,6 +341,7 @@ export class Hub {
     const opponentKey = rematch.seats[other(side)].key;
     const opponent = [...this.clients].findLast((c) => c.identity.key === opponentKey);
     if (!opponent) throw new GameError('Your opponent has left');
+    this.refuseIfBlocked(client, opponent);
     if (rematch.offer !== other(side)) {
       rematch.offer = side;
       return this.notifyRematch(gameId, rematch);
@@ -351,6 +364,14 @@ export class Hub {
     const side = rematch.seats.x.key === key ? 'x' : rematch.seats.o.key === key ? 'o' : null;
     if (!side) throw new GameError('You did not play this game');
     return { rematch, side } as const;
+  }
+
+  /** Players who blocked each other, either way, don't play each other. */
+  private refuseIfBlocked(a: Client, b: Client): void {
+    const [userA, userB] = [a.identity.user, b.identity.user];
+    if (userA && userB && this.store.blockedKeys(userA.id).has(`u:${userB.id}`)) {
+      throw new GameError("You can't play this player");
+    }
   }
 
   /** Tells every connection of both players who has offered a rematch. */

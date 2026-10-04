@@ -2,6 +2,7 @@
   import { page } from '$app/state';
   import { CATEGORIES, type Category, type GameState, type Player } from '@uttt/core';
   import { playerName, resultText } from '#lib/game.ts';
+  import RatingGraph from '#lib/RatingGraph.svelte';
   import ReportDialog from '#lib/ReportDialog.svelte';
   import { api, session } from '#lib/session.svelte.ts';
 
@@ -9,7 +10,12 @@
     username: string;
     createdAt: string;
     closed: boolean;
+    followers: number;
+    /** How the signed-in viewer relates to this player. */
+    following: boolean;
+    blocked: boolean;
     ratings: Record<Category, { rating: number; provisional: boolean; games: number }>;
+    history: Record<Category, { rating: number; at: string }[]>;
     games: GameState[];
   }
 
@@ -17,14 +23,41 @@
   let profile = $state<Profile | null>(null);
   let error = $state('');
   let report: ReportDialog | undefined = $state();
+  /** The category whose rating graph is shown; picked by clicking its rating. */
+  let graphed = $state<Category>('blitz');
   const isMe = $derived(session.user?.username.toLowerCase() === username.toLowerCase());
+  const path = $derived(`/api/users/${encodeURIComponent(username)}`);
+
+  async function load() {
+    try {
+      const loaded = await api<Profile>('GET', path);
+      // Start on the category with the most rated games.
+      if (profile?.username !== loaded.username) {
+        graphed = CATEGORIES.reduce((a, b) =>
+          loaded.history[b].length > loaded.history[a].length ? b : a,
+        );
+      }
+      profile = loaded;
+    } catch (e) {
+      error = (e as Error).message;
+    }
+  }
 
   $effect(() => {
     profile = null;
-    api<Profile>('GET', `/api/users/${encodeURIComponent(username)}`)
-      .then((loaded) => (profile = loaded))
-      .catch((e: Error) => (error = e.message));
+    load();
   });
+
+  async function relate(action: 'follow' | 'unfollow' | 'block' | 'unblock') {
+    if (
+      action === 'block' &&
+      !confirm(`Block ${username}? You won't be paired or play each other.`)
+    ) {
+      return;
+    }
+    await api('POST', `${path}/${action}`);
+    await load();
+  }
 
   /** The side this profile's player had in `game`. */
   const sideOf = (game: GameState, name: string): Player =>
@@ -40,10 +73,26 @@
   <header>
     <div>
       <h1>{profile.username}</h1>
-      <p class="muted">Joined {new Date(profile.createdAt).toLocaleDateString()}</p>
+      <p class="muted">
+        Joined {new Date(profile.createdAt).toLocaleDateString()} ·
+        {profile.followers}
+        {profile.followers === 1 ? 'follower' : 'followers'}
+      </p>
     </div>
     {#if session.user && !isMe}
       <div class="actions">
+        {#if profile.blocked}
+          <button class="button" onclick={() => relate('unblock')}>Unblock</button>
+        {:else}
+          <button
+            class="button"
+            class:primary={!profile.following}
+            onclick={() => relate(profile?.following ? 'unfollow' : 'follow')}
+          >
+            {profile.following ? 'Following' : 'Follow'}
+          </button>
+          <button class="button" onclick={() => relate('block')}>Block</button>
+        {/if}
         <button class="button" onclick={() => report?.open()}>Report</button>
       </div>
     {/if}
@@ -56,13 +105,22 @@
   <div class="ratings">
     {#each CATEGORIES as category (category)}
       {@const rating = profile.ratings[category]}
-      <div class="card">
+      <button
+        class="card rating"
+        aria-pressed={graphed === category}
+        onclick={() => (graphed = category)}
+      >
         <h2>{category}</h2>
         <strong>{rating.rating}{rating.provisional ? '?' : ''}</strong>
         <span class="muted">{rating.games} {rating.games === 1 ? 'game' : 'games'}</span>
-      </div>
+      </button>
     {/each}
   </div>
+
+  <section class="card graph">
+    <h2>{graphed} rating over time</h2>
+    <RatingGraph points={profile.history[graphed]} />
+  </section>
 
   <section class="card">
     <h2>Recent games</h2>
@@ -125,9 +183,22 @@
     margin: 1.5rem 0;
   }
 
+  .rating {
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .rating[aria-pressed='true'] {
+    border-color: var(--accent);
+  }
+
   .ratings strong {
     display: block;
     font-size: 1.75rem;
+  }
+
+  .graph {
+    margin-bottom: 1rem;
   }
 
   .games {

@@ -138,3 +138,53 @@ export const auditLog = sqliteTable('audit_log', {
   details: text().notNull(),
   createdAt: integer({ mode: 'timestamp_ms' }).notNull(),
 });
+
+/** Who follows whom; following shows a player's online status and games on your home page. */
+export const follows = sqliteTable(
+  'follows',
+  {
+    followerId: integer()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    followedId: integer()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: integer({ mode: 'timestamp_ms' }).notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.followerId, t.followedId] }),
+    index('follows_followed').on(t.followedId),
+  ],
+);
+
+/** Blocked players are never paired with, challenged by, or offered rematches by the blocker. */
+export const blocks = sqliteTable(
+  'blocks',
+  {
+    blockerId: integer()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    blockedId: integer()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: integer({ mode: 'timestamp_ms' }).notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.blockerId, t.blockedId] }),
+    index('blocks_blocked').on(t.blockedId),
+  ],
+);
+
+/** A player's rating after each rated game, for the graphs on profiles. */
+export const ratingHistory = sqliteTable(
+  'rating_history',
+  {
+    userId: integer()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    category: text({ enum: CATEGORIES }).notNull(),
+    rating: integer().notNull(),
+    at: integer({ mode: 'timestamp_ms' }).notNull(),
+  },
+  (t) => [index('rating_history_user').on(t.userId, t.category, t.at)],
+);

@@ -4,6 +4,7 @@
   import { categoryOf, TIME_CONTROLS, type PoolTimeControl } from '@uttt/core';
   import { onMount } from 'svelte';
   import DemoBoard from '#lib/DemoBoard.svelte';
+  import FollowingList from '#lib/Following.svelte';
   import FriendChallenge from '#lib/FriendChallenge.svelte';
   import { session, socket } from '#lib/session.svelte.ts';
 
@@ -129,24 +130,27 @@
     {/if}
   </section>
 
-  <nav class="actions" aria-label="Other ways to play">
-    <button class="action" onclick={() => friend?.open()}>
-      <strong>Play a friend</strong>
-      <span>Send a link; the game starts when they open it</span>
-    </button>
-    <a class="action" href="/computer">
-      <strong>Play the computer</strong>
-      <span>Six levels, from first steps to a real fight</span>
-    </a>
-    <a class="action" href="/analysis">
-      <strong>Analysis board</strong>
-      <span>Explore any position with the engine</span>
-    </a>
-    <a class="action" href="/watch">
-      <strong>Watch live games</strong>
-      <span>See who's playing right now</span>
-    </a>
-  </nav>
+  <aside class="actions">
+    <nav class="ways" aria-label="Other ways to play">
+      <button class="action" onclick={() => friend?.open()}>
+        <strong>Play a friend</strong>
+        <span>Send a link; the game starts when they open it</span>
+      </button>
+      <a class="action" href="/computer">
+        <strong>Play the computer</strong>
+        <span>Six levels, from first steps to a real fight</span>
+      </a>
+      <a class="action" href="/analysis">
+        <strong>Analysis board</strong>
+        <span>Explore any position with the engine</span>
+      </a>
+      <a class="action" href="/watch">
+        <strong>Watch live games</strong>
+        <span>See who's playing right now</span>
+      </a>
+    </nav>
+    <FollowingList />
+  </aside>
 </div>
 
 <FriendChallenge bind:this={friend} {rated} />
@@ -316,6 +320,10 @@
 
   .actions {
     grid-area: actions;
+  }
+
+  .actions,
+  .ways {
     display: grid;
     gap: 0.75rem;
     align-content: start;
