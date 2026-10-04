@@ -40,10 +40,12 @@ const Password = z
   .min(8, 'Password must be at least 8 characters')
   .max(128, 'Password must be at most 128 characters');
 
+const Username = z
+  .string()
+  .regex(/^[A-Za-z0-9_-]{3,20}$/, 'Username must be 3–20 letters, digits, _ or -');
+
 export const SignupBody = z.object({
-  username: z
-    .string()
-    .regex(/^[A-Za-z0-9_-]{3,20}$/, 'Username must be 3–20 letters, digits, _ or -'),
+  username: Username,
   email: z.email('Invalid email').max(254),
   password: Password,
   /** Cloudflare Turnstile's token, when the site has the check on. */
@@ -83,6 +85,18 @@ export const DeleteAccountBody = z.object({
 });
 
 export const DisableTwoFactorBody = z.object({ password: z.string().min(1).max(128) });
+
+export const REPORT_REASONS = ['cheating', 'abuse', 'username', 'other'] as const;
+export type ReportReason = (typeof REPORT_REASONS)[number];
+
+export const ReportBody = z.object({
+  username: Username,
+  reason: z.enum(REPORT_REASONS),
+  details: z.string().trim().min(1, 'Tell us what happened').max(1000),
+});
+
+export const CloseAccountBody = z.object({ reason: z.string().trim().min(1).max(500) });
+export const RenameBody = z.object({ username: Username });
 
 /** How long a player must be gone from a running game before the opponent may claim it. */
 export const DISCONNECT_GRACE_MS = 30_000;

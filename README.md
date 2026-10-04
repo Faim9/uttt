@@ -57,6 +57,7 @@ Production settings (environment variables):
 | `PORT`, `HOST`                               | Where to listen (default `127.0.0.1:3000`)                                                         |
 | `DATABASE_PATH`                              | SQLite file location                                                                               |
 | `CLIENT_IP_HEADER`                           | Header with the visitor's real address from a trusted proxy (`cf-connecting-ip` behind Cloudflare) |
+| `ADMIN_EMAILS`                               | Comma-separated emails of admin accounts (they also need a confirmed email and two-factor on)      |
 | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile keys for the bot check on sign-up; without them, there's no check             |
 
 Without `SMTP_URL`, emails (verification and password-reset links) are written to the server log instead.

@@ -6,12 +6,14 @@ import {
   type GameState,
   type Outcome,
   type Player,
+  type ReportReason,
   type TimeControl,
   type User,
 } from '@uttt/core';
 import Database from 'better-sqlite3';
 import { and, desc, eq, gt, isNull, lte, ne, or, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { alias } from 'drizzle-orm/sqlite-core';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { createHash, randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -19,7 +21,7 @@ import type { GameInit, LiveGame } from './game.ts';
 import { DEFAULT_RATING, PROVISIONAL_DEVIATION, decay, rate, type Rating } from './glicko.ts';
 import * as schema from './schema.ts';
 
-const { users, sessions, emailTokens, ratings, games } = schema;
+const { users, sessions, emailTokens, ratings, games, reports, auditLog } = schema;
 
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
@@ -74,7 +76,12 @@ export class Store {
 
   userByName(username: string) {
     return this.db
-      .select({ id: users.id, username: users.username, createdAt: users.createdAt })
+      .select({
+        id: users.id,
+        username: users.username,
+        createdAt: users.createdAt,
+        closedAt: users.closedAt,
+      })
       .from(users)
       .where(eq(lower(users.username), username.toLowerCase()))
       .get();
@@ -101,6 +108,8 @@ export class Store {
         email: users.email,
         emailVerifiedAt: users.emailVerifiedAt,
         createdAt: users.createdAt,
+        closedAt: users.closedAt,
+        closedReason: users.closedReason,
       })
       .from(users)
       .where(eq(users.id, userId))
@@ -231,6 +240,7 @@ export class Store {
         id: users.id,
         username: users.username,
         emailVerifiedAt: users.emailVerifiedAt,
+        closedAt: users.closedAt,
         expiresAt: sessions.expiresAt,
         lastSeenAt: sessions.lastSeenAt,
       })
@@ -238,7 +248,7 @@ export class Store {
       .innerJoin(users, eq(sessions.userId, users.id))
       .where(eq(sessions.id, id))
       .get();
-    if (!row) return undefined;
+    if (!row || row.closedAt) return undefined;
 
     const now = Date.now();
     const remainingMs = row.expiresAt.getTime() - now;
@@ -302,6 +312,94 @@ export class Store {
       .map((row) => row.id);
   }
 
+  // Moderation
+
+  /** Closes an account for breaking the terms: signed out everywhere; returns the sessions removed. */
+  closeAccount(userId: number, reason: string): string[] {
+    this.db
+      .update(users)
+      .set({ closedAt: new Date(), closedReason: reason })
+      .where(eq(users.id, userId))
+      .run();
+    return this.deleteOtherSessions(userId);
+  }
+
+  reopenAccount(userId: number): void {
+    this.db
+      .update(users)
+      .set({ closedAt: null, closedReason: null })
+      .where(eq(users.id, userId))
+      .run();
+  }
+
+  /** Renames a user, including on their past games. */
+  rename(userId: number, username: string): void {
+    this.db.transaction(() => {
+      this.db.update(users).set({ username }).where(eq(users.id, userId)).run();
+      this.db.update(games).set({ xUsername: username }).where(eq(games.xUserId, userId)).run();
+      this.db.update(games).set({ oUsername: username }).where(eq(games.oUserId, userId)).run();
+    });
+  }
+
+  /** Back to a provisional 1500 in every category. */
+  resetRatings(userId: number): void {
+    this.db.delete(ratings).where(eq(ratings.userId, userId)).run();
+  }
+
+  createReport(report: {
+    reporterId: number;
+    reportedId: number;
+    reason: ReportReason;
+    details: string;
+  }): void {
+    this.db
+      .insert(reports)
+      .values({ ...report, createdAt: new Date() })
+      .run();
+  }
+
+  /** Unresolved reports, oldest first, with both players' current usernames. */
+  openReports() {
+    const reporter = alias(users, 'reporter');
+    return this.db
+      .select({
+        id: reports.id,
+        reporter: reporter.username,
+        reported: users.username,
+        reason: reports.reason,
+        details: reports.details,
+        createdAt: reports.createdAt,
+      })
+      .from(reports)
+      .innerJoin(users, eq(reports.reportedId, users.id))
+      .leftJoin(reporter, eq(reports.reporterId, reporter.id))
+      .where(isNull(reports.resolvedAt))
+      .orderBy(reports.createdAt)
+      .all();
+  }
+
+  /** Marks a report as dealt with; returns false if there was no open report with that id. */
+  resolveReport(id: number): boolean {
+    const resolved = this.db
+      .update(reports)
+      .set({ resolvedAt: new Date() })
+      .where(and(eq(reports.id, id), isNull(reports.resolvedAt)))
+      .returning({ id: reports.id })
+      .all();
+    return resolved.length > 0;
+  }
+
+  logAdminAction(entry: { admin: string; action: string; target: string; details: string }): void {
+    this.db
+      .insert(auditLog)
+      .values({ ...entry, createdAt: new Date() })
+      .run();
+  }
+
+  adminLog(limit = 100) {
+    return this.db.select().from(auditLog).orderBy(desc(auditLog.id)).limit(limit).all();
+  }
+
   // Ratings
 
   /** A player's current rating, with deviation grown for the time they've been inactive. */
@@ -361,6 +459,7 @@ export class Store {
           eq(ratings.category, category),
           lte(ratings.deviation, PROVISIONAL_DEVIATION),
           gt(ratings.updatedAt, activeSince),
+          isNull(users.closedAt),
         ),
       )
       .orderBy(desc(ratings.rating))

@@ -19,6 +19,7 @@ import {
   type Services,
 } from './auth.ts';
 import { BREACHED_MESSAGE } from './breach.ts';
+import { isAdmin } from './moderation.ts';
 import {
   hashRecoveryCode,
   matchingStep,
@@ -56,6 +57,7 @@ export const accountRoutes =
         emailVerified: Boolean(account?.emailVerifiedAt),
         twoFactor: store.twoFactor(user.id) !== null,
         sessions: store.sessions(user.id, token),
+        admin: isAdmin(services, user.id),
       };
     };
 

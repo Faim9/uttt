@@ -8,6 +8,7 @@
     email: string;
     emailVerified: boolean;
     twoFactor: boolean;
+    admin: boolean;
     sessions: {
       id: string;
       createdAt: string;
@@ -78,6 +79,10 @@
 {:else if account}
   {#if error}<p class="card message error" role="alert">{error}</p>{/if}
   {#if notice}<p class="card message" role="status">{notice}</p>{/if}
+
+  {#if account.admin}
+    <p class="card"><a href="/admin">Admin tools</a>: reports, players, and the action log.</p>
+  {/if}
 
   <section class="card">
     <h2>Account</h2>

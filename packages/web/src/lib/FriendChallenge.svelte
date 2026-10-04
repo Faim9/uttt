@@ -107,7 +107,7 @@
     <p class="muted">{rated ? 'Rated game' : 'Casual game'}: change it on the main page.</p>
     {#if error}<p class="error" role="alert">{error}</p>{/if}
   {/if}
-  <div class="row end">
+  <div class="actions">
     <button class="button" onclick={() => dialog.close()}
       >{link ? 'Cancel challenge' : 'Close'}</button
     >
@@ -124,40 +124,6 @@
 </dialog>
 
 <style>
-  dialog {
-    width: min(26rem, calc(100vw - 2rem));
-    padding: 1.25rem;
-    border: var(--border-width) solid var(--border);
-    border-radius: var(--radius);
-    background: var(--surface);
-    box-shadow: var(--shadow);
-    color: var(--text);
-  }
-
-  dialog::backdrop {
-    background: rgb(0 0 0 / 0.45);
-  }
-
-  dialog[open] {
-    display: grid;
-    gap: 0.9rem;
-  }
-
-  h2 {
-    margin: 0;
-    font-size: 1.3rem;
-  }
-
-  p {
-    margin: 0;
-  }
-
-  label {
-    display: grid;
-    gap: 0.3rem;
-    font-weight: 500;
-  }
-
   fieldset {
     display: grid;
     gap: 0.6rem;
@@ -192,35 +158,13 @@
     flex: 1;
   }
 
-  select,
-  input {
-    padding: 0.5rem 0.6rem;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg);
-  }
-
-  .row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-  }
-
   .row input {
     flex: 1;
     min-width: 0;
   }
 
-  .end {
-    justify-content: flex-end;
-  }
-
   .waiting {
     animation: pulse 1.6s ease-in-out infinite;
-  }
-
-  .error {
-    color: var(--blunder);
   }
 
   @keyframes pulse {

@@ -37,6 +37,7 @@ async function newApp(store = new Store(':memory:')) {
     isBreached: async (password) => password === BREACHED,
     isHuman: async (captcha) => captcha !== BOT,
     sendMail: async (message) => void mailbox.push(message),
+    adminEmails: ['admin@example.com'],
   });
   apps.push(app);
   return app;
@@ -472,6 +473,79 @@ test('one address can hold at most 50 live connections', async () => {
   const { socket } = await guest.connect();
   const code = await new Promise((resolve) => socket.on('close', resolve));
   expect(code).toBe(1008);
+});
+
+/** Signs up `admin@example.com` (an admin by email) and turns on the two-factor admins need. */
+async function admin(app: App) {
+  const user = await signedUp(app, 'admin');
+  const { secret } = (await user.request('POST', '/api/account/2fa/setup')).json();
+  await user.request('POST', '/api/account/2fa/enable', {
+    secret,
+    code: codeAt(secret, currentStep()),
+  });
+  return user;
+}
+
+test('players can report players; only admins with two-factor see reports', async () => {
+  const app = await newApp();
+  const alice = await signedUp(app, 'alice');
+  await signedUp(app, 'mallory');
+  const report = { username: 'mallory', reason: 'abuse', details: 'Insults in every game' };
+  expect((await (await visitor(app)).request('POST', '/api/reports', report)).statusCode).toBe(401);
+  expect((await alice.request('POST', '/api/reports', report)).statusCode).toBe(200);
+
+  expect((await alice.request('GET', '/api/admin/reports')).statusCode).toBe(403);
+  const notYet = await signedUp(app, 'admin');
+  expect((await notYet.request('GET', '/api/account')).json().admin).toBe(false);
+  expect((await notYet.request('GET', '/api/admin/reports')).statusCode).toBe(403);
+});
+
+test('admins close, reopen, rename, and reset players, and every action is logged', async () => {
+  const app = await newApp();
+  const boss = await admin(app);
+  expect((await boss.request('GET', '/api/account')).json().admin).toBe(true);
+  const mallory = await signedUp(app, 'mallory');
+  await mallory.request('POST', '/api/reports', {
+    username: 'admin',
+    reason: 'other',
+    details: 'Just testing',
+  });
+  const [{ id }] = (await boss.request('GET', '/api/admin/reports')).json();
+
+  const close = await boss.request('POST', '/api/admin/users/mallory/close', { reason: 'Abuse' });
+  expect(close.statusCode).toBe(200);
+  expect((await mallory.request('GET', '/api/me')).json().user).toBeNull();
+  const login = await mallory.request('POST', '/api/login', {
+    login: 'mallory',
+    password: PASSWORD,
+  });
+  expect(login.statusCode).toBe(403);
+  expect((await boss.request('GET', '/api/users/mallory')).json().closed).toBe(true);
+
+  await boss.request('POST', '/api/admin/users/mallory/reopen');
+  const again = await mallory.request('POST', '/api/login', {
+    login: 'mallory',
+    password: PASSWORD,
+  });
+  expect(again.statusCode).toBe(200);
+
+  const rename = (username: string) =>
+    boss.request('POST', '/api/admin/users/mallory/rename', { username });
+  expect((await rename('admin')).statusCode).toBe(409);
+  expect((await rename('friendly')).statusCode).toBe(200);
+  expect((await boss.request('GET', '/api/users/friendly')).statusCode).toBe(200);
+  await boss.request('POST', '/api/admin/users/friendly/reset-ratings');
+  await boss.request('POST', `/api/admin/reports/${id}/resolve`);
+  expect((await boss.request('GET', '/api/admin/reports')).json()).toEqual([]);
+
+  const log = (await boss.request('GET', '/api/admin/log')).json();
+  expect(log.map((entry: { action: string }) => entry.action)).toEqual([
+    'resolve report',
+    'reset ratings',
+    'rename',
+    'reopen account',
+    'close account',
+  ]);
 });
 
 test('the health check reports a working database', async () => {

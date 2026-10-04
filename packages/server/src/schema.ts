@@ -1,4 +1,4 @@
-import { CATEGORIES } from '@uttt/core';
+import { CATEGORIES, REPORT_REASONS } from '@uttt/core';
 import { sql } from 'drizzle-orm';
 import {
   index,
@@ -26,6 +26,9 @@ export const users = sqliteTable(
     totpLastStep: integer(),
     /** JSON array of SHA-256 hashes of the unused recovery codes. */
     recoveryCodes: text({ mode: 'json' }).$type<string[]>(),
+    /** Set when an admin closes the account for breaking the terms; it can't sign in until reopened. */
+    closedAt: integer({ mode: 'timestamp_ms' }),
+    closedReason: text(),
   },
   (t) => [uniqueIndex('users_username_lower').on(sql`lower(${t.username})`)],
 );
@@ -106,3 +109,32 @@ export const games = sqliteTable(
     index('games_termination').on(t.termination),
   ],
 );
+
+/** Players reporting other players; admins review and resolve them. */
+export const reports = sqliteTable(
+  'reports',
+  {
+    id: integer().primaryKey({ autoIncrement: true }),
+    /** Null once the reporter deletes their account; the report still stands. */
+    reporterId: integer().references(() => users.id, { onDelete: 'set null' }),
+    reportedId: integer()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    reason: text({ enum: REPORT_REASONS }).notNull(),
+    details: text().notNull(),
+    createdAt: integer({ mode: 'timestamp_ms' }).notNull(),
+    resolvedAt: integer({ mode: 'timestamp_ms' }),
+  },
+  (t) => [index('reports_open').on(t.resolvedAt)],
+);
+
+/** Every admin action, kept even if the admin's or the target's account is later deleted. */
+export const auditLog = sqliteTable('audit_log', {
+  id: integer().primaryKey({ autoIncrement: true }),
+  admin: text().notNull(),
+  action: text().notNull(),
+  /** The affected username at the time, e.g. before a rename. */
+  target: text().notNull(),
+  details: text().notNull(),
+  createdAt: integer({ mode: 'timestamp_ms' }).notNull(),
+});

@@ -24,6 +24,8 @@ export interface Services {
   isBreached: BreachCheck;
   isHuman: HumanCheck;
   emails: Emails;
+  /** Lower-case emails of the admin accounts; see moderation.ts. */
+  adminEmails: string[];
   /**
    * Wrong second-factor codes per user. Per-address rate limits alone would let someone who has the
    * password guess the 6-digit code from many addresses.
@@ -168,6 +170,11 @@ export const authRoutes =
       const valid = await verify(user?.passwordHash ?? DUMMY_HASH, password);
       if (!user || !valid) {
         return reply.code(401).send({ error: 'Invalid username or password' });
+      }
+      if (user.closedAt) {
+        return reply
+          .code(403)
+          .send({ error: 'This account was closed for breaking the terms of use.' });
       }
       // `twoFactor` tells the client to ask for a code and send the login again.
       if (user.totpSecret && !code) {

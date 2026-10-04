@@ -28,6 +28,7 @@ export const apiRoutes =
       return {
         username: user.username,
         createdAt: user.createdAt,
+        closed: user.closedAt !== null,
         ratings,
         games: store.recentGames(user.id),
       };

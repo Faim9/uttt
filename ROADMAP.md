@@ -5,14 +5,12 @@ work is finished or priorities change. The target product is described in PILLAR
 
 ## Next, in priority order
 
-1. **Soft launch** (still hosted from the owner's computer, docs/deploy.md "On your own computer"). Done:
-   security review fixes, Turnstile on sign-up, Dependabot, terms of use. Left:
-   - Make https://github.com/Faim9/uttt public and set `SOURCE_URL`.
-2. **Public launch:** move to a rented server (separates the site from the owner's home network, runs
-   24/7), basic admin tools (ban, rename, delete a game) with an audit log, an uptime alert, online rematch.
+1. **Public launch** (the owner skipped a soft launch): quick rematch and "new opponent" after a game; then
+   community: follow, block, rating graphs; then move to a rented server (separate from the owner's home
+   network, runs 24/7) with an uptime alert, make the repository public (set `SOURCE_URL`), and launch.
+2. **Bring in players:** plan the launch so new visitors find opponents (owner and Claude to discuss).
 
-After that, the owner sets priorities. Candidates: basic anti-cheat, social features (follow, block), rating
-graphs on profiles.
+After that, the owner sets priorities. Candidates: basic anti-cheat, puzzles, tournaments.
 
 ## Done
 
@@ -49,6 +47,9 @@ graphs on profiles.
   two-factor locks for 15 minutes after 5 wrong codes, at most 50 live connections per address, at most one
   email of each kind per user per minute, Cloudflare Turnstile on sign-up, weekly Dependabot updates.
 - **Terms of use** page, linked from the footer and the sign-up form.
+- **Moderation:** players report players (cheating, abuse, username, other) from profiles. Admins (by email in
+  `ADMIN_EMAILS`, with a confirmed email and two-factor on) review reports, close and reopen accounts (signed
+  out at once, off the leaderboard), rename players (games too), and reset ratings; every action is logged.
 - **Spectating:** a Watch page lists live games (strongest players first) as mini boards with running
   clocks; opening one follows it move by move.
 - **Time controls:** six quick-pairing pools (1+0, 2+1, 3+0, 3+2, 5+3, 10+5); challenges take any time

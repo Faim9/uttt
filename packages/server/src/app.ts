@@ -12,6 +12,7 @@ import { isBreached as checkBreaches, type BreachCheck } from './breach.ts';
 import { turnstile, type HumanCheck } from './captcha.ts';
 import { Emails, smtpMailer, type SendMail } from './email.ts';
 import { Hub } from './hub.ts';
+import { moderationRoutes } from './moderation.ts';
 import type { Store } from './store.ts';
 
 export interface AppOptions {
@@ -27,6 +28,8 @@ export interface AppOptions {
   isHuman?: HumanCheck;
   /** Email transport; tests replace it to read the emails. */
   sendMail?: SendMail;
+  /** Emails of the admin accounts, e.g. from `ADMIN_EMAILS=a@example.com,b@example.com`. */
+  adminEmails?: string[];
 }
 
 /**
@@ -52,6 +55,7 @@ export async function buildApp({
   isBreached = checkBreaches,
   isHuman = turnstile(),
   sendMail,
+  adminEmails = (process.env.ADMIN_EMAILS ?? '').split(','),
 }: AppOptions) {
   const app = Fastify({ logger });
   const siteOrigin = new URL(publicUrl).origin;
@@ -90,10 +94,12 @@ export async function buildApp({
     isBreached,
     isHuman,
     emails,
+    adminEmails: adminEmails.map((email) => email.trim().toLowerCase()).filter(Boolean),
     secondFactorFailures: new Map(),
   };
   await app.register(authRoutes(services));
   await app.register(accountRoutes(services));
+  await app.register(moderationRoutes(services));
   await app.register(apiRoutes(store, hub));
 
   // Open connections per visitor address, capped so one visitor can't exhaust the server's memory.

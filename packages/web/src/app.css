@@ -255,6 +255,67 @@ a.button:hover {
   margin-bottom: 0.5rem;
 }
 
+/* Pop-up dialogs (native <dialog>, opened with showModal). */
+dialog {
+  width: min(26rem, calc(100vw - 2rem));
+  padding: 1.25rem;
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--text);
+}
+
+dialog::backdrop {
+  background: rgb(0 0 0 / 0.45);
+}
+
+dialog[open] {
+  display: grid;
+  gap: 0.9rem;
+}
+
+dialog h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+dialog p {
+  margin: 0;
+}
+
+dialog label {
+  display: grid;
+  gap: 0.3rem;
+  font-weight: 500;
+}
+
+dialog select,
+dialog input,
+dialog textarea {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+dialog .row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+dialog .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+dialog .error {
+  color: var(--blunder);
+}
+
 /* Board on the left, side panel on the right; stacked on narrow screens. */
 .board-layout {
   display: grid;

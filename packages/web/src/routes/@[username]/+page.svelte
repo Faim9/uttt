@@ -2,11 +2,13 @@
   import { page } from '$app/state';
   import { CATEGORIES, type Category, type GameState, type Player } from '@uttt/core';
   import { playerName, resultText } from '#lib/game.ts';
-  import { api } from '#lib/session.svelte.ts';
+  import ReportDialog from '#lib/ReportDialog.svelte';
+  import { api, session } from '#lib/session.svelte.ts';
 
   interface Profile {
     username: string;
     createdAt: string;
+    closed: boolean;
     ratings: Record<Category, { rating: number; provisional: boolean; games: number }>;
     games: GameState[];
   }
@@ -14,6 +16,8 @@
   const username = $derived(page.params.username ?? '');
   let profile = $state<Profile | null>(null);
   let error = $state('');
+  let report: ReportDialog | undefined = $state();
+  const isMe = $derived(session.user?.username.toLowerCase() === username.toLowerCase());
 
   $effect(() => {
     profile = null;
@@ -33,8 +37,21 @@
 </script>
 
 {#if profile}
-  <h1>{profile.username}</h1>
-  <p class="muted">Joined {new Date(profile.createdAt).toLocaleDateString()}</p>
+  <header>
+    <div>
+      <h1>{profile.username}</h1>
+      <p class="muted">Joined {new Date(profile.createdAt).toLocaleDateString()}</p>
+    </div>
+    {#if session.user && !isMe}
+      <div class="actions">
+        <button class="button" onclick={() => report?.open()}>Report</button>
+      </div>
+    {/if}
+  </header>
+  {#if profile.closed}
+    <p class="card closed">This account was closed for breaking the terms of use.</p>
+  {/if}
+  <ReportDialog bind:this={report} username={profile.username} />
 
   <div class="ratings">
     {#each CATEGORIES as category (category)}
@@ -75,8 +92,30 @@
 {/if}
 
 <style>
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: start;
+    justify-content: space-between;
+  }
+
   h1 {
     margin: 0;
+  }
+
+  header p {
+    margin: 0.25rem 0 0;
+  }
+
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .closed {
+    margin: 1rem 0 0;
+    border-color: var(--blunder);
   }
 
   .ratings {
