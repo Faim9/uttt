@@ -49,6 +49,10 @@ After that, the owner sets priorities. Candidates: basic anti-cheat, puzzles, to
 - **Community:** follow players (follower counts; a "Following" card on the home page shows who's online and
   links to their games), block players (never paired, no challenges or rematches; ends follows), and rating
   graphs per category on profiles (history recorded per rated game, backfilled from past games).
+- **Lobby for a small player base:** an honest activity line (players in games and looking, guests included),
+  "N waiting" on each pool, a "Play now" button that joins the pool where someone already waits (3+2
+  otherwise), and a search that follows you around the site: play the computer while you wait (suggested after
+  20 s alone), and you're taken to your game when someone joins.
 - **After a game:** rematch (offer, accept or decline; colors swap; offers last 5 minutes) and "New opponent",
   which goes back to the lobby already looking for a game in the same pool.
 - **Moderation:** players report players (cheating, abuse, username, other) from profiles. Admins (by email in

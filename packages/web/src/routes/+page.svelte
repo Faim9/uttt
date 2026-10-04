@@ -6,73 +6,78 @@
   import DemoBoard from '#lib/DemoBoard.svelte';
   import FollowingList from '#lib/Following.svelte';
   import FriendChallenge from '#lib/FriendChallenge.svelte';
-  import { session, socket } from '#lib/session.svelte.ts';
+  import { search, startSearch, stopSearch } from '#lib/search.svelte.ts';
+  import { api, session, socket } from '#lib/session.svelte.ts';
 
-  let rated = $state(false);
-  let seeking = $state<PoolTimeControl | null>(null);
-  let seekStart = $state(0);
+  let rated = $state(search.rated);
   let now = $state(Date.now());
-  let error = $state('');
   let friend: FriendChallenge | undefined = $state();
-  /** Set by "New opponent" after a game (`/?seek=3+2&rated`): starts looking as soon as we're connected. */
-  let autoSeek = $state<{ timeControl: PoolTimeControl; rated: boolean } | null>(null);
-
-  onMount(() => {
-    const timeControl = TIME_CONTROLS.find((pool) => pool === page.url.searchParams.get('seek'));
-    if (!timeControl) return;
-    autoSeek = { timeControl, rated: page.url.searchParams.has('rated') };
-    replaceState('/', {});
+  /** Players in games, and players waiting per pool (`3+2`, `3+2 rated`), refreshed every few seconds. */
+  let activity = $state<{ playing: number; seeking: Record<string, number> }>({
+    playing: 0,
+    seeking: {},
   });
 
-  $effect(() => {
-    if (!autoSeek || !socket.connected || !session.ready) return;
-    rated = autoSeek.rated && ratedBlocker === null;
-    seek(autoSeek.timeControl);
-    autoSeek = null;
-  });
+  const ALONE_MS = 20_000;
+  const ACTIVITY_MS = 3000;
 
-  /** Why rated play is unavailable, if it is. */
+  /** Why rated play is unavailable, if it is (unknown until the session has loaded). */
   const ratedBlocker = $derived(
-    !session.user ? 'signin' : !session.user.emailVerified ? 'verify' : null,
+    !session.ready
+      ? null
+      : !session.user
+        ? 'signin'
+        : !session.user.emailVerified
+          ? 'verify'
+          : null,
   );
 
   $effect(() => {
     if (ratedBlocker) rated = false;
   });
 
-  // The server forgets seeks when the connection drops or we leave the page.
-  $effect(() => {
-    if (!socket.connected) seeking = null;
-  });
-  $effect(() => () => socket.send({ type: 'cancelSeek' }));
+  onMount(() => {
+    const refresh = () =>
+      api<typeof activity>('GET', '/api/lobby').then(
+        (loaded) => (activity = loaded),
+        () => {}, // A missed refresh is fine; the next one catches up.
+      );
+    refresh();
+    const timers = [setInterval(refresh, ACTIVITY_MS), setInterval(() => (now = Date.now()), 1000)];
 
-  // Ticks the "searching" time; the accepted rating gap widens as it grows.
-  $effect(() => {
-    if (!seeking) return;
-    const timer = setInterval(() => (now = Date.now()), 1000);
-    return () => clearInterval(timer);
+    // "New opponent" after a game links here (`/?seek=3+2&rated`) to start looking straight away.
+    const pool = TIME_CONTROLS.find((tc) => tc === page.url.searchParams.get('seek'));
+    if (pool) {
+      rated = page.url.searchParams.has('rated');
+      startSearch(pool, rated);
+      replaceState('/', {});
+    }
+    return () => timers.forEach(clearInterval);
   });
 
-  $effect(() =>
-    socket.listen((message) => {
-      if (message.type === 'error' && seeking) {
-        error = message.message;
-        seeking = null;
-      }
-    }),
+  /** Others waiting in a pool of the chosen kind, not counting you. */
+  function waiting(pool: PoolTimeControl): number {
+    const count = activity.seeking[rated ? `${pool} rated` : pool] ?? 0;
+    return search.pool === pool && search.rated === rated ? Math.max(0, count - 1) : count;
+  }
+
+  /** "Play now" joins the pool where someone is already waiting, so players meet; 3+2 by default. */
+  const busiest = $derived(
+    TIME_CONTROLS.reduce<PoolTimeControl>(
+      (best, pool) => (waiting(pool) > waiting(best) ? pool : best),
+      '3+2',
+    ),
+  );
+  const searchedFor = $derived(Math.floor((now - search.since) / 1000));
+  /** Others looking for a game, not counting you. */
+  const lookingCount = $derived(
+    Object.values(activity.seeking).reduce((sum, n) => sum + n, 0) - (search.pool ? 1 : 0),
   );
 
   /** One click starts looking for an opponent; clicking the same time control again stops. */
-  function seek(timeControl: PoolTimeControl) {
-    error = '';
-    if (seeking === timeControl) {
-      socket.send({ type: 'cancelSeek' });
-      seeking = null;
-    } else {
-      socket.send({ type: 'seek', timeControl, rated });
-      seeking = timeControl;
-      seekStart = now = Date.now();
-    }
+  function seek(pool: PoolTimeControl) {
+    if (search.pool === pool) stopSearch();
+    else startSearch(pool, rated);
   }
 </script>
 
@@ -80,17 +85,25 @@
   <section class="intro">
     <h1>Ultimate Tic-Tac-Toe</h1>
     <p class="muted">Nine boards, one game. Every move decides where your opponent plays next.</p>
+    <p class="activity">
+      {#if activity.playing + lookingCount > 0}
+        <span class="live" aria-hidden="true"></span>
+        {activity.playing} playing · {lookingCount} looking for a game
+      {:else}
+        No games right now. Start one, and the next visitor plays you.
+      {/if}
+    </p>
   </section>
 
   <section class="pairing" aria-label="Quick pairing">
     <div class="mode">
       <div class="toggle" role="group" aria-label="Game type">
-        <button aria-pressed={!rated} disabled={!!seeking} onclick={() => (rated = false)}>
+        <button aria-pressed={!rated} disabled={!!search.pool} onclick={() => (rated = false)}>
           Casual
         </button>
         <button
           aria-pressed={rated}
-          disabled={!!seeking || ratedBlocker !== null}
+          disabled={!!search.pool || ratedBlocker !== null}
           onclick={() => (rated = true)}
         >
           Rated
@@ -104,27 +117,50 @@
       {/if}
     </div>
 
+    <button
+      class="button primary play-now"
+      disabled={!socket.connected || search.pool !== null}
+      onclick={() => startSearch(busiest, rated)}
+    >
+      Play now
+      <span>
+        {busiest} · {waiting(busiest) > 0
+          ? `${waiting(busiest)} waiting`
+          : 'the usual meeting point'}
+      </span>
+    </button>
+
     <div class="pools">
       {#each TIME_CONTROLS as timeControl (timeControl)}
+        {@const others = waiting(timeControl)}
         <button
           class="pool"
-          class:searching={seeking === timeControl}
-          disabled={!socket.connected || (seeking !== null && seeking !== timeControl)}
+          class:searching={search.pool === timeControl}
+          disabled={!socket.connected || (search.pool !== null && search.pool !== timeControl)}
           onclick={() => seek(timeControl)}
         >
           <strong>{timeControl}</strong>
-          {#if seeking === timeControl}
-            <span class="status">Searching {Math.floor((now - seekStart) / 1000)}s</span>
+          {#if search.pool === timeControl}
+            <span class="status">Searching {searchedFor}s</span>
             <span class="cancel">Click to cancel</span>
           {:else}
             <span class="status">{categoryOf(timeControl)}</span>
+          {/if}
+          {#if others > 0}
+            <span class="badge">{others} waiting</span>
           {/if}
         </button>
       {/each}
     </div>
 
-    {#if error}
-      <p class="error" role="alert">{error}</p>
+    {#if search.error}
+      <p class="error" role="alert">{search.error}</p>
+    {:else if search.pool && now - search.since > ALONE_MS}
+      <p class="alone">
+        No one else is looking for {search.pool} right now.
+        <a href="/computer">Play the computer while you wait</a>: you'll be taken to your game as
+        soon as someone joins.
+      </p>
     {:else if !socket.connected && session.ready}
       <p class="muted">Connecting…</p>
     {/if}
@@ -244,6 +280,59 @@
   .toggle button:disabled:not([aria-pressed='true']) {
     opacity: 0.45;
     cursor: default;
+  }
+
+  .activity {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0.5rem 0 0;
+    font-weight: 500;
+  }
+
+  .live {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--hint);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  .play-now {
+    display: grid;
+    padding: 0.8rem 1rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .play-now span {
+    font-size: 0.85rem;
+    font-weight: 400;
+    opacity: 0.85;
+  }
+
+  .badge {
+    margin-top: 0.25rem;
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--hint) 18%, transparent);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .alone {
+    margin: 0;
+    padding: 0.6rem 0.8rem;
+    border-left: 4px solid var(--accent);
+    border-radius: 4px;
+    background: var(--surface);
   }
 
   .pools {

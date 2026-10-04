@@ -3,6 +3,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import Logo from '#lib/Logo.svelte';
+  import SearchBar from '#lib/SearchBar.svelte';
   import { authenticate, session, socket, startSession } from '#lib/session.svelte.ts';
   import { onMount } from 'svelte';
 
@@ -73,6 +74,7 @@
     </span>
   </nav>
 </header>
+<SearchBar />
 
 <main>
   {@render children()}

@@ -48,6 +48,9 @@ export const apiRoutes =
 
     app.get('/api/games/live', async () => hub.liveGames());
 
+    /** For the lobby: how many are playing, and how many wait in each pool (`3+2`, `3+2 rated`). */
+    app.get('/api/lobby', async () => hub.activity());
+
     app.get('/api/challenges/:name', async (request, reply) => {
       const challenge = hub.challenge(Params.parse(request.params).name);
       return (

@@ -134,6 +134,16 @@ export class Hub {
     return { online, gameId: game?.id ?? null };
   }
 
+  /** What's happening right now, guests included: players in games, and who's waiting in each pool. */
+  activity(): { playing: number; seeking: Record<string, number> } {
+    const seeking: Record<string, number> = {};
+    for (const seek of this.seeks) {
+      const pool = seek.rated ? `${seek.timeControl} rated` : seek.timeControl;
+      seeking[pool] = (seeking[pool] ?? 0) + 1;
+    }
+    return { playing: this.games.size * 2, seeking };
+  }
+
   /** Games in progress for spectators, strongest players first. */
   liveGames(limit = 30): GameState[] {
     const strength = ({ seats }: LiveGame) => (seats.x.rating ?? 0) + (seats.o.rating ?? 0);

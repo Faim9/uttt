@@ -321,6 +321,19 @@ test('after a game, both players agreeing to a rematch starts one with colors sw
   expect((await x.next('game')).you).toBe('o');
 });
 
+test('the lobby counts players in games and players waiting in each pool', async () => {
+  const app = await newApp();
+  const spectator = await visitor(app);
+  await pair(await visitor(app), await visitor(app));
+  const waiting = await (await visitor(app)).connect();
+  waiting.send({ type: 'seek', timeControl: '5+3', rated: false });
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  expect((await spectator.request('GET', '/api/lobby')).json()).toEqual({
+    playing: 2,
+    seeking: { '5+3': 1 },
+  });
+});
+
 test('a cancelled challenge can no longer be accepted', async () => {
   const app = await newApp();
   const creator = await (await visitor(app)).connect();
