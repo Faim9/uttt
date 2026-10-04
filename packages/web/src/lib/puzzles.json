@@ -1,0 +1,2007 @@
+[
+  {
+    "position": "..o.o.oxx/x....o..o/oox.o..xx/x......../......xxx/..xo.x..x/..o.xoxoo/xxx..ooo./oxo.o.x.o x -",
+    "line": ["4-3", "3-4", "4-2"],
+    "winIn": 2
+  },
+  {
+    "position": "x..xo.x.o/.xxo..oo./o.xox.x../.x.xo.oxx/x.o..o..o/..o.xo..o/.o.o.xxox/.x...xo../.oooxx..x x -",
+    "line": ["2-1"],
+    "winIn": 1
+  },
+  {
+    "position": "x.o..o..o/x..x.o.../x..o.o.../xo..oxxo./..xooo.../.oxxx.oxx/ox.o.x.../....xoxo./....x..x. o 9",
+    "line": ["9-6", "6-1", "7-7"],
+    "winIn": 2
+  },
+  {
+    "position": "..x.x.x../.oxx.ooxx/oo..o..o./.o.o.x..x/ooxoxoo.o/oxx.xo.../ox.xxx.../o.x....../.x..x..oo x 8",
+    "line": ["8-2", "2-1", "4-3"],
+    "winIn": 2
+  },
+  {
+    "position": ".xx..xoxo/oxox..xxo/xoxx.xoxo/ooo..x.../x.oxx...o/..o.ooox./ooxx..x../oooo...../.x..x..x. o -",
+    "line": ["5-6"],
+    "winIn": 1
+  },
+  {
+    "position": ".o.xo..o./xxox..oox/x..x..xo./.o..o..o./xxoxo.o../.oox.x.../o.xoxox.x/.x..x..xo/xo.x.o... o -",
+    "line": ["6-1"],
+    "winIn": 1
+  },
+  {
+    "position": "o.xxoxx../.o.xxxxo./.o.o.xoxx/xo.xo..ox/ox..x..x./ooo....../...oo..xx/oxoo.x.ox/x..oo.oxo x -",
+    "line": ["1-9", "9-2", "3-3"],
+    "winIn": 2
+  },
+  {
+    "position": "x.x.oo.x./.x.oo.xxx/.ox.xox../.o.oooxxo/oxxxooxox/...xxx.o./oo..o..oo/.xoxxoxox/oo.xx.xo. o -",
+    "line": ["1-4"],
+    "winIn": 1
+  },
+  {
+    "position": "xxox.ooox/..o..o.xo/xxx....../oo.xo..../o.o.xoo../x..ox.x.o/o..xxx.../x.o.xxoox/ox...o.x. x 6",
+    "line": ["6-6", "6-2", "9-5"],
+    "winIn": 2
+  },
+  {
+    "position": "..o.o.oxx/x....o..o/ooxoo..xx/x.x....../......xxx/..xo.x..x/..o.xoxoo/xxx..ooo./oxo.o.x.o x 4",
+    "line": ["4-2"],
+    "winIn": 1
+  },
+  {
+    "position": "..x.x.xoo/xoo.x.xoo/ox.xox.xo/ox.o..o../..o.o.o../o.o..ox.x/.x..xxox./.oxx..oxo/xxxx..o.. o -",
+    "line": ["6-2"],
+    "winIn": 1
+  },
+  {
+    "position": "xxox.xoo./.o.xxx.o./.ox.o...x/o..o.o.x./x...xoo.x/ox..oxo.o/xxx.o..../o..x.x.../ooo...x.x o -",
+    "line": ["3-8"],
+    "winIn": 1
+  },
+  {
+    "position": "xoxx.ooo./o.....xxx/...o..xx./x.ooxx.x./..ox.ox.o/xx.ox..../.o..o.xo./x..ooox../oo......x o -",
+    "line": ["9-3"],
+    "winIn": 1
+  },
+  {
+    "position": "xoox.oo.o/xxoo.x.x./..x.x.ooo/x...o..o./ooo.xx.../oo...x..o/xxx...o../xo.xo..x./..x.x.x.. x -",
+    "line": ["8-7"],
+    "winIn": 1
+  },
+  {
+    "position": "xoo.x.ox./xxxo.oxx./.oxooo.../.ox.o.o.x/ooxxoxo.x/xxx..o.../...xxxo../ooo.x..../o.oxxox.o x -",
+    "line": ["4-6"],
+    "winIn": 1
+  },
+  {
+    "position": "o.xx..xxx/..o.o.x../.x....oxo/o....oxo./x..xo.x../...xxx.../oxooo..o./oox.oox../o....o.xx x -",
+    "line": ["9-7"],
+    "winIn": 1
+  },
+  {
+    "position": "...x..xo./o.x..x..x/....o.ox./x...x.o.x/.ox.oo.xx/......ox./.x..x..x./.oo.ooox./o..o..o.. x 6",
+    "line": ["6-5", "5-1", "1-1"],
+    "winIn": 2
+  },
+  {
+    "position": "oxx.x.ox./o....xox./.xo.oxo.x/..o..o..o/..xxox..x/xooxooox./.xox.xxxo/.o.x.oooo/o.x.oxxx. o 2",
+    "line": ["2-2", "2-3", "9-9"],
+    "winIn": 2
+  },
+  {
+    "position": "o.x..x..x/.x.x.x..o/x.oox...o/ooxxoo.xx/x.xooooxo/x.ox..xo./...oooxx./...ooo.../x..x..x.o x -",
+    "line": ["3-2", "2-1", "3-8"],
+    "winIn": 2
+  },
+  {
+    "position": "xxoox.oox/xx.x..ooo/ooxxo.xxo/xxxoxoo../x.oxo.x../oo.o.xx../oxoo.xxox/.ox..x.ox/ooo.xooxx x -",
+    "line": ["6-3", "6-5", "6-9"],
+    "winIn": 2
+  },
+  {
+    "position": "......x.o/.x.ooo.../o.ox...../.x.oxo.x./..x...xoo/...xxxo../xxo...oxx/..x..ooox/...o.ooxx x 3",
+    "line": ["3-7", "7-4", "5-5"],
+    "winIn": 2
+  },
+  {
+    "position": "x...xoxoo/.xxx.o.o./oo....xo./o..o.xo../.....xoxo/.oxxxo.ox/..o.o.oxx/xoxxoxxxo/xx.x.o.o. o 1",
+    "line": ["1-3"],
+    "winIn": 1
+  },
+  {
+    "position": "oo.oo.xx./xxx...o.o/x.o.x...x/xo..ox.../..o.o.oxx/...oxo.x./x.xo..ox./ooox..xo./..oxxx..o x 4",
+    "line": ["4-7", "7-6", "6-2"],
+    "winIn": 2
+  },
+  {
+    "position": "x..oox.../....o...x/x..xo.x../..x.o..oo/..oxxxx../..o..o.xo/o.o.xooxx/.o..ox..x/ox.x..xoo x 1",
+    "line": ["1-9", "9-3", "7-2"],
+    "winIn": 2
+  },
+  {
+    "position": "xxox.xoo./ooxo.xo../ox.xo..../o.ox.oxox/xx..x..ox/.x.ooo.../....ox.ox/o..x.xxxx/xo.oo..ox o -",
+    "line": ["3-9"],
+    "winIn": 1
+  },
+  {
+    "position": "..ox..o.x/xox.oo..x/.xo.x.ox./ooo..x.../..x...oox/...x.xxoo/oxx.oo.xo/x..x..xo./.xxoxo..o o -",
+    "line": ["1-5"],
+    "winIn": 1
+  },
+  {
+    "position": "o..o.xx.x/.xo..o.xo/o.xx.o.o./....ooxxx/xxooo.xo./.oxx.x..x/oo..x...o/.x.oxo.../xxx.o.o.o x -",
+    "line": ["3-5", "5-6", "3-7"],
+    "winIn": 2
+  },
+  {
+    "position": "....o...o/x.o..ox.x/...xxx.../xoo.oxo.x/.xo.x..x./.x.o.oxox/...ooo.../..oxxx.../.oo...x.. o 9",
+    "line": ["9-6", "6-1", "1-1"],
+    "winIn": 2
+  },
+  {
+    "position": "o.xo..o.x/..oox...x/xx.o.xoox/.oxx.o.ox/.ox.ooox./x.o.xx.oo/x..xxx.../.xoxx.ox./..o..o..o o -",
+    "line": ["5-4"],
+    "winIn": 1
+  },
+  {
+    "position": ".xx...ooo/o.o..oxx./.ox.oxo.o/......xx./x...x...x/xxx..o.o./.oooo.xxo/ox..oxxoo/.o....xxx x 2",
+    "line": ["2-2", "2-4", "4-9"],
+    "winIn": 2
+  },
+  {
+    "position": "xxo..o..o/oxxo.oox./.o.xxx.o./ooo.x..../xx..oxxox/xx..o.oxx/x..x.o..o/xxo.oo.x./.oxxo..o. o -",
+    "line": ["7-3"],
+    "winIn": 1
+  },
+  {
+    "position": "...ooo.ox/x.ooxo..x/...xxx.../xxoxoxoox/ox..x..x./xoooox..o/..ox.x.../.xox....o/.o.o.xox. x 7",
+    "line": ["7-5"],
+    "winIn": 1
+  },
+  {
+    "position": "oooox.xx./xo.xo.oxo/oxx.xx.xo/.xo.x.ox./xx.oxoo.o/x.x..o..o/.x..ox.ox/oo.oo.ox./x.ox..x.. x 7",
+    "line": ["7-7", "7-1", "6-2"],
+    "winIn": 2
+  },
+  {
+    "position": "..xox.x.x/ooox.oox./oxxxox..o/xxoo.xxx./xx.ox..o./.xo..o..o/ox.oooxx./xx.o..oo./o...oxx.. o -",
+    "line": ["9-9"],
+    "winIn": 1
+  },
+  {
+    "position": ".ox.o..o./x.o...oxx/.x..x.oo./.o..x.xo./.o.ooxx.x/o..x..x.o/..o..o.xo/x..x.ox.o/xxx.xxo.o o -",
+    "line": ["2-5", "5-1", "3-9"],
+    "winIn": 2
+  },
+  {
+    "position": "......xxx/.oo.x...x/.x..x..x./.x.xo.xox/..oxo.xxx/o..o..o../..ooox..x/...o.xooo/..oooxoxo x 7",
+    "line": ["7-7", "7-2", "2-1"],
+    "winIn": 2
+  },
+  {
+    "position": ".x.xxxo.x/...ooo.../o.xo..o../oxo...xx./.x.xx..oo/oxx.....o/.xxooox.x/o...o.oxo/o..x.xxxo o 4",
+    "line": ["4-9", "9-5", "5-7"],
+    "winIn": 2
+  },
+  {
+    "position": "...ooo.ox/x.ooxo..x/...xxx.../xxoxox.ox/ox..x..x./xoooox..o/..ox.x.../.xo.....o/.o.o.xox. x 8",
+    "line": ["8-4", "4-7", "7-5"],
+    "winIn": 2
+  },
+  {
+    "position": "oox.xo.xx/ox.oo.ox./oxoox..x./..xo.x.ox/..xxx.x../ox..oxox./xxoxoo.o./xx.ooxoox/..o..oxoo x -",
+    "line": ["7-7"],
+    "winIn": 1
+  },
+  {
+    "position": "ox.x..oox/xxo.o.o.o/x.ox.ox../ooo....../o......x./.o.x.x.o./xxx....../.x...o.xo/..xo.xo.x x 5",
+    "line": ["5-5", "5-6", "6-5"],
+    "winIn": 2
+  },
+  {
+    "position": "ooo..o.x./oo..x.xo./x..oxo.../xxx.oo.x./x.oo....o/xx.oxx.xo/...x...o./.x.o.ooxo/..x..x..x x -",
+    "line": ["3-9"],
+    "winIn": 1
+  },
+  {
+    "position": "x..ooo.../.x.xoxoxo/ooo.x..../o.xxxoxxo/...o.oxxx/..x..xxxo/oo.x..xoo/oo.ox.oxo/xxx...... o 6",
+    "line": ["6-2", "2-1", "2-3"],
+    "winIn": 2
+  },
+  {
+    "position": ".oo...xxx/x..x..xx./x.o..o..o/oo.x.ooo./...xxx.../..xx.xooo/.o..ox.o./ooxxo.x../..xo.o.x. x -",
+    "line": ["9-5", "9-2", "9-7"],
+    "winIn": 2
+  },
+  {
+    "position": "xooo...xx/.x..oo.x./o..x.x.xo/x.xoxo.x./x.x.x.ooo/ox.ox..../..o..x.../ooo.....x/...xo.xo. o -",
+    "line": ["2-4"],
+    "winIn": 1
+  },
+  {
+    "position": "xxxo..x.o/ooooxx.o./ooo..x.x./.x...xo../xxx.oo.../ooo..x..o/.xoxx.oo./.x...ox../oxx...x.. x -",
+    "line": ["9-5"],
+    "winIn": 1
+  },
+  {
+    "position": ".xxxxo..o/ooo.xx.../oxoo.x.../oo..x..ox/o..xoo..o/...xx.oox/..xooox../xxx....../x...x..ox o -",
+    "line": ["3-7"],
+    "winIn": 1
+  },
+  {
+    "position": "x.oooxooo/.ox.x.x../x..xoo.xo/x..xooo.x/xxxooxo../ox.ooxo../ox..x..x./xo.xoxo../.ox.x.x.o x -",
+    "line": ["3-7"],
+    "winIn": 1
+  },
+  {
+    "position": "o..xxx.../ooxo..xo./..xooo.../....x.xxo/xxx....../.ox.o..o./.x.oo.ox./.xo.oxxo./ox....ox. x -",
+    "line": ["9-5"],
+    "winIn": 1
+  },
+  {
+    "position": "x..ooox.x/xo.ox.x.o/x.oxo.x../..xo.xo.x/.xx.x.xo./o.oxo.o.x/oooxooxox/x..x..x../o..o..oox x -",
+    "line": ["2-3"],
+    "winIn": 1
+  },
+  {
+    "position": "o.xxxx..o/xo.o..xx./.oo..x.oo/......xxx/xxx.o..../.ox..oxxo/o..ooox../o..o.xo../oxx...o.. x 9",
+    "line": ["9-6", "6-5", "9-9"],
+    "winIn": 2
+  },
+  {
+    "position": "oxx.x.ox./oo..xxox./.xo.oxo.x/..o..o..o/..xxox..x/xooxooox./.xox.xxxo/.o.x.oooo/o.x.oxxx. o -",
+    "line": ["9-9"],
+    "winIn": 1
+  },
+  {
+    "position": "xoxoo.oxo/x.x....o./xoxx..oo./......xxx/ox..x.ox./o.oxx..../x.oo.ox.o/o...ooxxo/x..ox..ox x -",
+    "line": ["6-6"],
+    "winIn": 1
+  },
+  {
+    "position": "xxx.....o/.xo.x..oo/o..o.xo.x/....o..ox/.oxx..ox./o...o..../o.xxx.xo./xo.x..x.x/.x....ooo o 4",
+    "line": ["4-2", "2-1", "6-9"],
+    "winIn": 2
+  },
+  {
+    "position": "ox.xo.x.o/.ox..x.xx/.ox..x.o./....o.x.o/x.o.ox.xx/o..o..o../xo..o..ox/oo.xx..../.xo.x.x.o o 9",
+    "line": ["9-6", "3-4", "4-1"],
+    "winIn": 2
+  },
+  {
+    "position": "x..ooo.../xx.xoxoxo/ooo.x..../o.xxxoxxo/...o.oxxx/.ox.oxxxo/oo.x.xxoo/oo.ox.oxo/xxx...... o -",
+    "line": ["2-3"],
+    "winIn": 1
+  },
+  {
+    "position": ".x.ooo.../..x.oxoox/x..xxoo.o/x.oxo.o../xo.x..x../ox....oox/.x..x..xo/.o.x.x..o/oo..ox.xx x -",
+    "line": ["8-5"],
+    "winIn": 1
+  },
+  {
+    "position": "o.....xxx/......oo./x.xooo.../...xo.x../.xo.x..x./o.x.o..../o.o..x.o./o.xo..xxo/.xx....o. x -",
+    "line": ["9-1"],
+    "winIn": 1
+  },
+  {
+    "position": "o.xxo.xx./......xxx/ooxo.oo.o/oxox..oxo/x..xo.x../..x.x.x.o/ooxooo.x./o.xoox.o./..x.x.x.o x 1",
+    "line": ["1-9"],
+    "winIn": 1
+  },
+  {
+    "position": "....o.o.x/ox.o.xo../....x.ooo/xxxo..o../...xxx.../.o..o...o/.xxxo.oxx/...x..xoo/..oxoxxxo o -",
+    "line": ["1-3"],
+    "winIn": 1
+  },
+  {
+    "position": ".xx..xoxo/oxox..xxo/xox..xoxo/ooo..x.../x.oxx...o/....ooox./ooxx..x../oooo...../.x..x..x. o -",
+    "line": ["6-3", "3-4", "5-6"],
+    "winIn": 2
+  },
+  {
+    "position": "oxoxox.ox/o..o.oo.o/oxx.o.x.x/xxooxxx.o/oxxxox..o/xxoxxo..o/xx.ooo.../...ox.ox./x.xo.oxox o 3",
+    "line": ["3-4", "4-8", "8-1"],
+    "winIn": 2
+  },
+  {
+    "position": "o.xxxo..x/oox.x.oox/o.x.o.oxx/x.oo....x/.oo.o..ox/xxx....../.x.xxx.../.x.ooo..x/..o..ooxo o 3",
+    "line": ["3-4", "4-2", "2-4"],
+    "winIn": 2
+  },
+  {
+    "position": "......ooo/xx.ooo.../xxo.ox.x./.o..x.xox/.ooxx..x./..o..oxxx/..xx.xooo/x.oo.ox.x/oxxox.o.. o 5",
+    "line": ["5-1"],
+    "winIn": 1
+  },
+  {
+    "position": "x..xx.o.o/.....oxxx/oxx.ox..x/....ooxxx/..oo.xoxx/.oxxoxxo./..ooxoxoo/xooo.o.x./ooo.x.... x -",
+    "line": ["1-6"],
+    "winIn": 1
+  },
+  {
+    "position": ".x.x..x../..o..o..o/.x..x.x../.....x.o./.xo.o.o../o.....ox./ox..x.o.x/o..ox..../..o..x.x. o -",
+    "line": ["8-7"],
+    "winIn": 1
+  },
+  {
+    "position": "x.o.xo..o/o...ox..x/o..ox.oxo/.x.x.xxox/o..o..o../..xo.o.xx/x..ox...o/...ox.xo./xxx.....o o -",
+    "line": ["2-4", "4-1", "2-7"],
+    "winIn": 2
+  },
+  {
+    "position": ".xx...ooo/oxo..oxxo/.ox.oxo.o/......xx./x...x...x/xxx..o.o./.oooo.xxo/ox..oxxoo/.o....xxx x -",
+    "line": ["4-9"],
+    "winIn": 1
+  },
+  {
+    "position": "..o..ox.o/..xxo..o./ooo..x.../.....x.oo/xxx.o.x../.o..xx.oo/...ooo.x./..xx.xoxo/xxx...x.. o 6",
+    "line": ["6-4", "4-2", "2-2"],
+    "winIn": 2
+  },
+  {
+    "position": "oxo.xxo.x/ooo.xx.ox/.o.oxxxx./x.xo.x.xx/.o.ox.ooo/.xox.ooox/.xox.oxxx/x.xo..oxo/o..ooo..x o 8",
+    "line": ["8-6", "6-1", "1-4"],
+    "winIn": 2
+  },
+  {
+    "position": "x..ox..o./.xx..ox.o/..oxxx.../oo.x.ooo./o..xooxoo/xoo.x..../..o.o.x.o/.x.xx..../...xxx... x 6",
+    "line": ["6-9"],
+    "winIn": 1
+  },
+  {
+    "position": "xxxxoxo.o/...o..xxx/oxo.ox.xx/oo.xxx.../ox..x.ooo/xo..o..o./ooo.x.xox/xoo.xoox./o.xo..xx. o 9",
+    "line": ["9-9", "9-2", "3-7"],
+    "winIn": 2
+  },
+  {
+    "position": ".o.o...ox/oxo...ox./...x..xoo/x...o..o./..x.xox../.x..xo.xo/.o.x..oxo/.xoooxx.o/..x..x..x x 4",
+    "line": ["4-2", "2-4", "4-3"],
+    "winIn": 2
+  },
+  {
+    "position": ".x...xooo/xoox...o./o.o.oxx.o/.o.ox.xxo/x.xoooox./x.xo..xox/..x.xoxoo/oxxxxo.ox/.x.xo.oxx o 9",
+    "line": ["9-3"],
+    "winIn": 1
+  },
+  {
+    "position": "x..ooxoxx/xo.ox...x/....o.oxx/.x..x.ox./..x..x..x/o...ox..o/o.xx..xxo/.o....ooo/xxo.oo..o o 3",
+    "line": ["3-3"],
+    "winIn": 1
+  },
+  {
+    "position": "ox..o...o/...ooo.../.x.o..o../..xoxxxox/x.xxo..xo/.o..oxoo./x..xxxo.o/.x.o.x.../x..o.xx.. o 3",
+    "line": ["3-1"],
+    "winIn": 1
+  },
+  {
+    "position": "xoo.oo.xo/xxoxo..xo/xoxoox.xo/.x..x..x./..xox.x../.ox.xxo.o/xxxo...../o.oo..o../ooo....xx x -",
+    "line": ["6-4"],
+    "winIn": 1
+  },
+  {
+    "position": "xo.o..xoo/xxox.oo../..x..x..x/.xxxo.oox/....x.ooo/ooo....../xx.ooxx.x/x...x...x/ooo..x.ox o -",
+    "line": ["1-5"],
+    "winIn": 1
+  },
+  {
+    "position": "...ooo..x/xxooxxx../x.x..xo.o/..ox..xxo/.o..xoox./.o..xoxx./ox.o..o.x/ooo....../xox.oxxxo o 6",
+    "line": ["6-9", "9-4", "4-6"],
+    "winIn": 2
+  },
+  {
+    "position": "ox.oxx.../oxoxoxo.x/.x....oxx/xo.x.o.oo/.xo.x..x./.o.o...x./x..x..x../o...o...o/.o.xo..o. x -",
+    "line": ["3-5"],
+    "winIn": 1
+  },
+  {
+    "position": "oxo...o.o/......oxo/x..oo...x/xxx....../x..ox...x/......xx./x..o..oxx/.ooxo..o./.o.oxoxxo x 2",
+    "line": ["2-1", "1-4", "6-9"],
+    "winIn": 2
+  },
+  {
+    "position": "..x..xoox/xo.xxo..o/ox..o.xxx/...oxooox/o.xxxoo.o/x.oxx.x.o/.xo.o.ox./x..ooxx.o/x.o..ox.o x -",
+    "line": ["2-7"],
+    "winIn": 1
+  },
+  {
+    "position": ".xox.x.../.xox.xoxo/oo..x..xx/.o..o..o./o.x.....o/x.....ooo/.o..xx..x/.oo..xoxx/oxx..xxoo o -",
+    "line": ["5-5"],
+    "winIn": 1
+  },
+  {
+    "position": "o.x..x..x/o..x..xx./ox.xxx.o./oo.ox..xo/o..xox.xx/..o..oxo./..oxo.o../x...oox.o/xoxoo.... x 6",
+    "line": ["6-5", "5-2", "2-9"],
+    "winIn": 2
+  },
+  {
+    "position": "xxx.o.ox./.xoxo..../x..o.ox.o/x...oxo../.ox..x..x/o.o..ox.o/x..oox.o./.o..x..xo/o.x.oxx.. x -",
+    "line": ["9-9"],
+    "winIn": 1
+  },
+  {
+    "position": "o..xxx.../.xx....oo/xo..oxoxo/o.ox.x.o./x.oxxo..x/xooooxx.o/..x.ox..x/o.xo.o.x./oxx.oo.ox x 8",
+    "line": ["8-9", "9-4", "4-5"],
+    "winIn": 2
+  },
+  {
+    "position": ".o...ooxo/xo.o.xox./x.o...xxo/xxx.o..../.x.....xx/..xoox.ox/ox...o.xo/ooo..o.xo/x.oxoxx.. x 1",
+    "line": ["1-1", "1-3", "3-4"],
+    "winIn": 2
+  },
+  {
+    "position": "..x.oo.ox/oo..x.xx./xo.o.x..x/ox.x.x.../xx.ox..xo/.oo.oxo../..o.xoxoo/..o.o.x.x/x.xoox..o x -",
+    "line": ["2-9", "9-2", "8-8"],
+    "winIn": 2
+  },
+  {
+    "position": "....o.xxx/......ox./..xxoxx.o/xoo.....x/.xo.o.o.x/....xo..o/..xox.xo./x.o.o.o../o.ox.x.xo o -",
+    "line": ["2-3", "3-1", "2-5"],
+    "winIn": 2
+  },
+  {
+    "position": "ooox..xx./xoooox.xx/xxoxoxx../xxxxo..o./..x.x.x../ooo....../o..o..ox./.xo.oxoo./oxxxo.o.. o -",
+    "line": ["9-9"],
+    "winIn": 1
+  },
+  {
+    "position": "x.oo.ox.o/oxxx..ox./xox...o../xx..xo..o/.o..ox.ox/ooo..x.x./x..oo.x.o/x..o..xxo/xo.xx..ox o 8",
+    "line": ["8-2", "2-5", "4-3"],
+    "winIn": 2
+  },
+  {
+    "position": "oox.x.xxo/xoox..ooo/.ox.o.xox/xx....ooo/o.oo....x/xx.o.o.../.x.xxxoo./.xoxxx..x/oxx..oxo. o -",
+    "line": ["6-5", "5-2", "5-7"],
+    "winIn": 2
+  },
+  {
+    "position": "xoxoo.oxo/x......o./xoxx..o../......xxx/ox..x.ox./o.oxx..../x.oo.ox.o/o...ooxxo/x..ox..ox x 2",
+    "line": ["2-3", "3-5", "6-6"],
+    "winIn": 2
+  },
+  {
+    "position": "xooo.oo.x/.ox..x..x/xo...x.o./.o......x/xx......./o..x..ox./......xox/xxx....o./o.oo.o... x 4",
+    "line": ["4-1", "1-5", "5-3"],
+    "winIn": 2
+  },
+  {
+    "position": "xoo..o..o/xoxoox.x./.ooxox.oo/.x.x.o.oo/x.....o../oox...x../.xxx..oo./xxxo...../..x.x.x.. x 5",
+    "line": ["5-2", "2-7", "7-1"],
+    "winIn": 2
+  },
+  {
+    "position": "..x..xoox/xo.xxo..o/ox..o.xxx/...oxo.ox/o.xxxoo.o/x.o.x.x.o/.xo.o.ox./x..ooxx.o/x.o..ox.o x 6",
+    "line": ["6-4", "4-1", "2-7"],
+    "winIn": 2
+  },
+  {
+    "position": "..x.x.x../.x..o.x../.o..ox.o./.....x.xx/ooxxx.ox./o..o..o../o.xox..o./x...oxxo./..o.o.... o 4",
+    "line": ["4-5", "5-6", "9-7"],
+    "winIn": 2
+  },
+  {
+    "position": "xxoo.x..o/oo.ox..oo/...xxx.../x..oxxxxo/x.oooox../..oxx.ooo/.x.....oo/ox.ox..xo/.xo.x..xx x -",
+    "line": ["7-1", "1-5", "7-3"],
+    "winIn": 2
+  },
+  {
+    "position": "ox.ox.o../.xo..o.o./..x.oxx.x/o..x...o./x.o...o../.x.x.oox./.oo...xxx/...xxx..x/x.o..o.oo o 4",
+    "line": ["4-6", "6-1", "5-5"],
+    "winIn": 2
+  },
+  {
+    "position": "x.xo.oxxo/o.x.x.x../xx....oxo/ooox.xo../o..o...xx/.o.xo..o./..oxxxoxo/ooo...o.x/x..xoxx.o x -",
+    "line": ["5-7", "3-3", "3-5"],
+    "winIn": 2
+  },
+  {
+    "position": "ox.x..x.o/ooxx.xxoo/.o.xxx..o/xoo.xxoo./..o.xooxo/......ooo/..xooox../xxx.x..oo/.xo..xxxx o -",
+    "line": ["4-9"],
+    "winIn": 1
+  },
+  {
+    "position": "ooo....xx/xx.x.x.o./x...xx..x/.oox.xxxx/x..oo.xxo/.oooox.x./...oxo..x/xo.oooox./o..o..oox o -",
+    "line": ["5-6"],
+    "winIn": 1
+  },
+  {
+    "position": "x.xo.o.xx/......xxx/ooo...x../xo.x.x.ox/...xxxo../o...ox..o/.oxoo.xo./o..o..x.x/o.xoxo..o o -",
+    "line": ["9-7"],
+    "winIn": 1
+  },
+  {
+    "position": "xooo..oxo/.xx.....o/.o....xxx/x..o.xx.o/ooo.x..../x....oo.x/x.ooxox../x..xo..o./o.oxxx.ox x 2",
+    "line": ["2-1", "1-5", "6-5"],
+    "winIn": 2
+  },
+  {
+    "position": "oo....xx./.x..xxooo/..xxxoo../.xoxoxo.x/x.oo.o.xo/.xxoo.xoo/xo.o.xxo./x.oxxo.../o..oxx..x o 1",
+    "line": ["1-3", "3-8", "8-9"],
+    "winIn": 2
+  },
+  {
+    "position": "..o.ooxo./xxxx.x..o/xx.oox..x/..o..xox./xo..x...x/xoxx.o..o/.oo.....x/...ooo..x/ooo...xx. o -",
+    "line": ["7-1"],
+    "winIn": 1
+  },
+  {
+    "position": ".o.xo..ox/xx.xooo.x/.ox.o..o./o.x.o...o/x.xx..x.x/x...o...x/.xx..oox./x...o.xxo/o..o..o.. o -",
+    "line": ["2-3"],
+    "winIn": 1
+  },
+  {
+    "position": "xxox.xoo./ooxo.xo../ox.xo..../o.ox.ox.x/xx..x..ox/.x.ooo.../....ox.ox/o..x.xxx./xo.oo..ox o 4",
+    "line": ["4-8", "8-2", "3-9"],
+    "winIn": 2
+  },
+  {
+    "position": "x..ox..oo/.xx.x.ox./xoox..o../oo.x.x..o/xxx.o...o/o.oo.x.x./.....oxxx/.o.xooo../.o..o.xxx x -",
+    "line": ["3-6", "6-2", "3-5"],
+    "winIn": 2
+  },
+  {
+    "position": "o.x.oxo.x/o....x..x/x...x...x/..xo.x.ox/x.o.x.xox/o.oo.oo.x/..ox.xooo/x..x..x../o.oooxxoo x -",
+    "line": ["2-3"],
+    "winIn": 1
+  },
+  {
+    "position": ".o...xoxx/xxxo.o.x./oxo.x..../ooox...../....o.xxx/.o.xxx..o/x.....ox./...ooo.xo/.oxxo..o. o -",
+    "line": ["7-3", "3-4", "7-5"],
+    "winIn": 2
+  },
+  {
+    "position": "ooxox.o../o.xxo.ox./..x...ooo/x..xxxo.o/xoxxox..o/...oo.ox./ox.xxxx.o/..o..o..o/x..x..xx. o -",
+    "line": ["2-9"],
+    "winIn": 1
+  },
+  {
+    "position": "..x.oo.ox/oo..x.xxx/xo.o.x..x/ox.x.x.../xx.ox..xo/.oo.oxo../..o.xoxoo/..o.o.x.x/x.xoox.oo x 8",
+    "line": ["8-8"],
+    "winIn": 1
+  },
+  {
+    "position": ".o..x..oo/x.xx...x./...xxx.../x.....ooo/ooo....../..o.....o/..xo..xxx/.o.xo.ox./x.o.x.o.x o -",
+    "line": ["6-6"],
+    "winIn": 1
+  },
+  {
+    "position": "o.x..x..x/o..x..xx./ox.xxx.o./oo.ox..xo/o.oxox.xx/..o.xoxo./..oxo.o../x...oox.o/xoxoo.... x -",
+    "line": ["2-9"],
+    "winIn": 1
+  },
+  {
+    "position": "xx.oxxoo./oxooo..../o.xo.x.xx/xxoxx..x./xxo.ox.x./..oo..xox/...ooo.x./..o..ox.o/o.xxo.... o -",
+    "line": ["9-9"],
+    "winIn": 1
+  },
+  {
+    "position": "xx.oooox./o.xx.o.ox/xxx..oo../x..oo.x../ooo.x..../.x..x..x./o.ox..x../.oo.xo.xo/xo..x.... x -",
+    "line": ["9-9"],
+    "winIn": 1
+  },
+  {
+    "position": "ox..o.xoo/xox..o.ox/xooxxx.x./.xox.o.ox/xxooxo.o./xxxo..x../ooo.x..../o..xoxxxo/..ooxox.. o 2",
+    "line": ["2-5", "5-9", "9-9"],
+    "winIn": 2
+  },
+  {
+    "position": ".o.oxo..o/xx..ooxoo/oxx...xoo/......xxx/..o.ox..x/xxx...o../xooo...../.xxo.o.x./xoo.x..ox x 5",
+    "line": ["5-2", "2-3", "3-5"],
+    "winIn": 2
+  },
+  {
+    "position": "..x..x.ox/..ooxoxox/x..x..x../..o..oxxx/..o.o.o.x/xxx..oxox/oooo.ox.x/.o.xxx.../..oooo.o. x -",
+    "line": ["2-1"],
+    "winIn": 1
+  },
+  {
+    "position": "x.oxxxo../o..xo...o/.xx.xooox/oxo.....x/......ooo/.xo.o.o.x/x.xoxxx../..x..xo.x/o.ooxo.ox x 4",
+    "line": ["4-8", "4-5", "4-7"],
+    "winIn": 2
+  },
+  {
+    "position": "xxo..o.xo/.oxxoxo.x/oxo.xx..x/o..o..o../x...x.o.x/.oxxxo.xo/.xox.o.x./.o..ox.o./oo..x.xo. o -",
+    "line": ["7-9"],
+    "winIn": 1
+  },
+  {
+    "position": "o.oxxxo.x/xo.oooxox/oxx.x.xoo/xxxo...../x.ox..x.o/.oo.x.xo./xoxooooox/ox..o.xxx/.xo.oxoxo x -",
+    "line": ["6-1", "6-4", "6-9"],
+    "winIn": 2
+  },
+  {
+    "position": "xoxoo.xo./.o.ox.xxx/..o...xxx/..x.xxx../ooooxox../ox..x..xo/...o.xooo/.oooxo.xx/xxo...xoo o -",
+    "line": ["9-6"],
+    "winIn": 1
+  },
+  {
+    "position": "oxoxox..o/xx.oo..oo/x..ox..ox/ooxx...xo/....xxo.o/.o.o..xx./oxo....../.xx..o..o/x..x..x.. x -",
+    "line": ["6-9"],
+    "winIn": 1
+  },
+  {
+    "position": "oo.xx..../.xx.ooox./.x...ox.o/......ooo/x.o.o.x../oo.x..xx./.xox.o..o/....xx.o./..x..x..x o 8",
+    "line": ["8-2", "2-1", "1-3"],
+    "winIn": 2
+  },
+  {
+    "position": "xoo.xx.oo/xxoxo.oo./..xx.x.xx/x.ooxox.o/.xoxxo.oo/oxoxxooox/xooxox.o./.x.oxxoxo/...oo.xxx o -",
+    "line": ["1-7"],
+    "winIn": 1
+  },
+  {
+    "position": "o.x.x.xox/oxx..o.ox/o..ox.o.o/..x.o..../xo..x...x/..x.ox..x/ooo...x../.x..xo.xo/xoo.oxoxo x -",
+    "line": ["4-2", "2-4", "4-1"],
+    "winIn": 2
+  },
+  {
+    "position": "..x.x.xo./ooox.x.../.xo.o.ox./o..o.xo.x/..ox.ox.o/.xx.x..oo/oxooxox.x/.o....xxx/xx.x.oo.o o -",
+    "line": ["6-7"],
+    "winIn": 1
+  },
+  {
+    "position": "o..xo.x.o/o.x..x..x/o.ooxxx.o/.ox.xo.xo/x.oxoo..x/o.x.xo.ox/x.....ooo/xxx.o..../x.oooxxox x 5",
+    "line": ["5-7"],
+    "winIn": 1
+  },
+  {
+    "position": "oox.x.xxo/xoox..ooo/.ox.o.xox/xx....ooo/oxoo....x/xx.ooo.../.x.xxxoo./.xoxxx..x/oxx..oxo. o -",
+    "line": ["5-7"],
+    "winIn": 1
+  },
+  {
+    "position": "xx.o..x.o/ooxxooox./.xo.x..xo/ox.x.o.xo/oxx....o./...o..xx./.o.xo..o./xooo.xxoo/.x..xo.xx x 6",
+    "line": ["6-9"],
+    "winIn": 1
+  },
+  {
+    "position": ".xx.x..x./.o..o..o./o.xo.xo../o.ox.oo.x/.xxo..o../x..x.xoxo/xx.x.ox../ooo.....x/o..x..... o 9",
+    "line": ["9-6", "6-2", "5-1"],
+    "winIn": 2
+  },
+  {
+    "position": "o.xx.xo.o/....xxooo/xxo.xxoo./.xxo.ox.x/.ox...o.x/xxoo.xooo/xx.ooxxxx/ooox...x./oxoo.ooxx o -",
+    "line": ["3-9"],
+    "winIn": 1
+  },
+  {
+    "position": "xooo.oxox/ox.o.o.oo/oxx....ox/.x..x.ox./xxo.x..ox/x.....x../x.o...ox./xxxx...oo/o...o...o x -",
+    "line": ["6-4"],
+    "winIn": 1
+  },
+  {
+    "position": "xooo.ox.x/ox.o.o.oo/oxx....ox/.x..x.ox./xxo.x..ox/x.....x../..o...ox./xxxx...oo/o...o...o x 7",
+    "line": ["7-1", "1-5", "6-4"],
+    "winIn": 2
+  },
+  {
+    "position": ".xooxoxx./xooxo...x/xxox.x.x./o..xoxoo./...xxx..o/ooo....../.o..o..ox/xxxoo..o./o...o.xx. x 2",
+    "line": ["2-7"],
+    "winIn": 1
+  },
+  {
+    "position": ".ox.x.x../..o..o.xo/o..xxx..x/oxoxo.xoo/x..ooox../x.ooxxxox/..oxooo../...xxx.o./xoxo.ox.o x -",
+    "line": ["9-5"],
+    "winIn": 1
+  },
+  {
+    "position": "oooox.xx./xo.xo.oxo/oxx.xx.xo/.xo.x.ox./xx.oxoo.o/x.x..o..o/ox..oxxox/oo.oo.ox./x.ox..x.. x -",
+    "line": ["6-2"],
+    "winIn": 1
+  },
+  {
+    "position": "ox..ox..o/.ox..xxoo/.oxoxx.../ox.o..o../xoo.xo..x/..ox.o..o/.xo.o..x./x..xx..ox/x..xo.x.. o -",
+    "line": ["7-7"],
+    "winIn": 1
+  },
+  {
+    "position": "x.x.o.oxo/..x..xx.x/ooxxox.xo/ooo....o./xox.xxoo./..o.o.o.x/.o.xo.xo./x.xxxo.o./..oxxx..o o -",
+    "line": ["5-9"],
+    "winIn": 1
+  },
+  {
+    "position": "xxx.oooxo/xo.xo.ox./o.....o.x/oo.ox.ox./x.ox.ox../x..x..x../xx..xooox/oxx.oo.o./oo....xx. x -",
+    "line": ["9-9"],
+    "winIn": 1
+  },
+  {
+    "position": "oxoo..o../.oxxo.xo./xo...o..o/.o.xoooxo/x...xxo.x/.x.xoxoxx/.xxxxox../x..ooo.../x..x.o.xo o -",
+    "line": ["3-3"],
+    "winIn": 1
+  },
+  {
+    "position": "xoooo.oxo/xxx.....o/.o....xxx/x..o.xx.o/ooo.x..../x....oo.x/x.ooxox../x..xo..o./o.oxxx.ox x -",
+    "line": ["6-5"],
+    "winIn": 1
+  },
+  {
+    "position": "x.oxox..x/oo.xxoox./.xx..x.xx/oxoo.x..x/.xoxo.xo./ox..xo.xo/.o.o..xo./ooo.x.x../x..ooo... o -",
+    "line": ["7-5"],
+    "winIn": 1
+  },
+  {
+    "position": ".xo.xox../..ox.ooo./x.o.xxo.x/o...o..xo/ooxox..../.xxx.oo.x/xxo..xoxx/.xx..oxoo/..oxo.ox. o -",
+    "line": ["5-7", "7-4", "1-9"],
+    "winIn": 2
+  },
+  {
+    "position": "xoxooooxo/x....o..o/o.x.o...o/o.x....xo/xxx.o..../x..x..x../..o.xo.xo/o..o..x.o/xx.x.xxox o 4",
+    "line": ["4-5"],
+    "winIn": 1
+  },
+  {
+    "position": "o.o..xx../.o.x.xxo./o.xo.x..x/xxxo..o../...ooo.x./.oo.xoxox/x...x.ooo/.x.xxxo../.ox....o. o -",
+    "line": ["1-2", "2-1", "9-5"],
+    "winIn": 2
+  },
+  {
+    "position": "...x..xoo/xx.o.x..x/.o.o..xoo/xoxox.xox/ooox.x.../o.xoxox../...ooo.../...xxx.../xox..o... o 1",
+    "line": ["1-2", "2-3", "3-5"],
+    "winIn": 2
+  },
+  {
+    "position": ".o..o..o./..xx.xxxo/xooxxx.x./.ooo.xxox/.xo.o.o../xoxo.oo.x/.o.xxx.o./..xoxoox./..ox.ox.. o -",
+    "line": ["9-9"],
+    "winIn": 1
+  },
+  {
+    "position": "x.oxo.oo./...xxx.../..xxxooo./oo.o.xoxx/x.xoo.xx./xox..oxo./x.xo.o.xx/..oxoxoxo/ooo.....x o 3",
+    "line": ["3-9", "5-6", "6-5"],
+    "winIn": 2
+  },
+  {
+    "position": "x..ox..o./.xx..ox.o/..oxxx.../oo.x..oo./o..xooxoo/xoo.x..../..o.o.x.o/.x..x..../...xxx... x 8",
+    "line": ["8-4", "4-3", "6-9"],
+    "winIn": 2
+  },
+  {
+    "position": "o.xx..xxx/..o.o.x../.x....oxo/o....oxo./x..xo.x../...xxx.../.xooo..o./oox.oo.../o....o.xx x 8",
+    "line": ["8-7", "7-1", "9-7"],
+    "winIn": 2
+  },
+  {
+    "position": "oxo..oo.o/x.....oxo/x..oo...x/xxx....../x..ox...x/......xx./x..o..oxx/.ooxo..o./.o.oxoxxo x 6",
+    "line": ["6-9"],
+    "winIn": 1
+  },
+  {
+    "position": "x...xoxoo/.xxx.o.o./oo....xo./o..o.xo../.....xoxo/.oxxxo..x/..o.o.oxx/.oxxoxxxo/xx.x.o.o. o 6",
+    "line": ["6-8", "8-1", "1-3"],
+    "winIn": 2
+  },
+  {
+    "position": "o..o.oo.x/......ooo/.xo.o..../x..xo.x../.x...x.xx/..xx..o../.xx.oxoxx/.x.o..xo./x...ooo.. o 6",
+    "line": ["6-5", "5-1", "3-7"],
+    "winIn": 2
+  },
+  {
+    "position": "x..xx.oo./xx...o.x./.oo...xx./o...ox..o/o.xxox..o/...o.oxx./o..xo...o/xoox...o./..x.x.x.. o 1",
+    "line": ["1-9"],
+    "winIn": 1
+  },
+  {
+    "position": "ox.x..x.o/o.xx..xoo/.o.xxx..o/xoo.xxoo./..o.xooxo/......ooo/..xooox../xxx.x..oo/.xo..xxxx o 2",
+    "line": ["2-2", "2-5", "4-9"],
+    "winIn": 2
+  },
+  {
+    "position": "x.x..oooo/.oo.xox.x/xo.x..xo./o.xo..o.x/oo..o.xxx/xxx..o.xo/xxoo.xox./..oxxx.../.xoxooo.. o -",
+    "line": ["7-5"],
+    "winIn": 1
+  },
+  {
+    "position": "...o.oxxx/o.x.x..o./o.xo..o../..x.ox..x/xoo.oooxx/..ox..xxo/xx.o...oo/.ooxxxoo./.x..x..xo x 7",
+    "line": ["7-3"],
+    "winIn": 1
+  },
+  {
+    "position": "oox..oxox/.oo...xxx/xoxxoox.x/xo.oox.ox/xxoxo.oxx/..oxxxox./..xxx.ooo/oxxoxox../.oooooo.x o -",
+    "line": ["1-5"],
+    "winIn": 1
+  },
+  {
+    "position": "......x.o/.x.ooo.../o.ox..x../.x.oxo.x./..x...xoo/...xxxo../xxo..ooxx/..x..ooox/...o.ooxx x -",
+    "line": ["5-5"],
+    "winIn": 1
+  },
+  {
+    "position": "x.oxo.o../..o...o../o..o..o.x/xxxx.oxo./.x...o.x./..x...xxo/..xox.xx./...o.xoox/o..o.o..x o -",
+    "line": ["2-5"],
+    "winIn": 1
+  },
+  {
+    "position": "o.o..xxoo/...xxx.o./xoxo.ooxo/o.x..x..x/x.x.o.o../xoo...ooo/..oox.x.o/.xxo.x..x/xox..xxo. x 7",
+    "line": ["7-1", "1-2", "5-2"],
+    "winIn": 2
+  },
+  {
+    "position": ".xx.x..x./.o..o..o./o.xo.xo../o.ox.oo.x/.xxo..o../xx.x.xoxo/xx.x.ox../ooo.....x/o..x.o... o -",
+    "line": ["5-1"],
+    "winIn": 1
+  },
+  {
+    "position": "oxx.oo..o/.oo.oxx../xo.ox.oo./xxxo...../xxx.x.o.o/....o.xo./x.oxo.x../o..o..oxx/..x..x.ox x -",
+    "line": ["3-9"],
+    "winIn": 1
+  },
+  {
+    "position": "o..o.xx.x/.xo..o.xo/o.xxxo.o./....ooxxx/xxooo.xoo/.oxx.x..x/oo..x...o/.x.oxo.../xxx.o.o.o x -",
+    "line": ["3-7"],
+    "winIn": 1
+  },
+  {
+    "position": ".x.x..xoo/.o..xx.o./..o.xx.x./..o.ooo.x/o...o.xxx/oxx..ox.x/...ooox.x/x...x...x/.....oooo o -",
+    "line": ["1-6", "6-4", "1-3"],
+    "winIn": 2
+  },
+  {
+    "position": ".x..x..x./..ox....o/..xxoox.x/o..x.oxoo/....x.ooo/..ox.o.xx/..o.xx.ox/o.xo..oxx/o.oo.xoxx o -",
+    "line": ["2-6"],
+    "winIn": 1
+  },
+  {
+    "position": "xo..x...x/..o.x.x.x/x.ox..x../.o..xo.ox/oxooxox.x/ox.xox..x/o..xo...o/....oo.x./o.xo.oo.. o 2",
+    "line": ["2-6", "6-3", "8-4"],
+    "winIn": 2
+  },
+  {
+    "position": "xo..ooxx./.xxo.o.xx/xoo..oxox/xxx....o./......ooo/o..ox.xx./..xxx.ooo/xoxoxxoxo/ooo.xx.ox o 1",
+    "line": ["1-4"],
+    "winIn": 1
+  },
+  {
+    "position": "xx.xx..ox/o.x...x.x/oooo.x..x/xoxooxx../..x.o.xxx/o..xoo.../o..oo...o/...xox.../ooo...x.. o -",
+    "line": ["6-9"],
+    "winIn": 1
+  },
+  {
+    "position": "xo.xxoxoo/xxoo.x.ox/ooxxo..x./oox..x..x/o..o..o../x..x.ox../oo.ox.o.o/xx..xoxo./.xo.x..x. o -",
+    "line": ["3-9"],
+    "winIn": 1
+  },
+  {
+    "position": "..ox..o.x/xox.oo..x/.xo.x.ox./ooo..x.../..x...oox/...x.xxoo/oxx.oo.x./x..x..xo./.x.oxo..o o -",
+    "line": ["7-9", "9-1", "1-5"],
+    "winIn": 2
+  },
+  {
+    "position": "xo...oo.o/..x..oxox/.o..o..o./xo.ox..xo/xxoxx.oxo/.x.oxo.x./x.ooxxo../o.x.xoxo./..xo.x..x x 4",
+    "line": ["4-7", "7-2", "2-5"],
+    "winIn": 2
+  },
+  {
+    "position": "x..xo.xo./oooxx...x/.o.o..xxx/.x..x..xo/oooo..x../....x...o/..xo..oo./xoo.x..../..xoox..x x -",
+    "line": ["6-7", "7-1", "6-3"],
+    "winIn": 2
+  },
+  {
+    "position": "..x.x.x../.x..o.x../.o..ox.o./....ox.xx/ooxxx.oxx/o..o..o../o.xox..o./x...oxxo./..o.o.... o 9",
+    "line": ["9-7"],
+    "winIn": 1
+  },
+  {
+    "position": "ox..x..x./oxox.xxxo/oox.x..o./xoxxo..../...oxxo.o/o..o.xoo./...ooo..x/oxo...xxo/.ox..xxox x -",
+    "line": ["5-2", "2-5", "5-8"],
+    "winIn": 2
+  },
+  {
+    "position": ".x.ooo.../x..ooo.../...xo.x.o/.x.ooxxxo/.xx.oxxxo/.xxo..ox./xo.x.ooox/ooo...x.x/...xxx.o. o 6",
+    "line": ["6-6", "6-5", "5-1"],
+    "winIn": 2
+  },
+  {
+    "position": "......ooo/xo..x..oo/o..o..o../.x.oxxox./.x..x..x./x..ooo.../...xxxoxo/o.xooxxxo/..xx..xox o -",
+    "line": ["2-7"],
+    "winIn": 1
+  },
+  {
+    "position": ".x..o.oxx/ox.o..ox./...ooo.../xxx.ox..o/x..oxo.xx/ooxxo.oxx/...xxx..x/..x.oooox/.....xooo o -",
+    "line": ["1-3"],
+    "winIn": 1
+  },
+  {
+    "position": "x.o..o..o/x..x.o.../x..o.o.../xo..oxxo./..xooo.../xoxxx.oxx/ox.o.x.../....xoxo./....xo.x. o -",
+    "line": ["7-7"],
+    "winIn": 1
+  },
+  {
+    "position": "o.xxoxx.x/.o.xxxxo./.o.o.xoxx/xo.xo..ox/ox..x..x./ooo....../...oo..xx/oxoo.x.ox/xo.oo.oxo x -",
+    "line": ["3-3"],
+    "winIn": 1
+  },
+  {
+    "position": "x..oxo.oo/.ooxxx..x/xxx....../.oo.o.xxx/...ooxxox/xx..ooxo./..o..o..o/xx..xx..o/ooox..... o -",
+    "line": ["5-2", "1-3", "1-7"],
+    "winIn": 2
+  },
+  {
+    "position": "ooo..x..x/x..xoo.xo/......xxx/.o.x.o.o./x.o.o.o.x/oxxx.xo.x/.x..x.ox./x.o..o..o/oxooxoxox o -",
+    "line": ["2-3"],
+    "winIn": 1
+  },
+  {
+    "position": "xxo..o..o/o.xo..o../.x.xoooxx/xo.xox.o./o..ox.xxx/x.xoxo..x/..o...xxx/.xo.ox.oo/..oxooxxo o -",
+    "line": ["3-3"],
+    "winIn": 1
+  },
+  {
+    "position": ".o..o..ox/...xo..ox/.xx...oo./x..ooo.x./.x..x.oxo/x..x.ox../..x.xo.xo/xooo.xoxo/o.ox.xxx. o -",
+    "line": ["3-9", "9-2", "2-2"],
+    "winIn": 2
+  },
+  {
+    "position": ".xox.x.../.xox.xox./oo..x..xx/.o..o..o./o.x.....o/x.....ooo/.o..xx..x/.oo..xoxx/oxx...xoo o 2",
+    "line": ["2-9", "9-4", "5-5"],
+    "winIn": 2
+  },
+  {
+    "position": "oo.xx..../.xxxooox./.x...ox.o/......ooo/x.o.o.x../oo.x..xx./.xox.o..o/.o..xx.o./..x..x..x o -",
+    "line": ["1-3"],
+    "winIn": 1
+  },
+  {
+    "position": "xo..x.oxo/.o.xxx.oo/.o....xxx/o..o..o../o...x.oxo/.o....xx./.xo.o.xxo/.x.xooooo/xxxx..... x 7",
+    "line": ["7-1", "1-3", "6-9"],
+    "winIn": 2
+  },
+  {
+    "position": "o.x...oo./..xo.ox../.xo..oxxo/.....oxxx/..oxxoo.x/.x..x..x./xo.o.oxoo/x.o..o.xo/xox.o.x.. x -",
+    "line": ["5-1"],
+    "winIn": 1
+  },
+  {
+    "position": "o.xxooo.x/o.x..o..x/xoxo.oo.o/ooox.x.../xxxox.o.o/xxx....o./x..x..x../...o.oxxx/..o..o.xo x -",
+    "line": ["2-7", "2-5", "2-8"],
+    "winIn": 2
+  },
+  {
+    "position": ".xo.xox../..ox.ooo./x.o.xxo.x/o...o..xo/ooxox.o../.xxx.oo.x/xxo.xxoxx/.xx..oxoo/..oxo.ox. o -",
+    "line": ["1-9"],
+    "winIn": 1
+  },
+  {
+    "position": "x.xoo.xo./.o.ox..xx/..o...xxx/..x.xxx../ooooxox../ox..x..xo/...o.xooo/.oooxo.xx/xxo...xoo o -",
+    "line": ["1-2", "2-1", "9-6"],
+    "winIn": 2
+  },
+  {
+    "position": ".o...xoxx/xxxo.o.x./oxo.xx.../ooox...../....o.xxx/.o.xxx..o/x.o...ox./...ooo.xo/.oxxo..o. o -",
+    "line": ["7-5"],
+    "winIn": 1
+  },
+  {
+    "position": ".xxo.o.../ooox...xx/o.xo..ox./xxx.....o/...oxxx.o/....ooxxo/.o..oxoxx/.o.oo.xo./.xo.xx.xo x -",
+    "line": ["1-1", "5-3", "7-3"],
+    "winIn": 2
+  },
+  {
+    "position": "o..xxx.../.xx....oo/xo..oxoxo/o.ox.x.o./x.oxxo..x/xooooxx.o/..x.ox..x/o.xo.o.xx/oxx.oooox x -",
+    "line": ["4-5"],
+    "winIn": 1
+  },
+  {
+    "position": "o.x.oxo.x/o.......x/x...x...x/..xo.x.ox/x.o.x.xox/o.oo.o..x/..ox.xooo/x..x..x../o.oooxxoo x -",
+    "line": ["2-6", "6-2", "2-3"],
+    "winIn": 2
+  },
+  {
+    "position": ".x....oxo/..oo.o..x/..x..x..x/...x.xo../xx.oo.oxo/oxo...ox./......xxx/..o..ooxo/xoooxx.ox x 4",
+    "line": ["4-5", "5-6", "6-5"],
+    "winIn": 2
+  },
+  {
+    "position": ".x..x..x./...x....o/..xxoox../o..x.oxoo/....x.ooo/..ox.o.xx/..o.xx.ox/o.xo..oxx/o.oo.xoxx o -",
+    "line": ["2-3", "3-1", "2-6"],
+    "winIn": 2
+  },
+  {
+    "position": ".o..x..oo/x.x....x./...xxx.../x.....ooo/ooo....../..o.....o/..xo..xxx/...xo.ox./x.o.x.o.x o 8",
+    "line": ["8-2", "2-2", "6-6"],
+    "winIn": 2
+  },
+  {
+    "position": "xooo.ooox/.ox..x..x/xo...x.o./xo......x/xx......./o..x..ox./......xox/xxx....o./o.oo.o... x -",
+    "line": ["5-3"],
+    "winIn": 1
+  },
+  {
+    "position": "x..xo.xo./oooxx...x/.o.o..xxx/.x..x..xo/oooo..x../....x.x.o/..xo.ooo./xoo.x..../..xoox..x x 6",
+    "line": ["6-3"],
+    "winIn": 1
+  },
+  {
+    "position": "x.oxo.oo./...xxx.../..xxxoooo/oo.o.xoxx/x.xooxxx./xox..oxo./x.xo.o.xx/..oxoxoxo/ooo.....x o 6",
+    "line": ["6-5"],
+    "winIn": 1
+  },
+  {
+    "position": "xo.o.xx.x/xxx....../.x...o.xo/.o.xo..o./...xo.xox/ooo.....x/o...x.ox./x..xx.oo./o...ox..o o 1",
+    "line": ["1-8", "8-3", "3-3"],
+    "winIn": 2
+  },
+  {
+    "position": "o.xo..o.x/...ox...x/.x.o.xoox/.oxx.o.ox/.ox.ooox./x.o.xx.oo/x..xxx.../.xoxx.ox./..o..o..o o 2",
+    "line": ["2-3", "3-1", "5-4"],
+    "winIn": 2
+  },
+  {
+    "position": ".ox.x.x../..o..o.xo/o..xxx..x/oxoxo.xoo/x..ooox../x.ooxxxox/..oxooo../...xxx.o./xox..o..o x 9",
+    "line": ["9-7", "9-4", "9-5"],
+    "winIn": 2
+  },
+  {
+    "position": ".ox..x..o/xo.o.xoxx/..x..xooo/oxox...../xo..oxxo./.xo..o..o/ox.xo..x./.oxo.xox./..x.x.xo. o -",
+    "line": ["7-9"],
+    "winIn": 1
+  },
+  {
+    "position": "o..oxxo../..o..o..o/x.xxo.x../.x.ox..x./x.o..o..o/.xo.oxo.x/.x.xx.ox./...oo..../o..x.x... o -",
+    "line": ["8-6"],
+    "winIn": 1
+  },
+  {
+    "position": ".x....ooo/x.o..o..o/...x...x./o..o.xo../xo.....x./xx.x.o.ox/x...xo..o/xx.o.x.ox/..xxoo.ox o 3",
+    "line": ["3-9", "9-1", "7-3"],
+    "winIn": 2
+  },
+  {
+    "position": "o.x..x..x/.x.x.xo.o/xxoox...o/ooxxoo.xx/x.xooooxo/x.ox..xo./...oooxx./...ooo.../x..x..x.o x -",
+    "line": ["3-8"],
+    "winIn": 1
+  },
+  {
+    "position": "xxx.o..o./.x.oo..o./xo....oox/.x...o.o./..xx.x..x/o.......x/x..xo.x.o/....o.xxx/o.oo..oox x 4",
+    "line": ["4-4", "4-1", "3-5"],
+    "winIn": 2
+  },
+  {
+    "position": "xoooox.../oxx.x.ox./oox.xox../x.xo.xox./.o..o.oo./xooo.o.x./..xxx.x../.x.ox.oxo/xxo.xx.oo o -",
+    "line": ["9-7", "1-7", "1-8"],
+    "winIn": 2
+  },
+  {
+    "position": ".x....ooo/.oox.x..x/oo.x.x.../x.o..o.xo/..xxox.xx/xx.ooo.o./x..oo...x/.oxxx..oo/..xooxxxo o 3",
+    "line": ["3-8", "8-1", "7-6"],
+    "winIn": 2
+  },
+  {
+    "position": "o.oxx.xo./...xxx.../xox...x.x/x.oooxox./.o..o.xo./..o.xoxo./..ooxxoxx/.x.xoooxx/.o..o..o. o 7",
+    "line": ["7-1", "1-6", "6-9"],
+    "winIn": 2
+  },
+  {
+    "position": "xxxo.o.../xooo.xx.o/ooxxxox../x.o..xxxo/x.o.xo.oo/ox.o.oxxx/x.oox.oox/o.xooxox./..oxo.oxx x 4",
+    "line": ["4-4"],
+    "winIn": 1
+  },
+  {
+    "position": "......ooo/..o.xo..o/...ox.xxx/xxxooxo../o..oxoo../oo.xxx.x./xxoxx.ox./.xooxo.../x.ox.xo.. o 9",
+    "line": ["9-5"],
+    "winIn": 1
+  },
+  {
+    "position": "ox..o..xo/..ox.ooox/.xxo.o.x./.x.x..oo./ooo..x.../x.x.x...x/.x..x..x./xooo.oxx./x.....oo. o 4",
+    "line": ["4-3", "3-1", "9-9"],
+    "winIn": 2
+  },
+  {
+    "position": ".x.x...oo/.o..xx.o./..o.xx.x./..o.ooo.x/o...o.xxx/oxx..ox.x/...ooox.x/x...x...x/.....oooo x 1",
+    "line": ["1-6", "6-4", "2-4"],
+    "winIn": 2
+  },
+  {
+    "position": "ox.xxxo../oxxooxoo./ooox...../...x..ooo/xoo.xoo../.x..oo.xx/xxx....../o..xxo.../ox..x..x. x -",
+    "line": ["5-9"],
+    "winIn": 1
+  },
+  {
+    "position": "oxo.ox.ox/.o.xoxxxx/x..xo.xo./oo.x..o.o/.ox.x.xxo/.o..oxoo./x.ooxo..o/.oox..xxo/xxx.ox... x -",
+    "line": ["8-1"],
+    "winIn": 1
+  },
+  {
+    "position": "o.....xxx/x...x...x/o..xox.../o.xx.xooo/xoo.x..x./...xo...o/.oxo..x.o/.o.o.oo.x/.o.oo.xxx x -",
+    "line": ["5-9"],
+    "winIn": 1
+  },
+  {
+    "position": "..o.ooxo./xxxx.x..o/xx.oox.../.....xox./xo..x...x/xoxx.o..o/.oo.....x/...ooo..x/ooo...xx. o 4",
+    "line": ["4-3", "3-3", "7-1"],
+    "winIn": 2
+  },
+  {
+    "position": "..xo.oo.o/...ooxxox/o..oo.x../xxxx..ox./x.xoox..x/.o.oox.o./.x.oxx.xo/xo..x.o.x/xxo.x.ooo x -",
+    "line": ["2-3"],
+    "winIn": 1
+  },
+  {
+    "position": "oox.o.xxx/x.ox..x../..oooox.x/x.x..xooo/..xo.x..x/xxx.o..xo/ooxx.oox./o.xo..xo./oo..xooox x 8",
+    "line": ["8-5"],
+    "winIn": 1
+  },
+  {
+    "position": ".o..o..o./..xx.xxxo/xooxxx.x./.ooo.x.ox/.xo.o.o../xox..oo.x/.o.xxx.o./..xoxoox./..ox.ox.. o 6",
+    "line": ["6-4", "4-1", "9-9"],
+    "winIn": 2
+  },
+  {
+    "position": "xxox.ooox/..o..o.xo/xxx....../oo.xo..../o.o.xoo../xo.oxxx.o/o..xxx.../x.o.xxoox/ox...o.x. x -",
+    "line": ["9-5"],
+    "winIn": 1
+  },
+  {
+    "position": ".ox.xxxoo/.o.x.xxo./....o..xx/oo.x..xx./.xo.xox../x..ooo.../oxooo..o./x....xooo/o.....xxx x -",
+    "line": ["5-8"],
+    "winIn": 1
+  },
+  {
+    "position": ".x....ooo/x..ooo.../ox..x..../.x...o.oo/o..xo..xo/..xxxox.x/..o.xo..o/.ox..x..x/x..x..x.. o 3",
+    "line": ["3-4", "4-3", "3-7"],
+    "winIn": 2
+  },
+  {
+    "position": ".xooxoxx./x.oxo...x/x.ox.x.x./o..xoxoo./...xxx..o/ooo....../.o..o..ox/xxxoo..o./o...o.xx. x 3",
+    "line": ["3-2", "2-2", "2-7"],
+    "winIn": 2
+  },
+  {
+    "position": "..o.oo.oo/xxxxo..ox/xoox.ox../xooox.ooo/xoxx..o../x..x..x../.oxoo.oxx/.x.xxo.x./...x..xoo x 9",
+    "line": ["9-1"],
+    "winIn": 1
+  },
+  {
+    "position": "xxx..o.o./o..o..oo./ox...oxox/oxx..o.o./..o.xx.oo/o..xoxx.x/x...x.o.x/xxx....../x.oxoo..o x -",
+    "line": ["4-5", "5-1", "4-7"],
+    "winIn": 2
+  },
+  {
+    "position": ".x....ooo/.oox.x..x/oo.x.x..o/x.o..o.xo/..xxox.xx/xx.ooo.o./x..oo...x/.oxxx..oo/.xxooxxxo o 2",
+    "line": ["2-8", "8-1", "7-6"],
+    "winIn": 2
+  },
+  {
+    "position": "xxooxoooo/oxooox.x./x.x.x.o../ox..x.xxo/oo.xxooo./xo.....ox/xx..ox..o/x.oox...x/xo.x..xo. x -",
+    "line": ["7-3"],
+    "winIn": 1
+  },
+  {
+    "position": "xxoo.x.oo/oo.ox..oo/...xxx.../x..oxxxxo/x.oooox../..oxx.ooo/xx.....oo/ox.ox..xo/.xo.x..xx x -",
+    "line": ["7-3"],
+    "winIn": 1
+  },
+  {
+    "position": "ox..oo.xo/xxooox.oo/o.....xxx/.x.oox.../xxx....../xox.xo.xo/xo..o..o./.xo.xooox/xo.x.x.xo o -",
+    "line": ["4-9", "9-3", "4-1"],
+    "winIn": 2
+  },
+  {
+    "position": ".ox.o..o./x.o.o.oxx/.x..x.oo./.o..x.xo./.oxooxx.x/o..x..x.o/..o..o.xo/x..x.ox.o/xxx.xxo.o o 3",
+    "line": ["3-9"],
+    "winIn": 1
+  },
+  {
+    "position": "xxoox.oox/xx.x..ooo/ooxxo.xxo/xxxoxoo../x.oxo.x../ooxooxx../oxoo.xxox/.ox..x.ox/ooo.xooxx x -",
+    "line": ["6-9"],
+    "winIn": 1
+  },
+  {
+    "position": "oxx.xoo../.o.oxoxox/..oooo..x/..x..x..x/.o..xooox/xx.o..xx./.x..x.ox./xxx.oo.../ooxo...o. x 6",
+    "line": ["6-5", "5-1", "1-8"],
+    "winIn": 2
+  },
+  {
+    "position": ".x.ooox../...xxx.o./x.o.o.xxo/...x.oooo/ooxxoo..x/x..ox...x/o..xxx.o./x.o..xoxo/.oo.xxxxo o -",
+    "line": ["5-8", "8-2", "9-1"],
+    "winIn": 2
+  },
+  {
+    "position": "xxooxo.../o.x.oo..x/xo.xxooo./o..o.oo.x/xoox..xo./oxxxoxox./..xx.xoox/...xxxx../..xo..ooo x -",
+    "line": ["3-9"],
+    "winIn": 1
+  },
+  {
+    "position": "xxxo.o.../ooo..xo../....xo.xo/oxxo.o.ox/x..xo.x.o/xxoo.x.ox/ox..x..x./oo.x.x.xo/x..xoooox x -",
+    "line": ["3-2"],
+    "winIn": 1
+  },
+  {
+    "position": "...x...oo/..x.oo.xo/...o.oxo./xxx..x..o/.x..x.ox./oo...xxo./.oo.ox.../xxxo...oo/...o..xxx x -",
+    "line": ["1-7", "7-1", "1-1"],
+    "winIn": 2
+  },
+  {
+    "position": "x..oxoxox/xooxxoo../.xoox..x./o..oo.xxx/ooxxxooxo/xx..x..x./ox.xoo.x./oxoo.oxox/o.x...oo. x -",
+    "line": ["2-9"],
+    "winIn": 1
+  },
+  {
+    "position": "...xxxxx./o.xx...o./.o...x.o./...ooo.ox/...xoxoxo/ooo...xx./.x..xo.xo/oxxxoxoox/o.xox.o.. o 3",
+    "line": ["3-5"],
+    "winIn": 1
+  },
+  {
+    "position": ".x....ooo/ooox.x..x/oo.x.x.xo/x.o..o.xo/..xxox.xx/xx.ooo.o./x..oo...x/.oxxx..oo/.xxooxxxo o 8",
+    "line": ["8-7", "7-7", "7-6"],
+    "winIn": 2
+  },
+  {
+    "position": "x..oox.xx/xo.ox...x/....o.oxx/.x..x.ox./..x..x..x/o...ox..o/o..x..xxo/.o....ooo/xxo.oo..o o 1",
+    "line": ["1-7", "7-3", "3-3"],
+    "winIn": 2
+  },
+  {
+    "position": ".o.xx.xoo/.xooxo.x./...xxx.../oxoxooxo./o..oo.xxx/x..x..x../.o.oo..o./oxox.o.../xo..x.... x 8",
+    "line": ["8-8", "8-9", "9-9"],
+    "winIn": 2
+  },
+  {
+    "position": "......xxx/o.oxoox.x/o.x..xo.x/.xoo.x..o/.o..ox.ox/ox.o.xox./ox..x..x./..o..o..o/oxxx.oxoo x -",
+    "line": ["2-8"],
+    "winIn": 1
+  },
+  {
+    "position": ".x...oxx./.x..xoox./....oxo.x/........x/xxx.ox.../oooo.x..x/oo....x.x/.o......o/o...ox..o o -",
+    "line": ["3-3"],
+    "winIn": 1
+  },
+  {
+    "position": "x..o.o.xx/......xxx/ooo...x../xo.x.x.ox/...xxxo../o...ox..o/.oxoo.xo./...o..x.x/o.xoxo..o o 8",
+    "line": ["8-1", "1-2", "9-7"],
+    "winIn": 2
+  },
+  {
+    "position": "xxoxo.o../.....o.ox/.ox...xox/.x.o.o.xx/..ox.o.../..x..xx.x/....xo.xo/o.o.x.x../o..o..o.. o 7",
+    "line": ["7-3", "3-4", "4-5"],
+    "winIn": 2
+  },
+  {
+    "position": "o.xo..o../.....xxo./x.o.xxo.x/..ox..xxx/x..oooxxo/xoo.x.xxo/.oxoooxxo/...ooxo.o/x..oxo..x x -",
+    "line": ["6-4"],
+    "winIn": 1
+  },
+  {
+    "position": "o.ox.xxo./.o..ox.o./xoxo.o.oo/xxx..o..o/xxx....../.oxooxxo./...ooo.../.xox..xx./o.x..x..x x -",
+    "line": ["1-5"],
+    "winIn": 1
+  },
+  {
+    "position": "ox..ox..o/.ox..xxoo/.oxoxx.../ox.o..o../xoo.xo.../..ox.o..o/.xo....x./x..xx..ox/x..xo.x.. o 7",
+    "line": ["7-5", "5-7", "7-7"],
+    "winIn": 2
+  },
+  {
+    "position": "x..ooo.../.xoxx..o./.o.xxxxo./xoxo.xox./o..o..o../x.oxxx.o./..x.oox../.xo.x..x./.oo...... o -",
+    "line": ["9-1"],
+    "winIn": 1
+  },
+  {
+    "position": "ox..o.xoo/xox.oo.ox/xooxxx.x./.xox.o.ox/xxooxo.ox/xxxo..x../ooo.x..../o..xoxxxo/..ooxox.. o 9",
+    "line": ["9-9"],
+    "winIn": 1
+  },
+  {
+    "position": ".ox.xxxoo/.o.x.xxo./....o..xx/oo.x...x./.xo.xox../x..ooo.../.xooo..o./x....xooo/o.....xxx x 4",
+    "line": ["4-7", "7-1", "5-8"],
+    "winIn": 2
+  },
+  {
+    "position": "o.o...xxx/oooo.x.x./.o.x.xoo./.x.xooo../..x.xox../.o.xoxxoo/x.x.oo..o/xxx....o./...oxxox. x 7",
+    "line": ["7-2", "3-3", "3-5"],
+    "winIn": 2
+  },
+  {
+    "position": "xxo..oxo./o..xoooo./.ox.x.xo./x...oo..o/oxo.x.o.x/.x..x..x./xx.ooo.x./.xxx.oo../...x..x.o x -",
+    "line": ["9-1"],
+    "winIn": 1
+  },
+  {
+    "position": ".xx.oooxx/.xxxxoxo./x..xo.xo./ooox...o./.ox.xxoxo/.oxoxo.xx/xooo.xxoo/oo.xooxxo/..ooox.xx x -",
+    "line": ["1-1"],
+    "winIn": 1
+  },
+  {
+    "position": "...ooo..x/xxooxxx../x.x..xo.o/..ox..xxo/.o..xoox./.o..xoxxo/ox.o..o.x/ooo....../xoxxoxxxo o 4",
+    "line": ["4-6"],
+    "winIn": 1
+  },
+  {
+    "position": "........o/.ox..ox.x/oo...ox.x/xxxoo.oo./....xoxo./..x.x.x../.o.x..ooo/...x.oxxx/.xoo.o.x. x 1",
+    "line": ["1-3", "3-3", "5-3"],
+    "winIn": 2
+  },
+  {
+    "position": "xxox..oo./.o.xxx.o./.ox.o...x/o..o.o.x./x...xoo.x/.x..oxo.o/xxx.o..../o..x.x.../ooo...x.x o -",
+    "line": ["6-1", "1-5", "3-8"],
+    "winIn": 2
+  },
+  {
+    "position": "...o.oxxx/o.x....o./o.xo..o../..x.ox..x/xoo.oo.xx/..ox..xxo/xx.o...oo/.ooxxxoo./.x..x..xo x 2",
+    "line": ["2-5", "5-4", "7-3"],
+    "winIn": 2
+  },
+  {
+    "position": ".x.x.xo../xoxx.ox../.o..o.x../oxxo...o./.....oxxx/.oxxxox../..o..o..o/o..o.xo../oo....xx. o 3",
+    "line": ["3-4", "4-5", "9-3"],
+    "winIn": 2
+  },
+  {
+    "position": ".ooox..xo/..o...xxx/ox..x..x./.xx..x.o./.o..o..o./x...xo..x/..x..oo../o..oooxx./.o.x.x..o x -",
+    "line": ["9-5"],
+    "winIn": 1
+  },
+  {
+    "position": "oxx.xoo../.o.oxoxox/..oooo..x/..x..x..x/oo..xooox/xx.ox.xx./.x..x.ox./xxx.oo.../ooxo...o. x 1",
+    "line": ["1-8"],
+    "winIn": 1
+  },
+  {
+    "position": "xxxxoxo.o/...o..xxx/oxo.ox.xx/oo.xxx.../ox..x.ooo/xo..o..o./ooo.x.xox/xoo.xoox./o.xo.xxxo o -",
+    "line": ["3-7"],
+    "winIn": 1
+  },
+  {
+    "position": "xo.xxoxoo/xxoo.x.ox/ooxxo..x./oox..x..x/o..o..o../x..x.ox../oo.ox.o.o/xx..xo.../.xo.x..x. o 8",
+    "line": ["8-8", "8-3", "3-9"],
+    "winIn": 2
+  },
+  {
+    "position": "o.xo.oo../xxx.oo.o./xxox.ooox/.o.oxxx.x/xxoxoo..o/xxoo.xxo./x.xoo.x../o.x....xx/.oo.xxo.. o 7",
+    "line": ["7-6", "6-9", "9-1"],
+    "winIn": 2
+  },
+  {
+    "position": "o..xxxo../ooo....../..oxxx.../xx..oxoo./.x.ooo.../oooxxoxox/..xoxxo.x/.x..xo..o/x..o.xx.o x -",
+    "line": ["4-3"],
+    "winIn": 1
+  },
+  {
+    "position": ".o.xox.o./xox..xx.x/xox.o...o/.o..oo.x./oxx.x.xoo/x.x.xoo../o...o.x.o/ooox...x./x..ox...x o 3",
+    "line": ["3-6", "6-2", "4-4"],
+    "winIn": 2
+  },
+  {
+    "position": "..xo..xx./o....ox../....o..ox/.x...xooo/o...o.x.o/.o.xx.xo./o..ox.o../x..x.ooxo/xx.x.xxxo o 1",
+    "line": ["1-6", "6-1", "1-5"],
+    "winIn": 2
+  },
+  {
+    "position": ".x.ooox../...xxx.o./x.o.o.xxo/...x.oooo/ooxxoo.ox/x..ox...x/o..xxx.o./x.o.xxoxo/.oo.xxxxo o -",
+    "line": ["9-1"],
+    "winIn": 1
+  },
+  {
+    "position": "xx.oo.ox./o.xx.o.ox/xxx..oo../x..oo.x../ooo.x..../.x..x..x./o.ox..x../.oo.xo.xo/.o..x.... x -",
+    "line": ["9-1", "1-3", "9-9"],
+    "winIn": 2
+  },
+  {
+    "position": "xxxo..x.o/ooooxx.o./ooo..x.x./.x...xo../xxx.oo.../ooo..x..o/.x.xx.oo./.x...o.../oxx...x.. x 8",
+    "line": ["8-7", "7-1", "9-5"],
+    "winIn": 2
+  },
+  {
+    "position": "x.o.xo..o/o..oox..x/o..ox.oxo/.x.xxxxox/o..o..o../..xoxo.xx/x..ox...o/...oxoxo./xxx.....o o -",
+    "line": ["2-7"],
+    "winIn": 1
+  },
+  {
+    "position": "......xxx/....x.ox./.oo.o.xx./o..ox.ox./xxx.oxox./x.....ooo/..xx.x..x/.oo.oooxx/...xo.ooo o -",
+    "line": ["3-1"],
+    "winIn": 1
+  },
+  {
+    "position": "...o..xxo/..x.x..ox/o..x.xo../..xox.x../x.ox.o..o/.o..o..ox/.o.oo.xo./xo..xxoxo/ox..xx.xo o -",
+    "line": ["3-8", "8-3", "3-9"],
+    "winIn": 2
+  },
+  {
+    "position": ".oxxoxo.x/xxox.ox../x.....ooo/ox.xo.x.o/xoooxx.oo/o.xoxox../oooox.xox/o...x.xxx/xox..xxoo o -",
+    "line": ["5-7"],
+    "winIn": 1
+  },
+  {
+    "position": "xx.xo.oo./.xo.ooo../..xoxox../o..xxx.../o.oo..x.x/.ox.xox../ox.o.oxoo/xx...x.../......x.o x 9",
+    "line": ["9-1", "1-9", "9-4"],
+    "winIn": 2
+  },
+  {
+    "position": "xo.ox.oxo/.o.xxx.oo/.o....xxx/o..o..o../o...x.oxo/.o....xx./xxo.o.xxo/.x.xooooo/xxxx..... x -",
+    "line": ["6-9"],
+    "winIn": 1
+  },
+  {
+    "position": "ooo..xx../xo.x.xxo./o.xo.x..x/xxxo..o../...ooo.x./.oo.xoxox/x...x.ooo/.x.xxxo../.ox....o. o -",
+    "line": ["9-5"],
+    "winIn": 1
+  },
+  {
+    "position": "oxo.x..x./x.x.ox.x./x..x..x../..ox.oxoo/x.oxoox../.o.xxox.x/.o.oo..o./ooo.xxx../o..o.ox.. o -",
+    "line": ["9-5"],
+    "winIn": 1
+  },
+  {
+    "position": ".o.xox.o./xox..xx.x/xox.oo..o/.o..oo.x./oxx.x.xoo/x.xxxoo../o...o.x.o/ooox...x./x..ox...x o 4",
+    "line": ["4-4"],
+    "winIn": 1
+  },
+  {
+    "position": "x..ooo.../.xoxx..o./.o.xx.xo./xoxo.xox./o..o..o../x.oxxx.o./..x.oox../.xo.x..x./.o....... o -",
+    "line": ["9-3", "3-1", "9-1"],
+    "winIn": 2
+  },
+  {
+    "position": "o.x.x.xox/oxx.oo.ox/o..ox.o.o/.xx.o..../xo..x...x/..x.ox..x/ooo...x../.x..xo.xo/xoo.oxoxo x -",
+    "line": ["4-1"],
+    "winIn": 1
+  },
+  {
+    "position": "o.o...xxx/oooo.x.x./.o.xxxoo./.xoxooo../..x.xox../.o.xoxxoo/x.xxoo..o/xxx....o./...oxxoxo x 9",
+    "line": ["9-2"],
+    "winIn": 1
+  },
+  {
+    "position": "xxo..o..o/oxxo.oox./.o.xxx.o./ooo.x..../.x..oxxox/xx....oxx/x..x.o..o/xxo.oo.x./.oxxo..o. o 6",
+    "line": ["6-5", "5-1", "7-3"],
+    "winIn": 2
+  },
+  {
+    "position": "..xox..o./x.o.x.o.x/o.x.xo.oo/..x.x.x../..o..oo.o/.x.o...../.ox.x.x../...oxxo../...ox.ox. x 6",
+    "line": ["6-3", "3-2", "1-7"],
+    "winIn": 2
+  },
+  {
+    "position": "xxoooxo../...ooox../x..o.ox../xxx..xx.o/x...xxoxo/oxxooo.xx/ox.o..oxo/..o..oxoo/.o.xxx.x. o -",
+    "line": ["3-5"],
+    "winIn": 1
+  },
+  {
+    "position": "..x.x.xoo/xoo.x..oo/ox.xox.xo/ox.o..o../..o.o.o../o.o..ox.x/.x..xxox./..xx..oxo/xxxx..o.. o 8",
+    "line": ["8-2", "2-4", "6-2"],
+    "winIn": 2
+  },
+  {
+    "position": "xooo.xooo/.ox..xo.x/xo.x...xo/x..oooo.x/xxx.....o/x..oox.oo/x.ox.ox../ox.x..xo./.ooxxxx.. x 8",
+    "line": ["8-6", "6-3", "3-7"],
+    "winIn": 2
+  },
+  {
+    "position": "...xxxxx./o.xx...../.o...x.o./...ooo.ox/...xoxoxo/ooo...xx./.x..xo.xo/ox.xoxoox/o.xox.o.. o 2",
+    "line": ["2-8", "8-3", "3-5"],
+    "winIn": 2
+  },
+  {
+    "position": ".xo.x..x./..o.xo..o/...xox..o/..xoxo.ox/xo..o..o./o..xxx..o/...o.x.../.x.oo..x./o..xxox.x o -",
+    "line": ["8-6"],
+    "winIn": 1
+  },
+  {
+    "position": "..xo.x..x/.o.xox.o./o.xox.x../x.ox.ox../...oxooxo/.x.ox..ox/o...o.xoo/.xo.o..xx/o.x.xox.o x 5",
+    "line": ["5-2"],
+    "winIn": 1
+  },
+  {
+    "position": "...x..xo./o.x..x..x/....o.ox./x...x.o.x/oox.oo.xx/....x.ox./.x..x..x./.oo.ooox./o..o..o.. x 1",
+    "line": ["1-1"],
+    "winIn": 1
+  },
+  {
+    "position": "xo....oxx/..xo.x..x/......xxx/ox.o.x..x/o..xox..x/.o.o...oo/......xxx/..o.o.o../xooo.xooo x 4",
+    "line": ["4-5", "5-3", "1-5"],
+    "winIn": 2
+  },
+  {
+    "position": ".oxxoxo.x/xxox.ox../x.....ooo/ox.xo.x.o/xoooxx.oo/o.xoxox../oooox.xox/o...x.xxx/xox..x.o. o 9",
+    "line": ["9-9", "9-4", "5-7"],
+    "winIn": 2
+  },
+  {
+    "position": "x..xo.x.o/.xxo..oo./o.xox.x../.x....oxx/x.o..o..o/..o.xo..o/.o.o.xxox/.x...xo../.oooxx..x x 4",
+    "line": ["4-4", "4-1", "2-1"],
+    "winIn": 2
+  },
+  {
+    "position": ".oxooo.x./ooo...x.x/.xxxoox../x..x..x../..o...oxx/x.o...xx./x..o..ooo/.xxoxo.ox/ox..xxooo o 3",
+    "line": ["3-8", "8-1", "5-5"],
+    "winIn": 2
+  },
+  {
+    "position": "xoxx.ooo./o.....xxx/...o..xx./x.ooxx.../..ox.ox.o/xx..x..../.o..o.xo./x..ooox../oo......x o 6",
+    "line": ["6-4", "4-2", "9-3"],
+    "winIn": 2
+  },
+  {
+    "position": "x.x..o.x./.x.oo.xxx/.ox.xox../.o.oooxxo/ox.xooxox/...xxx.o./oo..o..oo/.xoxxoxox/oo.xx.xo. o -",
+    "line": ["1-5", "5-3", "1-4"],
+    "winIn": 2
+  },
+  {
+    "position": "xooo.xooo/.ox..xo.x/xo.x...xo/x..oooo.x/xxx.....o/x.ooox.oo/x.ox.ox../ox.x.xxo./.ooxxxx.. x 3",
+    "line": ["3-7"],
+    "winIn": 1
+  },
+  {
+    "position": "ox.ox.o../.xo..o.o./..x.oxx.x/o..x.o.o./x.o...o../.x.x.ooxx/.oo...xxx/...xxx..x/x.o..o.oo o -",
+    "line": ["5-5"],
+    "winIn": 1
+  },
+  {
+    "position": ".x.ox.ox./.o..o.xxx/x....ox.x/..oo.oxxx/...xoxoxx/x..xoo..x/.x.oxo.ox/oooxo...x/oooo.x.oo x 6",
+    "line": ["6-7", "7-7", "7-1"],
+    "winIn": 2
+  },
+  {
+    "position": "..xooo.../xo.xxx.xx/.ooxxxx../x.o..oxoo/oooxx...x/oxx..oo.x/xo..o..../xoo....x./.oo..x.xo o 8",
+    "line": ["8-9", "9-7", "7-8"],
+    "winIn": 2
+  },
+  {
+    "position": "xx.oxxx.x/......xxx/o.x..oo../oox..x.../o.x.ox..o/ox.x.ooxx/ooox...../.o..x..o./o..o.ox.. o -",
+    "line": ["3-4"],
+    "winIn": 1
+  },
+  {
+    "position": "o.xxxx..o/xo.o..xx./.oo..x.../......xxx/xxx.o..../.o...oxx./o..ooox../o..o.xo../ox....o.. o 6",
+    "line": ["6-3", "3-1", "9-4"],
+    "winIn": 2
+  },
+  {
+    "position": "oxoxox.ox/o..o.oo.o/oxxoo.x.x/xxooxxxxo/oxxxox..o/xxoxxo..o/xx.ooo.../...ox.ox./x.xo.oxox o 8",
+    "line": ["8-1"],
+    "winIn": 1
+  },
+  {
+    "position": "x.oo.ox.o/oxxxx.ox./xox...o../xx..xo..o/.o..ox.ox/ooo..x.x./x..oo.x.o/xo.o..xxo/xo.xx..ox o -",
+    "line": ["4-3"],
+    "winIn": 1
+  },
+  {
+    "position": "o.xxxo..x/oox.x.oox/o.xoo.oxx/x.oo..x.x/.oo.o..ox/xxx....../.x.xxx.../.x.ooo..x/..o..ooxo o -",
+    "line": ["2-4"],
+    "winIn": 1
+  },
+  {
+    "position": "ooo....xx/xx.x.x.o./x...xx..x/.oox.xxx./x..oo.xxo/.oooox.x./....xo..x/xo.oooox./o..o..oox o 7",
+    "line": ["7-4", "4-1", "5-6"],
+    "winIn": 2
+  },
+  {
+    "position": "xxx.....o/.xo.x.xoo/o..o.xo.x/.o..o..ox/.oxx..ox./o...o..../o.xxx.xo./xo.x..x.x/.x....ooo o -",
+    "line": ["6-9"],
+    "winIn": 1
+  },
+  {
+    "position": ".x..oxxoo/......ooo/o.xo..o.x/.x.xo.xoo/o.oxxo.xx/...o.xxo./..oxxo..o/.o.oxxxx./xxx...... o 6",
+    "line": ["6-5", "5-2", "1-1"],
+    "winIn": 2
+  },
+  {
+    "position": "ooo...xx./xo.o.oxxx/.xo.x.ox./x..x..x.o/..oox.xox/xxx....../...ooo..x/oxoo..xoo/ooxx..oxo x -",
+    "line": ["5-1"],
+    "winIn": 1
+  },
+  {
+    "position": "oxo.ox.ox/.o.xoxxxx/x...o.xo./oo.x....o/.ox.x.xxo/.o..oxoo./x.ooxo..o/.oox..xxo/xxx.ox... x 3",
+    "line": ["3-4", "4-3", "8-1"],
+    "winIn": 2
+  },
+  {
+    "position": "xxo.xo.../o.x.oo..x/.o.xxooo./o..o.oo.x/xoox..xo./oxxxoxox./..xx.xoox/...xxxx../..xo..ooo x -",
+    "line": ["3-1", "1-4", "3-9"],
+    "winIn": 2
+  },
+  {
+    "position": "..xox..o./x.o.x.o.x/oox.xo.oo/..x.x.x../..o..oo.o/.xxo...../.ox.x.x../...oxxo../...ox.ox. x -",
+    "line": ["1-7"],
+    "winIn": 1
+  },
+  {
+    "position": "ooo..o.x./.o..x.xo./x..oxo.../x.x.oo.x./x.oo....o/xx.oxx.xo/...x...o./.x.o.ooxo/..x..x..x x 4",
+    "line": ["4-2", "2-1", "3-9"],
+    "winIn": 2
+  },
+  {
+    "position": "...o..xxo/..x.x..ox/o..x.xoo./..xox.x../x.ox.o..o/.o..o..ox/.o.oo.xo./xox.xxoxo/ox..xx.xo o 3",
+    "line": ["3-9"],
+    "winIn": 1
+  },
+  {
+    "position": "oxxoo...x/....xxooo/x.o...xoo/xo.xxx.../...ooox.x/.x.ooo.../xoooo.x.x/.x.ox..x./o.xo.x..x x -",
+    "line": ["7-8"],
+    "winIn": 1
+  },
+  {
+    "position": "oox....../xx..xx.x./....xx..o/.o......o/.o..o.xxx/.x..xo.xo/.oo....x./.o..oooo./.oo...xxx x -",
+    "line": ["3-4"],
+    "winIn": 1
+  },
+  {
+    "position": ".....ox../.oxxo.xo./......ooo/...o.xxoo/.x..x..x./.o.o.xoo./.oxxoxo.o/.xoxxx.ox/o.....xxx x -",
+    "line": ["1-4", "4-1", "1-1"],
+    "winIn": 2
+  },
+  {
+    "position": ".xx.oo..o/.oo.oxx../.o.ox.oo./xxxo...../xxx.x.o.o/....o.xo./x.oxo.x../o..o..oxx/..x..x.ox x 3",
+    "line": ["3-1", "1-1", "3-9"],
+    "winIn": 2
+  },
+  {
+    "position": "...xoxxox/xo..x.oxx/.x.ooo.../....o.xxx/oxo.x..ox/oo...o.xx/oox..xxo./xox.x.oox/o..o..o.. o -",
+    "line": ["6-3"],
+    "winIn": 1
+  },
+  {
+    "position": "x..oox..x/....o...x/x..xo.x../..x.o..oo/..oxxxx../..o..o.xo/o.o.xooxx/.o..ox..x/ox.xo.xoo x -",
+    "line": ["7-2"],
+    "winIn": 1
+  },
+  {
+    "position": "ox..o..xo/..ox.ooox/xxxo.o.x./.xox..oo./ooo..x.../x.x.x...x/.x..x..x./xooo.oxx./x.....oo. o -",
+    "line": ["9-9"],
+    "winIn": 1
+  },
+  {
+    "position": "x.ox.o.xo/o.ox..x../..oxxx.xx/oooo...x./..x...ooo/..o.ox.xx/oox.x..../xxox.o.oo/xx....xo. o 9",
+    "line": ["9-9", "9-6", "6-7"],
+    "winIn": 2
+  },
+  {
+    "position": "...x.ox../.oxxo.xo./......ooo/.o.o.xxoo/.x..x..x./.o.o.xoo./.oxxoxo.o/.xoxxx.ox/o.....xxx x -",
+    "line": ["1-1"],
+    "winIn": 1
+  },
+  {
+    "position": "o.o.oxxoo/...xxx.o./xoxo.ooxo/o.x..x..x/x.x.o.o../xoo...ooo/x.oox.x.o/.xxo.x..x/xox..xxo. x 5",
+    "line": ["5-2"],
+    "winIn": 1
+  },
+  {
+    "position": ".o.xo..o./xxo...oox/x..x..xo./.o..o..o./xxoxo.o../.oox.x.../o.xoxox.x/.x..x..xo/x..x.o... o 9",
+    "line": ["9-2", "2-4", "6-1"],
+    "winIn": 2
+  },
+  {
+    "position": "xxo.oxox./.xooxxo../x.xooo.x./.xxoxxx../.o..o.xox/o.oo.x..o/o.xo.x.x./oooxx..../x...o..ox o 6",
+    "line": ["6-2", "2-9", "9-2"],
+    "winIn": 2
+  },
+  {
+    "position": "..x.x.x../.oxxoooxx/oo..o..o./.o.o.x..x/ooxoxoo.o/oxx.xo.../ox.xxx.../oxx....../.x..x..oo x -",
+    "line": ["4-3"],
+    "winIn": 1
+  },
+  {
+    "position": "x...o.oxo/..x..xx.x/ooxxox.xo/ooo....o./xox.xx.o./..o.o.o.x/.o.xo.xo./x.xx.o.../..oxxx..o o 8",
+    "line": ["8-5", "5-4", "1-3"],
+    "winIn": 2
+  },
+  {
+    "position": "..x..x..o/xo.o.xox./..x..xooo/oxox...../xo..oxxo./.xo..o..o/ox.xo..x./.oxo.xox./..x.x.xo. o 1",
+    "line": ["1-2", "2-3", "7-9"],
+    "winIn": 2
+  },
+  {
+    "position": "xx.o..x.o/ooxxo.ox./.xo.x..xo/o..x.o.xo/oxx....o./...o..xx./.o.xo..o./xooo.xxoo/.x..xo.xx x 4",
+    "line": ["4-2", "2-6", "6-9"],
+    "winIn": 2
+  },
+  {
+    "position": "x.oxox..x/o..xxoo../.xx..x.xx/oxoo.x..x/.xoxo.xo./ox..xo.xo/.o.o..xo./ooo.x.x../x..ooo... o 2",
+    "line": ["2-2", "2-3", "7-5"],
+    "winIn": 2
+  },
+  {
+    "position": "o..o.oo.x/......ooo/.xo.o..../x..xo.x../.x...xxxx/..xxo.o../.xx.oxoxx/.x.o..xo./x...ooo.. o -",
+    "line": ["3-7"],
+    "winIn": 1
+  },
+  {
+    "position": "..o.xx.../xxx..o.../..oxxx.../.o.xx..xo/o..ox.oox/.ooo.xoxo/.o..oxx../..o.oo.xo/...o.xxx. x -",
+    "line": ["1-4"],
+    "winIn": 1
+  },
+  {
+    "position": "xxo..o.xo/.oxxoxo.x/oxo.xx..x/o..o..o../x...x.o.x/.oxx.o.xo/.xox...x./.o..ox.o./oo..x.xo. o -",
+    "line": ["7-6", "6-1", "7-9"],
+    "winIn": 2
+  },
+  {
+    "position": "oxo.x..x./x.x.ox.x./x..x..x../..ox..xoo/x.oxoox../.o.xxo..x/.o.oo..o./ooo.xxx../o..o.ox.. o 4",
+    "line": ["4-6", "6-1", "9-5"],
+    "winIn": 2
+  },
+  {
+    "position": "oox.o.xxx/x.ox..x../..oooox.x/x.x..xooo/..xo.x..x/xxx.o..xo/ooxx.oox./o.xo..xo./oo..xoo.. x 9",
+    "line": ["9-9", "9-3", "8-5"],
+    "winIn": 2
+  },
+  {
+    "position": "...xoxxo./xo..x.oxx/.x.ooo.../....o.xxx/.xo.x..ox/oo...o.xx/oox..xxo./xox.x.oox/o..o..o.. o 5",
+    "line": ["5-1", "1-1", "6-3"],
+    "winIn": 2
+  },
+  {
+    "position": "xoxx....o/.x..x.xx./o..oo..x./o.xoox.x./xoxxox.x./...xo.o../....xxoo./ooo.....x/...ooo.x. o 6",
+    "line": ["6-3", "3-7", "7-9"],
+    "winIn": 2
+  },
+  {
+    "position": ".o.oxo..o/xxo.ooxoo/oxx...xoo/......xxx/.xo.ox..x/xxx...o../xooo...../.xxo.o.x./xoo.x..ox x 3",
+    "line": ["3-5"],
+    "winIn": 1
+  },
+  {
+    "position": ".oo.o.o../xxx.o..../x....oxoo/......xxx/x...x...x/..x...xoo/oo.oo.x.o/..oo.xx../xxxo...o. x 8",
+    "line": ["8-8", "8-9", "6-5"],
+    "winIn": 2
+  },
+  {
+    "position": "o.xx..o.x/o......xx/...ooo.o./..oo..oxx/xxx.o..o./..x.x.x../xo.o..xox/..x.xox../oo.x..o.o x 4",
+    "line": ["4-1", "1-2", "2-7"],
+    "winIn": 2
+  },
+  {
+    "position": ".x....ooo/x.o..o..o/...x...xo/o..o.xo../xo.....x./xx.x.o.ox/x...xo..o/xx.o.x.ox/.xxxoo.ox o -",
+    "line": ["7-3"],
+    "winIn": 1
+  },
+  {
+    "position": "xo..x.oox/ox.o.x.xx/...ooo.../x.oxxooxx/.ox.x.ooo/x.xxoox../oxoxx.xoo/.o.ooxxxo/.oxoxooxx x -",
+    "line": ["7-6"],
+    "winIn": 1
+  },
+  {
+    "position": ".o..o..ox/...xo..ox/.xx...ooo/x..ooo.x./.x..x.oxo/x..x.ox../..x.xo.xo/xooo.xoxo/o.ox.xxxx o -",
+    "line": ["2-2"],
+    "winIn": 1
+  },
+  {
+    "position": "xoxoox.o./xxo.ox.xo/..oo..xxx/x..xoxx../xoxoox.xo/.x.oxo.xo/ooo....o./ooo....x./xx..o.x.. x 5",
+    "line": ["5-7", "9-3", "9-4"],
+    "winIn": 2
+  },
+  {
+    "position": "...xo..ox/.ox.o..ox/o..o..ox./xxx.....o/..x.ox..x/....x.ox./.x.oo.xx./..oxxoxo./ox.o..o.. o -",
+    "line": ["1-2"],
+    "winIn": 1
+  },
+  {
+    "position": ".x.x.xo../xoxx.ox../.o.oo.x../oxxo.x.o./.....oxxx/.oxxxox../..o..o..o/o..o.xo../oo....xx. o -",
+    "line": ["9-3"],
+    "winIn": 1
+  },
+  {
+    "position": "..ooxxo.x/..xo.x..x/o.x..x..x/.x.x..oxo/..o.xo.xo/ooo....../...ox..xx/.o..o.xoo/x.oxoxoxo x -",
+    "line": ["1-1"],
+    "winIn": 1
+  },
+  {
+    "position": "xoxooooxo/x....o..o/o.x.o...o/o.x....xo/xxx.o..../x..x..x../..o.xo.xo/o..o..x../xx...xxox o 8",
+    "line": ["8-9", "9-4", "4-5"],
+    "winIn": 2
+  },
+  {
+    "position": "..ooxxo.x/..xo.x..x/o.x..x..x/.x.x..oxo/..o.xo.xo/ooo....../...ox..x./.o..o.xoo/x..xoxoxo x 7",
+    "line": ["7-9", "9-2", "1-1"],
+    "winIn": 2
+  },
+  {
+    "position": "xxo..oxo./o..xo.oo./.ox.x.xo./x...oo..o/o.o.x.o.x/.x..x..x./xx.ooo.x./.xxx.oo../...x..x.o x 5",
+    "line": ["5-2", "2-2", "9-1"],
+    "winIn": 2
+  },
+  {
+    "position": "xxxxoxo.o/...o..xxx/oxo..x.x./oo.xxx.../ox..x.ooo/xo..o..o./ooo.x.xox/xoo.xoox./o.xo..xx. o -",
+    "line": ["3-9", "9-2", "3-5"],
+    "winIn": 2
+  },
+  {
+    "position": ".o.x..xoo/xx.oxx..x/.o.o..xoo/xoxox.xox/ooox.x.../o.xoxox../...ooo.../...xxx.../xox..o... o -",
+    "line": ["3-5"],
+    "winIn": 1
+  },
+  {
+    "position": "x..ox..oo/.xx.x.ox./xoox.xo../oo.x.x..o/xxx.o...o/o.oo.x.xo/.....oxxx/.o.xooo../.o..o.xxx x -",
+    "line": ["3-5"],
+    "winIn": 1
+  },
+  {
+    "position": "....o.xxx/..o...ox./..xxoxxxo/xoo.....x/.xo.o.o.x/....xo..o/..xox.xo./x.o.o.o../o.ox.x.xo o -",
+    "line": ["2-5"],
+    "winIn": 1
+  },
+  {
+    "position": "ox..x..x./oxoxoxxxo/oox.x..o./xoxxo..../.x.oxxo.o/o..o.xoo./...ooo..x/oxo...xxo/.ox..xxox x 5",
+    "line": ["5-8"],
+    "winIn": 1
+  },
+  {
+    "position": "xxo..o..o/o.xo..o../.x.xoooxx/xo.x.x.o./o..ox..xx/x.xoxo..x/..o...xxx/.xo.ox.oo/..oxooxxo o 4",
+    "line": ["4-5", "5-2", "3-3"],
+    "winIn": 2
+  },
+  {
+    "position": "o.oxxxo.x/xo.oooxox/oxx.x.xoo/xxxo...../x.ox..x.o/xoo.x.xoo/xoxooooox/ox..o.xxx/.xo.oxoxo x -",
+    "line": ["6-4"],
+    "winIn": 1
+  },
+  {
+    "position": ".oxooo.x./ooo...x.x/.xxxooxo./x..x..x../..o...oxx/x.o...xx./x..o..ooo/xxxoxo.ox/ox..xxooo o -",
+    "line": ["5-5"],
+    "winIn": 1
+  },
+  {
+    "position": "xxx.o..o./.x.oo..o./xo....oox/ox.x.o.o./..xx.x..x/o.......x/x..xo.x.o/....o.xxx/o.oo..oox x -",
+    "line": ["3-5"],
+    "winIn": 1
+  },
+  {
+    "position": "ox..x..oo/xo.o.x.ox/o.o..xx../..x.ox.x./.xo...ox./xo..xo..o/.x.ooo.../.oxo..x../x..x..x.. o -",
+    "line": ["3-2", "2-3", "5-5"],
+    "winIn": 2
+  },
+  {
+    "position": "..xox.x.x/ooox.oox./oxxx.x..o/xxoo.xxx./.x.ox..o./.xo..o..o/ox.oooxx./xx.o..oo./o...oxx.. o -",
+    "line": ["3-5", "5-1", "9-9"],
+    "winIn": 2
+  },
+  {
+    "position": ".x....ooo/x..ooo.../ox.ox..../.xx..o.oo/o..xo..xo/..xxxox.x/..o.xo..o/.ox..x..x/x..x..x.. o 3",
+    "line": ["3-7"],
+    "winIn": 1
+  },
+  {
+    "position": "xxx.oooxo/xo.xo.ox./o.....o.x/oo.ox.ox./x.ox.ox../x..x..x../xx..xooox/oxx..o.o./oo....x.. x -",
+    "line": ["9-8", "8-4", "9-9"],
+    "winIn": 2
+  },
+  {
+    "position": "xoo.oxo.x/ox.xx..x./.oo.xxxx./...x..ooo/x.x.oxoxo/ooo....../x..ooxxox/..xx..ooo/oo....xxx o -",
+    "line": ["7-2"],
+    "winIn": 1
+  },
+  {
+    "position": "x..xx.o.o/.....oxxx/oxx.ox..x/....oo.xx/..oo.xoxx/.oxxoxxo./...oxoxoo/xooo.o.x./ooo.x.... x 4",
+    "line": ["4-7", "7-1", "1-6"],
+    "winIn": 2
+  },
+  {
+    "position": "xxo.xo.../o.x.o...x/.o.xxooo./o..o.oo.x/xoo...xo./oxxxoxo../..xx.xoox/...xxxx../..xo...oo x -",
+    "line": ["9-1", "1-4", "9-2"],
+    "winIn": 2
+  },
+  {
+    "position": "ooxox.o../o.xxo.ox./..x...ooo/x..xxxo.o/xox.ox..o/...o..ox./ox.xxxx.o/..o..o..o/x..x..xx. o 6",
+    "line": ["6-5", "5-4", "2-9"],
+    "winIn": 2
+  },
+  {
+    "position": "..o.x..../xxx..o.../..oxxx.../.o.xx..xo/o..ox.oox/.o.o.xoxo/.o..oxx../..o.oo.xo/...o.xxx. x -",
+    "line": ["1-6", "6-1", "1-4"],
+    "winIn": 2
+  },
+  {
+    "position": "xo..o..o./.xo...ooo/.x.xx.x../x..ox.oo./ox.oo.o.x/..xx.ox.x/x.oxxxo../xxo..o.x./..o..o.x. o 3",
+    "line": ["3-6", "6-8", "8-9"],
+    "winIn": 2
+  },
+  {
+    "position": "..ox.o.xo/x.o.x.o.x/xoox.x.ox/oxx.o..x./xxo.xo..x/.oxo.x..x/o...o.x.o/xox.o..xo/...ooo..x o -",
+    "line": ["4-9"],
+    "winIn": 1
+  },
+  {
+    "position": "o.x...oo./..xo.ox../.xo..oxxo/.....oxxx/..oxxoo.x/.x..x..x./xo.o..xoo/x.o..o.xo/xox.o.... x 9",
+    "line": ["9-7", "7-3", "5-1"],
+    "winIn": 2
+  },
+  {
+    "position": "o..xxxo../ooo....../..oxxx.../xx..oxoo./.x.ooo.../..oxxoxox/..xox.o.x/.x..xo..o/x..o..x.. o 9",
+    "line": ["9-6", "6-1", "8-3"],
+    "winIn": 2
+  },
+  {
+    "position": "x..oxoxoo/.ooxxx..x/xxx....../.oo.o.xxx/.o.ooxxox/xx..ooxo./..o..o..o/xx..xx..o/ooox..... o -",
+    "line": ["1-3"],
+    "winIn": 1
+  },
+  {
+    "position": "ox..x..oo/xoxo.x.ox/ooo..xx../..x.ox.x./.xo...ox./xo..xo..o/.x.ooo.../.oxo..x../x..x..x.. o -",
+    "line": ["5-5"],
+    "winIn": 1
+  },
+  {
+    "position": ".o..x.ox./xxxo.oxx./.oxooo.../.ox.o.o.x/ooxxoxo.x/xxx..o.../...xxxo../ooo.x..../o.oxxox.o x 1",
+    "line": ["1-1", "1-3", "4-6"],
+    "winIn": 2
+  },
+  {
+    "position": "...xx.xo./..o.o.ox./ooox....x/xx.ox..o./.x.xo.oxx/.x..ox.xo/oxxo..x.x/o.xo.ooxx/..o.o.o.. o 4",
+    "line": ["4-7", "7-5", "5-3"],
+    "winIn": 2
+  },
+  {
+    "position": "....o...o/x.o..ox.x/...xxx.../xoo.oxo.x/.xo.x..x./.xxo.oxox/...ooo.../..oxxx.../.oo..ox.. o -",
+    "line": ["1-1"],
+    "winIn": 1
+  },
+  {
+    "position": "...x..xoo/..x.oo.xo/...o.oxo./xxx..x..o/.x..x.ox./oo...xxo./ooo.ox.../xxxo...oo/...o..xxx x 1",
+    "line": ["1-1"],
+    "winIn": 1
+  },
+  {
+    "position": "xoo.oxo.x/ox.xx..x./.oo.xxxx./...x..ooo/x.x...oxo/ooo....../x..ooxxox/..xx..ooo/oo....xxx o 5",
+    "line": ["5-5", "5-2", "7-2"],
+    "winIn": 2
+  },
+  {
+    "position": "..x.x.xoo/xoo.x..oo/ox.x.x.xo/ox.o..o../..o.o.o../o.o..ox.x/.x..xxox./..xx..o.o/xxxx..o.. o 3",
+    "line": ["3-3", "3-5", "6-2"],
+    "winIn": 2
+  },
+  {
+    "position": "xxxo...../ooxoxo..x/.ooo.xxoo/.xox....o/.o..ox.o./o..x..ooo/o.x.x.x../xxx.o..x./oxx.x..ox x 4",
+    "line": ["4-6", "9-4", "4-5"],
+    "winIn": 2
+  },
+  {
+    "position": "x..oxoxox/xoox.oo../.xoox..x./o..oo.xxx/.oxxxooxo/xx..x..x./ox.xoo.x./oxoo.oxox/o.x...oo. x 2",
+    "line": ["2-5", "5-1", "2-9"],
+    "winIn": 2
+  },
+  {
+    "position": "ox.xxxo../oxxoox.o./ooox...../...x..ooo/xoo.xoo../....oo.xx/xxx....../o..xxo.../ox..x..x. x 6",
+    "line": ["6-2", "2-7", "5-9"],
+    "winIn": 2
+  },
+  {
+    "position": "xoo..o..o/xoxooxox./.ooxox.oo/.x.x.o.oo/xx....o../oox...x../.xxx..oo./xxxo...../..x.x.x.. x 7",
+    "line": ["7-1"],
+    "winIn": 1
+  },
+  {
+    "position": ".x..oxxoo/......ooo/o.xo..o.x/.x.xo.xoo/o.oxxoxxx/...ooxxo./..oxxo..o/.o.oxxxx./xxx...... o -",
+    "line": ["1-1"],
+    "winIn": 1
+  },
+  {
+    "position": "x.oo.x..o/.o.x..xxx/o..ox.o.o/xoox.xxxo/.oxxo..ox/..xo..o.x/..xoxox../xxxo...o./.o..o.xo. o -",
+    "line": ["6-1"],
+    "winIn": 1
+  },
+  {
+    "position": "x..ox...x/..o..oxxo/..x.x.x.x/oxox.xx.x/oxxoo...o/o..ox.o../ooox.xo../oox.o.x.x/.xoo.xxoo o -",
+    "line": ["8-8"],
+    "winIn": 1
+  },
+  {
+    "position": "o..xxxo../ooo....../..oxxx.../xx..oxoo./.x.ooo.../.ooxxoxox/..xox.o.x/.x..xo..o/x..o.xx.o x -",
+    "line": ["7-6", "6-1", "4-3"],
+    "winIn": 2
+  },
+  {
+    "position": "x..ooo.../...xxxx../x.x...ooo/xxoo.o..x/o.oox.o../.oxx..xxo/.oxx.o.oo/.....oxxx/.ox..x.ox o 4",
+    "line": ["4-7", "7-5", "7-7"],
+    "winIn": 2
+  },
+  {
+    "position": "xo...ooox/x..x..xx./.oxxxxo.o/ooo....../.ox.o..xx/xoo..o.ox/..x..x.ox/ox.xoxoxx/....xoooo x 6",
+    "line": ["6-5", "5-1", "1-5"],
+    "winIn": 2
+  },
+  {
+    "position": "xxx..o.o./o..o..oo./ox...oxox/oxx.xo.o./.oo.xx.oo/o..xoxx.x/x...x.o.x/xxx....../x.oxoo..o x -",
+    "line": ["4-7"],
+    "winIn": 1
+  },
+  {
+    "position": "..x.x.x../..x....o./o.....oxo/o......x./o..o.o.../x.o....o./...xxx.o./oox..x.ox/ox..x.... x -",
+    "line": ["9-8"],
+    "winIn": 1
+  },
+  {
+    "position": "xo..x...x/..o.xox.x/x.ox..x../.o..xo.ox/oxooxox.x/oxxxox..x/o..xo...o/....oo.x./o.xo.oo.. o -",
+    "line": ["8-4"],
+    "winIn": 1
+  }
+]

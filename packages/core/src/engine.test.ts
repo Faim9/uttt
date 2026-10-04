@@ -19,8 +19,9 @@ test('reports a winning evaluation and a principal variation', () => {
   );
   const search = new Search(position, seededRandom(5));
   search.run(2000);
-  const { winChance, pv, playouts } = search.analysis;
+  const { winChance, pv, playouts, proven } = search.analysis;
   expect(winChance).toBe(1);
+  expect(proven).toBe(true);
   expect(pv[0]).toBe(parseMove('3-3'));
   expect(playouts).toBe(2000);
 });

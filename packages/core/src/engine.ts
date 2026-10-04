@@ -15,6 +15,8 @@ export interface Analysis {
   /** Principal variation: the most-visited line, starting with `bestMove`. */
   pv: number[];
   playouts: number;
+  /** The evaluation is exact: the solver proved the result (a forced win, loss, or draw). */
+  proven: boolean;
 }
 
 /** Tuned in engine-vs-engine matches: 0.6 beat √2 by over 100 Elo at both 50 and 300 ms per move. */
@@ -237,7 +239,7 @@ export class Search {
     const { root, position } = this;
     if (position.outcome !== null) {
       const winChance = position.outcome === 'x' ? 1 : position.outcome === 'draw' ? 0.5 : 0;
-      return { bestMove: null, winChance, pv: [], playouts: root.visits };
+      return { bestMove: null, winChance, pv: [], playouts: root.visits, proven: true };
     }
     const pv = [];
     for (let node = root; node.children.length > 0;) {
@@ -246,11 +248,14 @@ export class Search {
       pv.push(node.move);
     }
     let winChance = 0.5;
+    let proven = false;
     if (root.children.length > 0) {
-      const moverScore = valueOf(bestChild(root));
+      const best = bestChild(root);
+      const moverScore = valueOf(best);
       winChance = position.turn === 'x' ? moverScore : 1 - moverScore;
+      proven = root.proven !== null || best.proven === 1;
     }
-    return { bestMove: pv[0] ?? null, winChance, pv, playouts: root.visits };
+    return { bestMove: pv[0] ?? null, winChance, pv, playouts: root.visits, proven };
   }
 
   private iterate(): void {

@@ -9,7 +9,7 @@ work is finished or priorities change. The target product is described in PILLAR
    home network, runs 24/7) with an uptime alert, make the repository public (set `SOURCE_URL`), and launch.
 2. **Bring in players:** plan the launch so new visitors find opponents (owner and Claude to discuss).
 
-After that, the owner sets priorities. Candidates: basic anti-cheat, puzzles, tournaments.
+After that, the owner sets priorities. Candidates: basic anti-cheat, puzzle ratings.
 
 ## Done
 
@@ -49,6 +49,9 @@ After that, the owner sets priorities. Candidates: basic anti-cheat, puzzles, to
 - **Community:** follow players (follower counts; a "Following" card on the home page shows who's online and
   links to their games), block players (never paired, no challenges or rematches; ends follows), and rating
   graphs per category on profiles (history recorded per rated game, backfilled from past games).
+- **Puzzles:** 401 positions where one move forces a game win in one or two moves (unique at every step,
+  checked exhaustively), generated from engine self-play with `pnpm puzzles`. A daily puzzle (the same for
+  everyone), random unsolved puzzles, solved count in the browser, links to analyze.
 - **Lobby for a small player base:** an honest activity line (players in games and looking, guests included),
   "N waiting" on each pool, a "Play now" button that joins the pool where someone already waits (3+2
   otherwise), and a search that follows you around the site: play the computer while you wait (suggested after

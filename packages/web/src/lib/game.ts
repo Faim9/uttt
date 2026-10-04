@@ -50,3 +50,6 @@ export function analysisLink(moves: number[], { review = false } = {}): string {
 }
 
 export const percent = (fraction: number) => `${Math.round(fraction * 100)}%`;
+
+/** Today's puzzle is the same for everyone: days since 1970 (UTC), wrapped around the list. */
+export const dailyPuzzle = (count: number) => Math.floor(Date.now() / 86_400_000) % count;

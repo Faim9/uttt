@@ -10,6 +10,7 @@ const evaluation = (winChance: number, bestMove: number | null = 0): Analysis =>
   bestMove,
   pv: bestMove === null ? [] : [bestMove],
   playouts: 1000,
+  proven: false,
 });
 
 test("judges a move by the drop in the mover's win chance", () => {

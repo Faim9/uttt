@@ -172,6 +172,10 @@
         <strong>Play a friend</strong>
         <span>Send a link; the game starts when they open it</span>
       </button>
+      <a class="action" href="/puzzles">
+        <strong>Daily puzzle</strong>
+        <span>Find the winning move; a new one every day</span>
+      </a>
       <a class="action" href="/computer">
         <strong>Play the computer</strong>
         <span>Six levels, from first steps to a real fight</span>
