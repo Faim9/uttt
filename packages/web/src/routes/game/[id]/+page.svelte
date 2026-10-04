@@ -15,6 +15,7 @@
   import { analysisLink } from '#lib/game.ts';
   import PlayerBar from '#lib/PlayerBar.svelte';
   import { socket } from '#lib/session.svelte.ts';
+  import { playSound } from '#lib/sound.svelte.ts';
 
   const gameId = $derived(page.params.id ?? '');
 
@@ -30,6 +31,8 @@
   let rematchBy = $state<Player | null>(null);
   /** After a tournament game, players head back to the tournament for their next pairing. */
   const RETURN_MS = 4000;
+  /** Your clock warns once when it drops below this. */
+  const LOW_TIME_MS = 10_000;
   let stayHere = $state(false);
 
   const unconfirmed = $derived(
@@ -85,6 +88,24 @@
     if (!tournament || active || !you || stayHere) return;
     const timer = setTimeout(() => goto(`/tournaments/${tournament}`), RETURN_MS);
     return () => clearTimeout(timer);
+  });
+
+  // A sound when a game you're watching ends (not when you open one that's already over).
+  let wasActive = false;
+  $effect(() => {
+    if (wasActive && !active) playSound('end');
+    wasActive = active;
+  });
+
+  let warned = false;
+  $effect(() => {
+    if (!you || !active) return;
+    const left = clock(you);
+    if (left >= LOW_TIME_MS) warned = false;
+    else if (!warned && game?.running === you) {
+      warned = true;
+      playSound('lowTime');
+    }
   });
 
   /** Your clock stops when you move, not when the server's confirmation arrives. */

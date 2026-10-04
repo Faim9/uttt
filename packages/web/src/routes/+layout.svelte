@@ -6,6 +6,7 @@
   import Logo from '#lib/Logo.svelte';
   import SearchBar from '#lib/SearchBar.svelte';
   import { authenticate, session, socket, startSession } from '#lib/session.svelte.ts';
+  import { loadSoundSetting, playSound, setSound, sound } from '#lib/sound.svelte.ts';
   import { onMount } from 'svelte';
 
   let { children } = $props();
@@ -69,10 +70,13 @@
   onMount(() => {
     theme = document.documentElement.dataset.theme ?? 'classic';
     watchInstall();
+    loadSoundSetting();
     startSession();
     // Seeks and challenges can be answered while browsing elsewhere; go to the game when it starts.
     return socket.listen((message) => {
-      if (message.type === 'gameStarted') goto(`/game/${message.gameId}`);
+      if (message.type !== 'gameStarted') return;
+      playSound('start');
+      goto(`/game/${message.gameId}`);
     });
   });
 
@@ -133,6 +137,14 @@
         <option {value}>{label}</option>
       {/each}
     </select>
+  </label>
+  <label>
+    <input
+      type="checkbox"
+      checked={sound.on}
+      onchange={(event) => setSound(event.currentTarget.checked)}
+    />
+    Sound
   </label>
 {/snippet}
 

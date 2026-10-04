@@ -5,6 +5,7 @@
   import Board from '#lib/Board.svelte';
   import { Engine } from '#lib/engine.ts';
   import { api } from '#lib/session.svelte.ts';
+  import { playSound } from '#lib/sound.svelte.ts';
   import { onDestroy, untrack } from 'svelte';
 
   /** A puzzle as the server sends it; `you` is null for guests. */
@@ -118,6 +119,7 @@
       setTimeout(() => advance(line[step]), REPLY_MS);
     } else {
       status = 'solved';
+      playSound('solved');
       report();
     }
   }
@@ -126,6 +128,7 @@
   async function punish(move: number) {
     if (!position) return;
     status = 'wrong';
+    playSound('wrong');
     report();
     retry = { position, lastMove };
     refutation = null;

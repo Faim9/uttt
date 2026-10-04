@@ -32,4 +32,4 @@
   });
 </script>
 
-<Board {position} lastMove={moves.at(-1) ?? null} disabled />
+<Board {position} lastMove={moves.at(-1) ?? null} disabled silent />

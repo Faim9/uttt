@@ -64,7 +64,12 @@
           running={game.running === 'o'}
         />
         <div class="board">
-          <Board position={replay(game.moves)} lastMove={game.moves.at(-1) ?? null} disabled />
+          <Board
+            position={replay(game.moves)}
+            lastMove={game.moves.at(-1) ?? null}
+            disabled
+            silent
+          />
           <a class="cover" href="/game/{game.id}" aria-label="Watch {names(game)}"></a>
         </div>
         <PlayerBar

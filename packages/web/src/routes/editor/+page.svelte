@@ -58,7 +58,7 @@
 </script>
 
 <div class="board-layout">
-  <Board {position} editing={tool} {onmove} />
+  <Board {position} editing={tool} silent {onmove} />
 
   <div class="panel">
     <section class="card">

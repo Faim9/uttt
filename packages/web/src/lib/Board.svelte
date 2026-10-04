@@ -1,6 +1,14 @@
 <script lang="ts">
-  import { cellAt, formatMove, legalMoves, type Player, type Position } from '@uttt/core';
+  import {
+    cellAt,
+    formatMove,
+    legalMoves,
+    moveCount,
+    type Player,
+    type Position,
+  } from '@uttt/core';
   import Piece from './Piece.svelte';
+  import { playSound } from './sound.svelte.ts';
 
   interface Props {
     position: Position;
@@ -12,6 +20,8 @@
     over?: boolean;
     /** The board editor: every cell is clickable, and shows the piece a click places (none to erase). */
     editing?: Player | 'erase';
+    /** No move sounds, e.g. for boards that play themselves or that you only look at. */
+    silent?: boolean;
     onmove?: (move: number) => void;
   }
 
@@ -22,6 +32,7 @@
     disabled = false,
     over = false,
     editing,
+    silent = false,
     onmove,
   }: Props = $props();
 
@@ -31,6 +42,15 @@
   const playable = $derived(
     editing ? new Set(Array.from({ length: 81 }, (_, move) => move)) : disabled ? new Set() : legal,
   );
+  /** A move just played sounds (a chime if it won a board); jumping to another position doesn't. */
+  let previous: Position | null = null;
+  $effect(() => {
+    const [before, after] = [previous, position];
+    previous = after;
+    if (silent || !before || moveCount(after) !== moveCount(before) + 1) return;
+    playSound(after.boards.some((won, i) => won && !before.boards[i]) ? 'board' : 'move');
+  });
+
   const ghost = $derived(editing ? (editing === 'erase' ? null : editing) : position.turn);
 </script>
 
