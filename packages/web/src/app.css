@@ -1,11 +1,24 @@
+@import '@fontsource-variable/outfit';
+
+/*
+ * Design tokens. "Classic" is the default and follows the system's light or dark mode; the other themes
+ * (picked in the footer, stored in the browser) override the same tokens with a fixed look.
+ */
 :root {
-  color-scheme: light dark;
-  --bg: #f4f2ee;
+  color-scheme: light;
+  --font: 'Outfit Variable', system-ui, sans-serif;
+  --font-display: var(--font);
+  --display-weight: 750;
+  --display-case: none;
+  --bg: #f5f4f0;
+  --bg-image: none;
   --surface: #ffffff;
-  --text: #1f2328;
-  --muted: #6b7078;
-  --border: #e2ded6;
-  --accent: #2f6fde;
+  --raised: #faf9f6;
+  --text: #1c1d21;
+  --muted: #666a73;
+  --border: #e4e1da;
+  --accent: #5b45e0;
+  --accent-text: #ffffff;
   --x: #2563eb;
   --o: #e8590c;
   --cell: #fbfaf7;
@@ -17,17 +30,26 @@
   --inaccuracy: #a68f00;
   --mistake: #d97a00;
   --blunder: #d62828;
-  --radius: 10px;
+  --radius: 12px;
+  --border-width: 1px;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 6px 20px rgb(0 0 0 / 0.05);
+  /* The offset bottom edge that gives buttons and tiles depth; Playful makes it chunky. */
+  --depth: 0 0 0 transparent;
+  --piece-glow: none;
+  --piece-tilt: 0deg;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #161718;
-    --surface: #202224;
-    --text: #e6e6e6;
-    --muted: #9aa0a6;
-    --border: #303336;
-    --accent: #6ea0ff;
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --bg: #131416;
+    --surface: #1d1f22;
+    --raised: #24272b;
+    --text: #e8e8ea;
+    --muted: #9ba0a8;
+    --border: #2f3236;
+    --accent: #8b7bff;
+    --accent-text: #11111a;
     --x: #60a5fa;
     --o: #fb923c;
     --cell: #26292c;
@@ -39,7 +61,84 @@
     --inaccuracy: #e3cc3a;
     --mistake: #f5a524;
     --blunder: #f05252;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px rgb(0 0 0 / 0.25);
   }
+}
+
+/* Bright and bouncy: coral X, teal O, round chunky shapes. */
+:root[data-theme='playful'] {
+  --display-weight: 800;
+  --bg: #fff6ea;
+  --surface: #ffffff;
+  --raised: #fffaf3;
+  --text: #2a2140;
+  --muted: #776c8a;
+  --border: #f0dcc4;
+  --accent: #7c3aed;
+  --x: #f43f5e;
+  --o: #0d9488;
+  --cell: #fffdf9;
+  --line: #f3d9bd;
+  --line-strong: #e0a96d;
+  --active: #fff0b3;
+  --last: #ffe0e6;
+  --radius: 20px;
+  --border-width: 2px;
+  --shadow: none;
+  --depth: 0 4px 0 #ecd2b4;
+}
+
+/* A pencil game in a notebook: ruled paper, ink-blue X, red-pencil O, slightly tilted pieces. */
+:root[data-theme='notebook'] {
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --display-weight: 700;
+  --bg: #f3ead6;
+  --bg-image: repeating-linear-gradient(transparent 0 31px, rgb(70 100 160 / 0.13) 31px 32px);
+  --surface: #fffaf0;
+  --raised: #fff6e4;
+  --text: #2d2a26;
+  --muted: #766d5f;
+  --border: #dccdb0;
+  --accent: #1d4e89;
+  --x: #1d3f8f;
+  --o: #b3261e;
+  --cell: #fffdf6;
+  --line: #d6c6a4;
+  --line-strong: #9c8a66;
+  --active: #fbefc4;
+  --last: #e3e9f5;
+  --radius: 6px;
+  --shadow: 2px 3px 0 rgb(90 70 40 / 0.12);
+  --piece-tilt: -6deg;
+}
+
+/* Late-night arcade: deep blue-black, glowing neon pieces. */
+:root[data-theme='arcade'] {
+  color-scheme: dark;
+  --display-case: uppercase;
+  --display-weight: 700;
+  --bg: #0a0a17;
+  --bg-image: radial-gradient(ellipse at top, rgb(90 60 255 / 0.18), transparent 60%);
+  --surface: #12122a;
+  --raised: #181836;
+  --text: #ecebff;
+  --muted: #9393c4;
+  --border: #2a2a5c;
+  --accent: #b6f227;
+  --accent-text: #0a0a17;
+  --x: #22d3ee;
+  --o: #f472b6;
+  --cell: #15153a;
+  --line: #2b2b66;
+  --line-strong: #5050c0;
+  --active: #232352;
+  --last: #2d1f52;
+  --hint: #4ade80;
+  --inaccuracy: #e3cc3a;
+  --mistake: #f5a524;
+  --blunder: #f05252;
+  --shadow: 0 0 0 1px rgb(120 100 255 / 0.15), 0 8px 30px rgb(0 0 0 / 0.5);
+  --piece-glow: drop-shadow(0 0 5px currentColor);
 }
 
 * {
@@ -48,10 +147,19 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: var(--bg) var(--bg-image) fixed;
   color: var(--text);
-  font-family: system-ui, sans-serif;
+  font-family: var(--font);
   line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  text-transform: var(--display-case);
+  letter-spacing: -0.01em;
 }
 
 a {
@@ -60,23 +168,35 @@ a {
 
 button,
 input,
+select,
 textarea {
   font: inherit;
   color: inherit;
 }
 
 .button {
-  padding: 0.45rem 0.9rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: var(--border-width) solid var(--border);
+  border-radius: calc(var(--radius) * 0.7);
   background: var(--surface);
+  box-shadow: var(--depth);
   color: inherit;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
 }
 
-.button:hover:enabled {
+.button:hover:enabled,
+a.button:hover {
   border-color: var(--line-strong);
+}
+
+.button:active:enabled {
+  transform: translateY(1px);
 }
 
 .button:disabled {
@@ -87,21 +207,24 @@ textarea {
 .button.primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: white;
+  color: var(--accent-text);
 }
 
 .card {
   padding: 1rem;
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .card h2 {
   margin: 0 0 0.5rem;
+  font-family: var(--font);
   font-size: 0.85rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--muted);
 }
 
@@ -121,7 +244,8 @@ textarea {
 
 .document h2 {
   margin-top: 1.75rem;
-  font-size: 1rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
   text-transform: none;
   letter-spacing: 0;
   color: var(--text);
@@ -149,4 +273,13 @@ textarea {
 .panel {
   display: grid;
   gap: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }

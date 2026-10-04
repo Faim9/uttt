@@ -181,7 +181,7 @@
             <a class="button primary" href={analysisLink(game.moves, { review: true })}>
               Review game
             </a>
-            <a class="button" href="/play">New game</a>
+            <a class="button" href="/">New game</a>
           </div>
         {/if}
       </section>

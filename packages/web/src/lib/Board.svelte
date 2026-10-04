@@ -14,7 +14,9 @@
   let { position, lastMove = null, hint = null, disabled = false, onmove }: Props = $props();
 
   const NINE = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-  const legal = $derived(new Set(disabled ? [] : legalMoves(position)));
+  const legal = $derived(new Set(legalMoves(position)));
+  /** The boards to play in are highlighted even when it isn't your turn; cells are clickable only when it is. */
+  const playable = $derived(disabled ? new Set<number>() : legal);
 </script>
 
 <div class="board">
@@ -32,13 +34,13 @@
           class="cell"
           class:last={move === lastMove}
           class:hint={move === hint}
-          disabled={!legal.has(move)}
+          disabled={!playable.has(move)}
           aria-label={`${formatMove(move)}${piece ? `, ${piece.toUpperCase()}` : ''}`}
           onclick={() => onmove?.(move)}
         >
           {#if piece}
             <Piece player={piece} />
-          {:else if legal.has(move)}
+          {:else if playable.has(move)}
             <span class="ghost"><Piece player={position.turn} /></span>
           {/if}
         </button>

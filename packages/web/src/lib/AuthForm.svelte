@@ -24,7 +24,7 @@
           ? { username, email, password, captcha: captcha || undefined }
           : { login, password, code: needsCode ? code : undefined };
       await authenticate(mode, body);
-      goto('/play');
+      goto('/');
     } catch (e) {
       if (e instanceof ApiError && e.data.twoFactor && !needsCode) {
         needsCode = true;

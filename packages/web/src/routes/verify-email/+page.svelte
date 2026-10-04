@@ -26,7 +26,7 @@
   {:else if status === 'done'}
     <h1>Email confirmed</h1>
     <p>You can now play rated games.</p>
-    <a class="button primary" href="/play">Play</a>
+    <a class="button primary" href="/">Play</a>
   {:else}
     <h1>That didn't work</h1>
     <p role="alert">{error}</p>

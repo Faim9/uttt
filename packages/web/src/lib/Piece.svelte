@@ -18,15 +18,18 @@
     width: 100%;
     height: 100%;
     fill: none;
+    stroke: currentColor;
     stroke-width: 13;
     stroke-linecap: round;
+    filter: var(--piece-glow);
+    transform: rotate(var(--piece-tilt));
   }
 
   .x {
-    stroke: var(--x);
+    color: var(--x);
   }
 
   .o {
-    stroke: var(--o);
+    color: var(--o);
   }
 </style>

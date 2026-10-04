@@ -2,6 +2,7 @@
   import '../app.css';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
+  import Logo from '#lib/Logo.svelte';
   import { authenticate, session, socket, startSession } from '#lib/session.svelte.ts';
   import { onMount } from 'svelte';
 
@@ -14,13 +15,32 @@
   const SOURCE_URL = '';
 
   const links = [
-    { href: '/play', label: 'Play' },
+    { href: '/', label: 'Play' },
     { href: '/computer', label: 'Computer' },
     { href: '/analysis', label: 'Analysis' },
     { href: '/leaderboard', label: 'Leaderboard' },
   ];
 
+  /** Classic follows the system's light or dark mode; the others are fixed looks. See app.css. */
+  const THEMES = { classic: 'Classic', playful: 'Playful', notebook: 'Notebook', arcade: 'Arcade' };
+  let theme = $state('classic');
+
+  /** Saved in this browser only; static/theme.js applies it on the next visit before the page draws. */
+  function setTheme(value: string) {
+    theme = value;
+    const root = document.documentElement;
+    if (value === 'classic') delete root.dataset.theme;
+    else root.dataset.theme = value;
+    try {
+      if (value === 'classic') localStorage.removeItem('theme');
+      else localStorage.setItem('theme', value);
+    } catch {
+      // Blocked storage: the theme still applies until the page is closed.
+    }
+  }
+
   onMount(() => {
+    theme = document.documentElement.dataset.theme ?? 'classic';
     startSession();
     // Seeks and challenges can be answered while browsing elsewhere; go to the game when it starts.
     return socket.listen((message) => {
@@ -36,7 +56,7 @@
 
 <header>
   <nav>
-    <a class="brand" href="/">UTTT</a>
+    <a class="brand" href="/" aria-label="UTTT home"><Logo /> UTTT</a>
     {#each links as { href, label } (href)}
       <a {href} aria-current={page.url.pathname === href ? 'page' : undefined}>{label}</a>
     {/each}
@@ -61,7 +81,15 @@
 <footer>
   <p>
     Created by Faim9, with AI assistance (Claude). · <a href="/terms">Terms</a> ·
-    <a href="/privacy">Privacy</a>
+    <a href="/privacy">Privacy</a> ·
+    <label>
+      Theme
+      <select value={theme} onchange={(event) => setTheme(event.currentTarget.value)}>
+        {#each Object.entries(THEMES) as [value, label] (value)}
+          <option {value}>{label}</option>
+        {/each}
+      </select>
+    </label>
   </p>
   <p>
     Free software under the
@@ -73,7 +101,7 @@
 
 <style>
   header {
-    border-bottom: 1px solid var(--border);
+    border-bottom: var(--border-width) solid var(--border);
     background: var(--surface);
   }
 
@@ -99,9 +127,22 @@
     color: var(--text);
   }
 
+  nav a[aria-current='page'] {
+    font-weight: 600;
+  }
+
   .brand {
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+    margin-right: 0.5rem;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
     font-weight: 800;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
+  }
+
+  nav .brand {
     color: var(--text);
   }
 
@@ -133,7 +174,7 @@
     max-width: 1100px;
     margin: 2rem auto 0;
     padding: 1rem;
-    border-top: 1px solid var(--border);
+    border-top: var(--border-width) solid var(--border);
     color: var(--muted);
     font-size: 0.85rem;
     text-align: center;
@@ -145,5 +186,13 @@
 
   footer a {
     color: inherit;
+  }
+
+  footer select {
+    margin-left: 0.25rem;
+    padding: 0.1rem 0.3rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
   }
 </style>

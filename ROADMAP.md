@@ -47,6 +47,9 @@ After that, the owner sets priorities. Candidates: basic anti-cheat, spectating 
   two-factor locks for 15 minutes after 5 wrong codes, at most 50 live connections per address, at most one
   email of each kind per user per minute, Cloudflare Turnstile on sign-up, weekly Dependabot updates.
 - **Terms of use** page, linked from the footer and the sign-up form.
+- **Look and feel:** the home page is the lobby (one click on a time control starts pairing, like lichess;
+  "Play a friend" opens a dialog), with a self-playing demo board and the rules. Logo, self-hosted Outfit font,
+  and four themes picked in the footer: Classic (follows light/dark), Playful, Notebook, Arcade.
 
 ## Later
 
