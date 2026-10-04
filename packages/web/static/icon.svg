@@ -1,0 +1,10 @@
+<!-- The app icon: the logo on a full-bleed square (phones round the corners themselves). Rendered to the
+     PNGs next to it with: rsvg-convert -w N icon.svg > icon-N.png -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <rect width="40" height="40" fill="#5b45e0"/>
+  <g transform="translate(8 8) scale(0.6)">
+    <path d="M15.3 5v30M24.7 5v30M5 15.3h30M5 24.7h30" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none" opacity=".92"/>
+    <path d="M17.3 17.3l5.4 5.4M22.7 17.3l-5.4 5.4" stroke="#9cc3ff" stroke-width="3.4" stroke-linecap="round"/>
+    <circle cx="29.9" cy="10.1" r="2.9" fill="none" stroke="#ffb380" stroke-width="2.8"/>
+  </g>
+</svg>

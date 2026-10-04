@@ -1,0 +1,15 @@
+{
+  "name": "UTTT: Ultimate Tic-Tac-Toe",
+  "short_name": "UTTT",
+  "description": "Play Ultimate Tic-Tac-Toe online: rated games, puzzles, tournaments, and a strong engine.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f4f0",
+  "theme_color": "#5b45e0",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

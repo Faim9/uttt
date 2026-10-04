@@ -15,6 +15,8 @@ After that, the owner sets priorities:
   solving moves your rating like lichess's puzzle rating; puzzles are then served near your level, and the
   profile shows the puzzle rating and its graph. Needs puzzles stored server-side (solves are reported to and
   judged by the server, so ratings can't be faked).
+- **Google Play listing:** wrap the installed app (a Trusted Web Activity, e.g. with Bubblewrap); needs a
+  Google Play developer account ($25 once). The App Store is harder (Apple often rejects web wrappers).
 - Other candidates: basic anti-cheat.
 
 ## Done
@@ -60,6 +62,10 @@ After that, the owner sets priorities:
   score, avoiding an immediate rematch and blocked players); 2 points per win, 1 per draw, computed from the
   tournament's games; live standings; after a game you're taken back to the tournament. The lobby features
   the running or next tournament.
+- **Installable app (PWA):** manifest and icons, so phones and desktops can install UTTT with its own icon and
+  open it full screen; a service worker caches the app (it opens instantly, and offline for the computer,
+  analysis, and puzzles). On phones: an app-style bottom tab bar (Play, Puzzles, Watch, Tournaments, More)
+  with a More sheet; "Install the app" where the browser allows it, instructions on iPhone.
 - **Puzzles:** 470 positions where one move forces a game win in one to four moves (60 / 220 / 150 / 40),
   unique at every step against the best defense, checked exhaustively; generated from engine self-play with
   `pnpm puzzles`. A daily puzzle of two moves or more (the same for everyone), random unsolved puzzles, solved

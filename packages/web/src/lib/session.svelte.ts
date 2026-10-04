@@ -27,7 +27,11 @@ export const session = $state<{ user: User | null; ready: boolean }>({ user: nul
 
 /** Loads the session (which also gives guests their cookie), then opens the socket. */
 export async function startSession(): Promise<void> {
-  session.user = (await api<{ user: User | null }>('GET', '/api/me')).user;
+  try {
+    session.user = (await api<{ user: User | null }>('GET', '/api/me')).user;
+  } catch {
+    // Offline: the installed app still opens for everything that runs on the device.
+  }
   session.ready = true;
   socket.connect();
 }
