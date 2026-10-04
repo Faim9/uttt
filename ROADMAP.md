@@ -7,7 +7,6 @@ work is finished or priorities change. The target product is described in PILLAR
 
 1. **Soft launch** (still hosted from the owner's computer, docs/deploy.md "On your own computer"). Done:
    security review fixes, Turnstile on sign-up, Dependabot, terms of use. Left:
-   - Impressum (German law): decide on the address to publish, then add the page.
    - Make https://github.com/Faim9/uttt public and set `SOURCE_URL`.
 2. **Public launch:** move to a rented server (separates the site from the owner's home network, runs
    24/7), basic admin tools (ban, rename, delete a game) with an audit log, an uptime alert, online rematch.
@@ -76,4 +75,7 @@ graphs on profiles.
   redirect is a maybe, if the site takes off.
 - **Publish the repository** and set `SOURCE_URL` in `packages/web/src/routes/+layout.svelte` before deploying:
   the AGPL requires offering the source to the site's users.
-- **Logo.**
+- **Impressum** (German law: name and a reachable postal address): postponed by the owner until donations or
+  a wider launch; options are a current home address or a paid address service.
+- **Logo:** a first one exists (grid with X and O, `packages/web/src/lib/Logo.svelte`, favicon); replace it if
+  a designer makes a better one.
