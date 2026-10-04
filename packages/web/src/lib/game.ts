@@ -1,21 +1,4 @@
-import { formatMove, type GamePlayer, type GameState, type Judgement } from '@uttt/core';
-
-const HOW: Record<NonNullable<GameState['termination']>, string> = {
-  line: 'three in a row',
-  resign: 'resignation',
-  timeout: 'time',
-  agreement: 'agreement',
-  abort: '',
-  disconnect: 'abandonment',
-};
-
-/** E.g. "X won by resignation", "Draw by agreement", "Game aborted". */
-export function resultText({ termination, outcome }: GameState): string {
-  if (!termination) return 'In progress';
-  if (termination === 'abort' || !outcome) return 'Game aborted';
-  const how = HOW[termination];
-  return outcome === 'draw' ? `Draw by ${how}` : `${outcome.toUpperCase()} won by ${how}`;
-}
+import { formatMove, type GamePlayer, type Judgement } from '@uttt/core';
 
 export function playerName(player: GamePlayer): string {
   return player.username ?? 'Anonymous';

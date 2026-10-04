@@ -1,7 +1,13 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { RATING_KINDS, type GameState, type Player, type RatingKind } from '@uttt/core';
-  import { playerName, resultText } from '#lib/game.ts';
+  import {
+    RATING_KINDS,
+    resultText,
+    type GameState,
+    type Player,
+    type RatingKind,
+  } from '@uttt/core';
+  import { playerName } from '#lib/game.ts';
   import RatingGraph from '#lib/RatingGraph.svelte';
   import ReportDialog from '#lib/ReportDialog.svelte';
   import { api, session } from '#lib/session.svelte.ts';

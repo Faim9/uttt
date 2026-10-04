@@ -6,12 +6,13 @@
     formatMove,
     other,
     replay,
+    resultText,
     TIME_CONTROLS,
     type GameState,
     type Player,
   } from '@uttt/core';
   import Board from '#lib/Board.svelte';
-  import { analysisLink, resultText } from '#lib/game.ts';
+  import { analysisLink } from '#lib/game.ts';
   import PlayerBar from '#lib/PlayerBar.svelte';
   import { socket } from '#lib/session.svelte.ts';
 

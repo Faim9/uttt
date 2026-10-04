@@ -87,6 +87,9 @@ After that, the owner sets priorities:
   clocks; opening one follows it move by move.
 - **Time controls:** six quick-pairing pools (1+0, 2+1, 3+0, 3+2, 5+3, 10+5); challenges take any time
   control from 1+0 to 60+30.
+- **Link previews:** shared links (Reddit, Discord, WhatsApp...) show a title, a description and a picture of
+  the board: games (players, result), puzzles, profiles (ratings), tournaments, challenges, and analysis
+  positions. The server fills in the Open Graph tags and draws the board as a PNG itself (no image library).
 - **Look and feel:** the home page is the lobby (one click on a time control starts pairing, like lichess;
   "Play a friend" opens a dialog), with a self-playing demo board and the rules. Logo, self-hosted Outfit font,
   and four themes picked in the footer: Classic (follows light/dark), Playful, Notebook, Arcade.

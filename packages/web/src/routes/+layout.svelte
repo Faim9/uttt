@@ -82,6 +82,9 @@
   }
 </script>
 
+<!-- Shared links open with their own title (the server's link preview); in the app, it's the site's. -->
+<svelte:head><title>UTTT · Ultimate Tic-Tac-Toe</title></svelte:head>
+
 <header>
   <nav>
     <a class="brand" href="/" aria-label="UTTT home"><Logo /> UTTT</a>

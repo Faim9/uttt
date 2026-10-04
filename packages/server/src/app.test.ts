@@ -1,4 +1,7 @@
 import { parseMove, type ServerMessage } from '@uttt/core';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { afterEach, expect, test } from 'vitest';
 import type { WebSocket } from 'ws';
 import { buildApp } from './app.ts';
@@ -738,6 +741,38 @@ test('puzzles are rated on the first try, judged by the moves played', async () 
   const profile = (await alice.request('GET', '/api/users/alice')).json();
   expect(profile.ratings.puzzle.games).toBe(2);
   expect(profile.history.puzzle).toHaveLength(2);
+});
+
+test('shared links get previews: a title, a description and a board image', async () => {
+  const webRoot = mkdtempSync(join(tmpdir(), 'uttt-web-'));
+  writeFileSync(
+    join(webRoot, '200.html'),
+    '<html><head><title>UTTT</title><meta name="description" content="Play" /></head></html>',
+  );
+  const app = await buildApp({
+    store: new Store(':memory:'),
+    webRoot,
+    publicUrl: 'https://uttt.test',
+  });
+  apps.push(app);
+  const page = async (url: string) => (await app.inject({ url, headers: HEADERS })).body;
+
+  const puzzle = await page('/puzzles?id=1');
+  expect(puzzle).toContain('<title>Puzzle #1 · UTTT</title>');
+  expect(puzzle).toMatch(/to play and win in \w+ moves?\. Can you find it\?/);
+  const image = puzzle.match(/property="og:image" content="([^"]+)"/)?.[1] ?? '';
+  expect(image).toMatch(/^https:\/\/uttt\.test\/api\/preview\.png\?position=/);
+
+  const png = await app.inject({ url: image.replaceAll('&#38;', '&'), headers: HEADERS });
+  expect(png.headers['content-type']).toBe('image/png');
+  expect(png.rawPayload.subarray(1, 4).toString()).toBe('PNG');
+  const bad = await app.inject({ url: '/api/preview.png?position=nonsense', headers: HEADERS });
+  expect(bad.statusCode).toBe(400);
+
+  // Unknown or malformed links fall back to the site's own preview, escaped.
+  expect(await page('/game/nonexist')).toContain('<title>UTTT · Ultimate Tic-Tac-Toe</title>');
+  expect(await page('/analysis?moves=9-9+bad')).toContain('og:title" content="UTTT · Ultimate');
+  expect(await page('/@%3Cscript%3E')).not.toContain('<script>');
 });
 
 test('the health check reports a working database', async () => {

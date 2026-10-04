@@ -188,6 +188,23 @@ export interface GameState {
   tournamentId: string | null;
 }
 
+const HOW: Record<Termination, string> = {
+  line: 'three in a row',
+  resign: 'resignation',
+  timeout: 'time',
+  agreement: 'agreement',
+  abort: '',
+  disconnect: 'abandonment',
+};
+
+/** E.g. "X won by resignation", "Draw by agreement", "Game aborted". */
+export function resultText({ termination, outcome }: GameState): string {
+  if (!termination) return 'In progress';
+  if (termination === 'abort' || !outcome) return 'Game aborted';
+  const how = HOW[termination];
+  return outcome === 'draw' ? `Draw by ${how}` : `${outcome.toUpperCase()} won by ${how}`;
+}
+
 export type ServerMessage =
   | { type: 'game'; game: GameState; you: Player | null }
   | { type: 'gameStarted'; gameId: string }

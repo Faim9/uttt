@@ -4,6 +4,8 @@ import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
 import websocket from '@fastify/websocket';
 import Fastify, { type FastifyRequest } from 'fastify';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { ZodError } from 'zod';
 import { accountRoutes } from './account.ts';
 import { apiRoutes } from './api.ts';
@@ -13,6 +15,7 @@ import { turnstile, type HumanCheck } from './captcha.ts';
 import { Emails, smtpMailer, type SendMail } from './email.ts';
 import { Hub } from './hub.ts';
 import { moderationRoutes } from './moderation.ts';
+import { linkPreview, previewRoutes } from './previews.ts';
 import { puzzleRoutes } from './puzzles.ts';
 import { socialRoutes } from './social.ts';
 import { tournamentRoutes } from './tournaments.ts';
@@ -107,6 +110,7 @@ export async function buildApp({
   await app.register(tournamentRoutes(services));
   await app.register(puzzleRoutes(services));
   await app.register(apiRoutes(store, hub));
+  await app.register(previewRoutes());
 
   // Open connections per visitor address, capped so one visitor can't exhaust the server's memory.
   const socketsPerIp = new Map<string, number>();
@@ -127,10 +131,13 @@ export async function buildApp({
 
   if (webRoot) {
     await app.register(fastifyStatic, { root: webRoot });
+    // Every page is the app's one page, with the link preview for its address filled in.
+    const appPage = readFileSync(join(webRoot, '200.html'), 'utf8');
+    const preview = linkPreview(store, hub, publicUrl);
     app.setNotFoundHandler((request, reply) =>
       request.url.startsWith('/api/')
         ? reply.code(404).send({ error: 'Not found' })
-        : reply.sendFile('200.html'),
+        : reply.type('text/html').send(preview(appPage, request.url)),
     );
   }
 
