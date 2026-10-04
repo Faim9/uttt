@@ -22,7 +22,8 @@
   const puzzle = $derived(puzzles[index] as Puzzle | undefined);
   const line = $derived(puzzle ? puzzleStart(puzzle).line : []);
   const solver = $derived(puzzle ? puzzleStart(puzzle).position.turn : 'x');
-  const isDaily = $derived(puzzles.length > 0 && index === dailyPuzzle(puzzles.length));
+  const isDaily = $derived(puzzles.length > 0 && index === dailyPuzzle(puzzles));
+  const MOVES = ['', 'in one move', 'in two moves', 'in three moves', 'in four moves'];
   const analysis = $derived(
     puzzle
       ? `/analysis?${new URLSearchParams({ position: puzzle.position, moves: puzzle.line.join(' ') })}`
@@ -43,7 +44,7 @@
     if (puzzles.length === 0) return;
     const n = Number(page.url.searchParams.get('n'));
     const chosen = Number.isInteger(n) && n >= 1 && n <= puzzles.length ? n - 1 : null;
-    index = chosen ?? dailyPuzzle(puzzles.length);
+    index = chosen ?? dailyPuzzle(puzzles);
     restart(puzzles[index]);
   });
 
@@ -114,7 +115,7 @@
         <h2>{isDaily ? 'Daily puzzle' : `Puzzle ${index + 1} of ${puzzles.length}`}</h2>
         <p class="task">
           <span class="side {solver}">{solver.toUpperCase()}</span> to play and win
-          {puzzle.winIn === 1 ? 'in one move' : 'in two moves'}
+          {MOVES[puzzle.winIn]}
         </p>
         {#if status === 'wrong'}
           <p class="wrong" role="alert">Not that one. Try again!</p>
@@ -126,7 +127,7 @@
           <p role="status">The solution: {puzzle.line.join(' ')}</p>
         {:else if step > 0}
           <p class="right" role="status">Good move! Keep going.</p>
-        {:else if puzzle.winIn === 2}
+        {:else if puzzle.winIn > 1}
           <p class="muted">Your opponent will reply with their best defense.</p>
         {/if}
         <div class="actions">

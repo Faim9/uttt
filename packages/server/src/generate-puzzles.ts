@@ -14,19 +14,24 @@ import {
   type Puzzle,
 } from '@uttt/core';
 
-const TARGET = 400;
+/** How many puzzles of each length to keep: mostly two and three moves, which teach the game best. */
+const TARGETS: Record<number, number> = { 1: 60, 2: 220, 3: 150, 4: 40 };
+/** Long wins are rare; stop after this many games even if a target isn't met. */
+const MAX_GAMES = 1200;
 const OUTPUT = new URL('../../web/src/lib/puzzles.json', import.meta.url);
 /** Random first moves, so games (and puzzles) differ. */
 const RANDOM_OPENING = 4;
 /** Forced wins rarely exist earlier; skipping these plies saves most of the work. */
 const FIRST_PLY = 10;
-/** The solver usually proves a short forced win within this budget; only then run the exact check. */
-const PRESCREEN = 4000;
+/** The solver proves most short forced wins within this budget; only then run the exact check. */
+const PRESCREEN = 20_000;
 
 const puzzles = new Map<string, Puzzle>();
 const pick = <T>(items: T[]) => items[Math.floor(Math.random() * items.length)];
+const count = (n: number) => [...puzzles.values()].filter((puzzle) => puzzle.winIn === n).length;
+const wanted = (n: number) => count(n) < (TARGETS[n] ?? 0);
 
-for (let games = 1; puzzles.size < TARGET; games++) {
+for (let games = 1; games <= MAX_GAMES && Object.keys(TARGETS).some((n) => wanted(+n)); games++) {
   const strength = { x: pick([200, 600, 2000]), o: pick([200, 600, 2000]) };
   let position = initialPosition;
   for (let ply = 0; position.outcome === null; ply++) {
@@ -36,7 +41,7 @@ for (let games = 1; puzzles.size < TARGET; games++) {
       const { proven, winChance } = search.analysis;
       if (proven && winChance === (position.turn === 'x' ? 1 : 0)) {
         const puzzle = puzzleAt(position);
-        if (puzzle) puzzles.set(puzzle.position, puzzle);
+        if (puzzle && wanted(puzzle.winIn)) puzzles.set(puzzle.position, puzzle);
       }
     }
     const move =
@@ -45,11 +50,12 @@ for (let games = 1; puzzles.size < TARGET; games++) {
         : bestMove(position, strength[position.turn]);
     position = play(position, move);
   }
-  if (games % 20 === 0) console.log(`${games} games, ${puzzles.size} puzzles`);
+  if (games % 20 === 0) {
+    console.log(`${games} games: ${[1, 2, 3, 4].map((n) => `${count(n)} win in ${n}`).join(', ')}`);
+  }
 }
 
 // Shuffled, so neighbouring puzzles (and days) don't come from the same game.
 const list = [...puzzles.values()].sort(() => Math.random() - 0.5);
 writeFileSync(OUTPUT, JSON.stringify(list, null, 1) + '\n');
-const wins = (n: number) => list.filter((puzzle) => puzzle.winIn === n).length;
-console.log(`Wrote ${list.length} puzzles: ${wins(1)} win in 1, ${wins(2)} win in 2.`);
+console.log(`Wrote ${list.length} puzzles.`);

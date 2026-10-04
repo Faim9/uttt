@@ -9,7 +9,13 @@ work is finished or priorities change. The target product is described in PILLAR
    home network, runs 24/7) with an uptime alert, make the repository public (set `SOURCE_URL`), and launch.
 2. **Bring in players:** plan the launch so new visitors find opponents (owner and Claude to discuss).
 
-After that, the owner sets priorities. Candidates: basic anti-cheat, puzzle ratings.
+After that, the owner sets priorities:
+
+- **Puzzle ratings** (the owner wants these): a Glicko-2 rating per user for puzzles, and one per puzzle, so
+  solving moves your rating like lichess's puzzle rating; puzzles are then served near your level, and the
+  profile shows the puzzle rating and its graph. Needs puzzles stored server-side (solves are reported to and
+  judged by the server, so ratings can't be faked).
+- Other candidates: basic anti-cheat.
 
 ## Done
 
@@ -54,9 +60,10 @@ After that, the owner sets priorities. Candidates: basic anti-cheat, puzzle rati
   score, avoiding an immediate rematch and blocked players); 2 points per win, 1 per draw, computed from the
   tournament's games; live standings; after a game you're taken back to the tournament. The lobby features
   the running or next tournament.
-- **Puzzles:** 401 positions where one move forces a game win in one or two moves (unique at every step,
-  checked exhaustively), generated from engine self-play with `pnpm puzzles`. A daily puzzle (the same for
-  everyone), random unsolved puzzles, solved count in the browser, links to analyze.
+- **Puzzles:** 470 positions where one move forces a game win in one to four moves (60 / 220 / 150 / 40),
+  unique at every step against the best defense, checked exhaustively; generated from engine self-play with
+  `pnpm puzzles`. A daily puzzle of two moves or more (the same for everyone), random unsolved puzzles, solved
+  count in the browser, links to analyze.
 - **Lobby for a small player base:** an honest activity line (players in games and looking, guests included),
   "N waiting" on each pool, a "Play now" button that joins the pool where someone already waits (3+2
   otherwise), and a search that follows you around the site: play the computer while you wait (suggested after
