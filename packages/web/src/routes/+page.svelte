@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { categoryOf, TIME_CONTROLS, type TimeControl } from '@uttt/core';
+  import { categoryOf, TIME_CONTROLS, type PoolTimeControl } from '@uttt/core';
   import DemoBoard from '#lib/DemoBoard.svelte';
   import FriendChallenge from '#lib/FriendChallenge.svelte';
   import { session, socket } from '#lib/session.svelte.ts';
 
   let rated = $state(false);
-  let seeking = $state<TimeControl | null>(null);
+  let seeking = $state<PoolTimeControl | null>(null);
   let seekStart = $state(0);
   let now = $state(Date.now());
   let error = $state('');
@@ -43,7 +43,7 @@
   );
 
   /** One click starts looking for an opponent; clicking the same time control again stops. */
-  function seek(timeControl: TimeControl) {
+  function seek(timeControl: PoolTimeControl) {
     error = '';
     if (seeking === timeControl) {
       socket.send({ type: 'cancelSeek' });

@@ -17,6 +17,7 @@ export const TimeControl = z.custom<TimeControl>(
 
 /** The quick-pairing pools. Challenges may use any time control. */
 export const TIME_CONTROLS = ['1+0', '2+1', '3+0', '3+2', '5+3', '10+5'] as const;
+export type PoolTimeControl = (typeof TIME_CONTROLS)[number];
 
 export const CATEGORIES = ['bullet', 'blitz', 'rapid'] as const;
 export type Category = (typeof CATEGORIES)[number];
