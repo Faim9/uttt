@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { cellAt, formatMove, legalMoves, type Position } from '@uttt/core';
+  import { cellAt, formatMove, legalMoves, type Player, type Position } from '@uttt/core';
   import Piece from './Piece.svelte';
 
   interface Props {
@@ -10,6 +10,8 @@
     disabled?: boolean;
     /** The game ended off the board (resignation, time, agreement): nothing left to highlight. */
     over?: boolean;
+    /** The board editor: every cell is clickable, and shows the piece a click places (none to erase). */
+    editing?: Player | 'erase';
     onmove?: (move: number) => void;
   }
 
@@ -19,13 +21,17 @@
     hint = null,
     disabled = false,
     over = false,
+    editing,
     onmove,
   }: Props = $props();
 
   const NINE = [0, 1, 2, 3, 4, 5, 6, 7, 8];
   const legal = $derived(new Set(over ? [] : legalMoves(position)));
   /** The boards to play in are highlighted even when it isn't your turn; cells are clickable only when it is. */
-  const playable = $derived(disabled ? new Set<number>() : legal);
+  const playable = $derived(
+    editing ? new Set(Array.from({ length: 81 }, (_, move) => move)) : disabled ? new Set() : legal,
+  );
+  const ghost = $derived(editing ? (editing === 'erase' ? null : editing) : position.turn);
 </script>
 
 <div class="board">
@@ -49,8 +55,8 @@
         >
           {#if piece}
             <Piece player={piece} />
-          {:else if playable.has(move)}
-            <span class="ghost"><Piece player={position.turn} /></span>
+          {:else if ghost && playable.has(move)}
+            <span class="ghost"><Piece player={ghost} /></span>
           {/if}
         </button>
       {/each}

@@ -1,10 +1,11 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { formatMove, play, puzzleStart, type Position, type Puzzle } from '@uttt/core';
+  import { formatMove, other, play, puzzleStart, type Position, type Puzzle } from '@uttt/core';
   import Board from '#lib/Board.svelte';
+  import { Engine } from '#lib/engine.ts';
   import { api } from '#lib/session.svelte.ts';
-  import { untrack } from 'svelte';
+  import { onDestroy, untrack } from 'svelte';
 
   /** A puzzle as the server sends it; `you` is null for guests. */
   interface Shown extends Puzzle {
@@ -18,6 +19,12 @@
   /** The opponent's reply waits this long, so you see your move land first. */
   const REPLY_MS = 450;
   const MOVES = ['', 'in one move', 'in two moves', 'in three moves', 'in four moves'];
+  /** Enough for the engine to find the reply that punishes a wrong move in these endgames. */
+  const REFUTATION_PLAYOUTS = 30_000;
+
+  const engine = new Engine();
+  onDestroy(() => engine.destroy());
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   let puzzle = $state.raw<Shown | null>(null);
   let error = $state('');
@@ -32,6 +39,9 @@
   /** Your moves so far, which the server judges. */
   let played: string[] = [];
   let reported = false;
+  /** After a wrong move: where "Try again" goes back to, and the opponent's answer once it's played. */
+  let retry: { position: Position; lastMove: number | null } | null = null;
+  let refutation = $state<number | null>(null);
 
   const line = $derived(puzzle ? puzzleStart(puzzle).line : []);
   const solver = $derived(puzzle ? puzzleStart(puzzle).position.turn : 'x');
@@ -99,8 +109,7 @@
   function onmove(move: number) {
     played.push(formatMove(move));
     if (move !== line[step]) {
-      status = 'wrong';
-      report();
+      punish(move);
       return;
     }
     advance(move);
@@ -111,6 +120,33 @@
       status = 'solved';
       report();
     }
+  }
+
+  /** Plays your wrong move and the opponent's best answer to it, so you see why it fails. */
+  async function punish(move: number) {
+    if (!position) return;
+    status = 'wrong';
+    report();
+    retry = { position, lastMove };
+    refutation = null;
+    const after = play(position, move);
+    position = after;
+    lastMove = move;
+    if (after.outcome !== null) return;
+    const [analysis] = await Promise.all([
+      engine.analyze(after, REFUTATION_PLAYOUTS),
+      wait(REPLY_MS),
+    ]);
+    // You may have tried again or moved on meanwhile.
+    if (position !== after || analysis?.bestMove == null) return;
+    position = play(after, analysis.bestMove);
+    lastMove = refutation = analysis.bestMove;
+  }
+
+  function tryAgain() {
+    if (!retry) return;
+    ({ position, lastMove } = retry);
+    status = 'solving';
   }
 
   function showSolution() {
@@ -136,7 +172,12 @@
 
 {#if puzzle && position}
   <div class="board-layout">
-    <Board {position} {lastMove} disabled={position.turn !== solver || finished} {onmove} />
+    <Board
+      {position}
+      {lastMove}
+      disabled={position.turn !== solver || finished || status === 'wrong'}
+      {onmove}
+    />
 
     <div class="panel">
       <section class="card">
@@ -146,7 +187,12 @@
           {MOVES[puzzle.winIn]}
         </p>
         {#if status === 'wrong'}
-          <p class="wrong" role="alert">Not that one. Try again!</p>
+          <p class="wrong" role="alert">
+            That's not it!
+            {#if refutation !== null}
+              {other(solver).toUpperCase()} answers {formatMove(refutation)}.
+            {/if}
+          </p>
         {:else if status === 'solved'}
           <p class="right" role="status">
             Solved! {puzzle.line.filter((m, i) => i % 2 === 0).join(', then ')} wins.
@@ -163,6 +209,9 @@
             <button class="button primary" onclick={next}>Next puzzle</button>
             <a class="button" href={analysis}>Analyze</a>
           {:else}
+            {#if status === 'wrong'}
+              <button class="button primary" onclick={tryAgain}>Try again</button>
+            {/if}
             <button class="button" onclick={showSolution}>Show solution</button>
             <button class="button" onclick={next}>Skip</button>
           {/if}

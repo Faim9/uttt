@@ -8,8 +8,10 @@ import {
   cellAt,
   cellOf,
   createPosition,
+  HAS_LINE,
   initialPosition,
   isLegal,
+  other,
   play,
   type Outcome,
   type Player,
@@ -43,6 +45,11 @@ export function formatPosition(position: Position): string {
   return `${boards} ${position.turn} ${position.forced === null ? '-' : position.forced + 1}`;
 }
 
+/**
+ * Parses a position string, rejecting positions no game can reach by the quick checks: piece counts that
+ * don't match the side to move, a board won by both players, and a forced board the last move couldn't have
+ * sent the player to. Whether some order of moves reaches the position would need a search, so isn't checked.
+ */
 export function parsePosition(text: string): Position {
   const match = /^((?:[xo.]{9}\/){8}[xo.]{9}) ([xo]) ([1-9-])$/.exec(text.trim());
   if (!match) throw new Error(`Invalid position: "${text}"`);
@@ -56,12 +63,37 @@ export function parsePosition(text: string): Position {
   const forcedBoard = forced === '-' ? null : Number(forced) - 1;
   const position = createPosition(masksOf('x'), masksOf('o'), turn as Player, forcedBoard);
 
+  const invalid = (reason: string) => new Error(`Invalid position: ${reason}`);
   const count = (player: Player) => cells.split(player).length - 1;
   if (count('x') - count('o') !== (turn === 'x' ? 0 : 1)) {
-    throw new Error(`Invalid position: piece counts don't match side to move`);
+    throw invalid(
+      'X moves first, so X has as many pieces as O when X is to move, and one more when O is',
+    );
+  }
+  const wonByBoth = NINE.find(
+    (board) => HAS_LINE[position.x[board]] && HAS_LINE[position.o[board]],
+  );
+  if (wonByBoth !== undefined) {
+    throw invalid(`board ${wonByBoth + 1} has three in a row for both X and O`);
   }
   if (position.forced !== forcedBoard) {
-    throw new Error(`Invalid position: forced board ${forced} is already decided`);
+    throw invalid(`board ${forced} is already decided, so the next move is free`);
+  }
+  // The last move was the other side's, and a piece in cell k sends the next player to board k.
+  const last = other(position.turn);
+  const sendsTo = (board: number) => position[last].some((mask) => mask & (1 << board));
+  const [mover, next] = [last.toUpperCase(), position.turn.toUpperCase()];
+  if (forcedBoard !== null && !sendsTo(forcedBoard)) {
+    throw invalid(
+      `${mover} has no piece in cell ${forced} of any board, so can't have sent ${next} to board ${forced}`,
+    );
+  }
+  if (
+    forcedBoard === null &&
+    count('x') > 0 &&
+    !NINE.some((b) => position.boards[b] && sendsTo(b))
+  ) {
+    throw invalid(`a free move needs ${mover}'s last piece in a cell matching a decided board`);
   }
   return position;
 }

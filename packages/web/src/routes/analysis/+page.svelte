@@ -229,6 +229,11 @@
       <div class="controls">
         <button class="button primary" disabled={!importText.trim()} onclick={load}>Load</button>
         <button class="button" onclick={() => setTree(new GameTree())}>New board</button>
+        <a
+          class="button"
+          href="/editor?{new URLSearchParams({ position: formatPosition(position) })}"
+          >Board editor</a
+        >
       </div>
     </section>
   </div>

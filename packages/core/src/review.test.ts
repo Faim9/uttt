@@ -46,7 +46,7 @@ test('accuracy is 100 for lossless play and falls with the win chance lost', () 
 test('with the real engine, the immediate win is best and other moves lose win chance', () => {
   // X wins at once with 3-3; 3-4 instead sends O to board 4.
   const position = parsePosition(
-    'xxx....../xxx....../xx......./oo.o.o.../oo.o.o.../........./........./........./......... x 3',
+    'xxx....../xxx....../xx......./oo.o.o.../o.oo.o.../........./........./........./......... x 3',
   );
   const analyze = (p: typeof position) => {
     const search = new Search(p, seededRandom(1));

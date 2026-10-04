@@ -9,7 +9,7 @@ const EMPTY = '.........';
 
 test('a single winning move makes a win-in-1 puzzle', () => {
   const position = parsePosition(
-    `xxx....../xxx....../xx......./oo.o.o.../oo.o.o.../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} x 3`,
+    `xxx....../xxx....../xx......./oo.o.o.../o.oo.o.../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} x 3`,
   );
   expect(puzzleAt(position)).toMatchObject({ line: ['3-3'], winIn: 1 });
 });

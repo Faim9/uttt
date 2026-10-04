@@ -34,7 +34,11 @@ the forced board (`-` = free move):
 ```
 
 - Won and drawn local boards are derived from the cells, not stored.
-- Parsing rejects piece counts that don't match the side to move, and a forced board that is already decided.
+- Parsing rejects positions no game can reach, by quick checks: piece counts that don't match the side to
+  move, a local board with three in a row for both players, a forced board that is already decided, and a
+  forced board the last move couldn't have sent the player to (a piece in cell `k` sends to board `k`; a free
+  move needs one in a cell matching a decided board). Whether some order of moves reaches the position would
+  take a search, so it isn't checked.
 
 ## Game record
 

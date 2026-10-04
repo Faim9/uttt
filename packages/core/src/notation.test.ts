@@ -52,6 +52,19 @@ test.each([
     'forced onto a won board',
     `xxx....../oo......./o......../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} x 1`,
   ],
+  [
+    'won by both',
+    `xxxooo.../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} x 4`,
+  ],
+  // X's only piece, in cell 5, sends O to board 5, not board 1.
+  [
+    'not sent there',
+    `....x..../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} o 1`,
+  ],
+  [
+    'free for no reason',
+    `....x..../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} o -`,
+  ],
 ])('rejects an invalid position: %s', (_, text) => {
   expect(() => parsePosition(text)).toThrow('Invalid position');
 });
@@ -84,7 +97,7 @@ test('rejects tag values that would break the record', () => {
 });
 
 test('a Position tag sets the starting position', () => {
-  const start = `xxx....../xxx....../xx......./oo.o.o.../oo.o.o.../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} x 3`;
+  const start = `xxx....../xxx....../xx......./oo.o.o.../o.oo.o.../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} x 3`;
   const record = parseGame(`[Position "${start}"]\n\n1. 3-3 1-0`);
   expect(record.moves).toEqual([parseMove('3-3')]);
   expect(startOf(record.tags)).toEqual(parsePosition(start));

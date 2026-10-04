@@ -8,14 +8,14 @@ const EMPTY = '.........';
 
 test('takes an immediate win', () => {
   const position = parsePosition(
-    `xxx....../xxx....../xx......./oo.o.o.../oo.o.o.../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} x 3`,
+    `xxx....../xxx....../xx......./oo.o.o.../o.oo.o.../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} x 3`,
   );
   expect(bestMove(position, 1000, seededRandom(4))).toBe(parseMove('3-3'));
 });
 
 test('reports a winning evaluation and a principal variation', () => {
   const position = parsePosition(
-    `xxx....../xxx....../xx......./oo.o.o.../oo.o.o.../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} x 3`,
+    `xxx....../xxx....../xx......./oo.o.o.../o.oo.o.../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} x 3`,
   );
   const search = new Search(position, seededRandom(5));
   search.run(2000);
@@ -29,7 +29,7 @@ test('reports a winning evaluation and a principal variation', () => {
 test('has nothing to suggest once the game is over', () => {
   const position = play(
     parsePosition(
-      `xxx....../xxx....../xx......./oo.o.o.../oo.o.o.../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} x 3`,
+      `xxx....../xxx....../xx......./oo.o.o.../o.oo.o.../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} x 3`,
     ),
     parseMove('3-3'),
   );

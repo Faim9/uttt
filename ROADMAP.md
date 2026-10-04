@@ -22,7 +22,8 @@ After that, the owner sets priorities:
   moves, exploration tuned to 0.6. Against the old engine at equal time: 72 wins, 5 draws, 3 losses (≥ +450 Elo).
   Levels 4–6 got bigger budgets (level 6: ~1 s per move), review 40k playouts per position, analysis up to 1M.
 - **Web:** board UI, play vs. computer (6 levels), analysis board (variation tree, live engine eval, import/export,
-  share links).
+  share links), and a board editor (place pieces in any order, e.g. from a screenshot; checks the position
+  could come from a game, then opens it in the analysis board).
 - **Online play:** accounts (Argon2id, DB sessions), guest play, quick pairing in five time controls, challenge
   links, server-authoritative games with clocks, resign (with confirmation) / draw / abort, games restored after
   a server restart. Your move shows the instant you click; the server confirms it in the background.
@@ -71,6 +72,8 @@ After that, the owner sets priorities:
   and the server judges the moves played. "Next puzzle" picks an untried one near your rating (guests get
   random ones, unrated). Puzzles start rated by length (1100 / 1500 / 1800 / 2000 for one to four moves) and
   settle as people play them. Profiles show the puzzle rating and its graph.
+  A wrong move is played out, like on lichess: the opponent answers with the engine's best reply, your
+  rating change shows at once, and "Try again" goes back to before the mistake.
 - **Lobby for a small player base:** an honest activity line (players in games and looking, guests included),
   "N waiting" on each pool, a "Play now" button that joins the pool where someone already waits (3+2
   otherwise), and a search that follows you around the site: play the computer while you wait (suggested after

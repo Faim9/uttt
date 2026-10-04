@@ -39,7 +39,7 @@ test('being sent to a won board gives a free move on any open board', () => {
 
 test('three local boards in a row win the game', () => {
   const position = parsePosition(
-    `xxx....../xxx....../xx......./oo.o.o.../oo.o.o.../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} x 3`,
+    `xxx....../xxx....../xx......./oo.o.o.../o.oo.o.../${EMPTY}/${EMPTY}/${EMPTY}/${EMPTY} x 3`,
   );
   const next = play(position, parseMove('3-3'));
   expect(next.boards[2]).toBe('x');
