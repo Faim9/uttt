@@ -1,6 +1,6 @@
 <script lang="ts">
   import '../app.css';
-  import { goto } from '$app/navigation';
+  import { afterNavigate, goto } from '$app/navigation';
   import { page } from '$app/state';
   import Logo from '#lib/Logo.svelte';
   import SearchBar from '#lib/SearchBar.svelte';
@@ -28,6 +28,9 @@
   /** Classic follows the system's light or dark mode; the others are fixed looks. See app.css. */
   const THEMES = { classic: 'Classic', playful: 'Playful', notebook: 'Notebook', arcade: 'Arcade' };
   let theme = $state('classic');
+  /** On phones the links fold behind a Menu button; any navigation closes it. */
+  let menuOpen = $state(false);
+  afterNavigate(() => (menuOpen = false));
 
   /** Saved in this browser only; static/theme.js applies it on the next visit before the page draws. */
   function setTheme(value: string) {
@@ -61,19 +64,29 @@
 <header>
   <nav>
     <a class="brand" href="/" aria-label="UTTT home"><Logo /> UTTT</a>
-    {#each links as { href, label } (href)}
-      <a {href} aria-current={page.url.pathname === href ? 'page' : undefined}>{label}</a>
-    {/each}
-    <span class="account">
-      {#if session.user}
-        <a href="/@{session.user.username}">{session.user.username}</a>
-        <a href="/account">Settings</a>
-        <button class="link" onclick={signOut}>Sign out</button>
-      {:else if session.ready}
-        <a href="/login">Sign in</a>
-        <a class="button primary" href="/signup">Sign up</a>
-      {/if}
-    </span>
+    <button
+      class="link menu-toggle"
+      aria-expanded={menuOpen}
+      aria-controls="site-menu"
+      onclick={() => (menuOpen = !menuOpen)}
+    >
+      Menu
+    </button>
+    <div class="menu" class:open={menuOpen} id="site-menu">
+      {#each links as { href, label } (href)}
+        <a {href} aria-current={page.url.pathname === href ? 'page' : undefined}>{label}</a>
+      {/each}
+      <span class="account">
+        {#if session.user}
+          <a href="/@{session.user.username}">{session.user.username}</a>
+          <a href="/account">Settings</a>
+          <button class="link" onclick={signOut}>Sign out</button>
+        {:else if session.ready}
+          <a href="/login">Sign in</a>
+          <a class="button primary" href="/signup">Sign up</a>
+        {/if}
+      </span>
+    </div>
   </nav>
 </header>
 <SearchBar />
@@ -156,6 +169,40 @@
     gap: 1rem;
     align-items: center;
     margin-left: auto;
+  }
+
+  /* On wide screens the menu's links sit in the nav row itself. */
+  .menu {
+    display: contents;
+  }
+
+  .menu-toggle {
+    display: none;
+  }
+
+  @media (max-width: 760px) {
+    .menu-toggle {
+      display: block;
+      margin-left: auto;
+      font-weight: 600;
+    }
+
+    .menu {
+      display: none;
+      flex-basis: 100%;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 0.5rem 0 0.25rem;
+    }
+
+    .menu.open {
+      display: flex;
+    }
+
+    .account {
+      flex-wrap: wrap;
+      margin-left: 0;
+    }
   }
 
   .account .button.primary {
