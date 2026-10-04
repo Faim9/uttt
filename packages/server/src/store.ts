@@ -11,7 +11,7 @@ import {
   type User,
 } from '@uttt/core';
 import Database from 'better-sqlite3';
-import { and, desc, eq, gt, isNull, lte, ne, or, sql } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, gt, isNull, lte, ne, or, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { alias } from 'drizzle-orm/sqlite-core';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
@@ -32,6 +32,8 @@ const {
   follows,
   blocks,
   ratingHistory,
+  tournaments,
+  tournamentPlayers,
 } = schema;
 
 const DAY_MS = 86_400_000;
@@ -499,6 +501,86 @@ export class Store {
     return new Set(rows.map((row) => `u:${row.blocker === userId ? row.blocked : row.blocker}`));
   }
 
+  // Tournaments
+
+  createTournament(tournament: Omit<typeof tournaments.$inferInsert, 'createdAt'>): void {
+    this.db
+      .insert(tournaments)
+      .values({ ...tournament, createdAt: new Date() })
+      .run();
+  }
+
+  tournament(id: string) {
+    return this.db.select().from(tournaments).where(eq(tournaments.id, id)).get();
+  }
+
+  /** Tournaments not yet over (soonest first), and the most recent finished ones. */
+  tournamentList() {
+    const now = new Date();
+    const players = sql<number>`(select count(*) from ${tournamentPlayers}
+      where ${tournamentPlayers.tournamentId} = ${tournaments.id})`;
+    const columns = { ...getTableColumns(tournaments), players };
+    return {
+      current: this.db
+        .select(columns)
+        .from(tournaments)
+        .where(gt(tournaments.endsAt, now))
+        .orderBy(tournaments.startsAt)
+        .all(),
+      finished: this.db
+        .select(columns)
+        .from(tournaments)
+        .where(lte(tournaments.endsAt, now))
+        .orderBy(desc(tournaments.endsAt))
+        .limit(10)
+        .all(),
+    };
+  }
+
+  /** Removes a tournament that hasn't started; returns whether there was one. */
+  cancelTournament(id: string): boolean {
+    const removed = this.db
+      .delete(tournaments)
+      .where(and(eq(tournaments.id, id), gt(tournaments.startsAt, new Date())))
+      .returning({ id: tournaments.id })
+      .all();
+    return removed.length > 0;
+  }
+
+  joinTournament(tournamentId: string, userId: number): void {
+    this.db
+      .insert(tournamentPlayers)
+      .values({ tournamentId, userId, joinedAt: new Date() })
+      .onConflictDoNothing()
+      .run();
+  }
+
+  /**
+   * Everyone who joined, best first: 2 points per win and 1 per draw in the tournament's finished games
+   * (aborted games don't count); fewer games breaks ties.
+   */
+  standings(
+    tournamentId: string,
+  ): { userId: number; username: string; score: number; games: number }[] {
+    return this.db.all(sql`
+      select ${users.id} as userId, ${users.username} as username,
+        coalesce(sum(case
+          when ${games.outcome} = 'draw' then 1
+          when (${games.outcome} = 'x' and ${games.xUserId} = ${users.id})
+            or (${games.outcome} = 'o' and ${games.oUserId} = ${users.id}) then 2
+          else 0 end), 0) as score,
+        count(${games.id}) as games
+      from ${tournamentPlayers}
+      join ${users} on ${users.id} = ${tournamentPlayers.userId}
+      left join ${games} on ${games.tournamentId} = ${tournamentPlayers.tournamentId}
+        and (${games.xUserId} = ${users.id} or ${games.oUserId} = ${users.id})
+        and ${games.termination} is not null and ${games.termination} != 'abort'
+      where ${tournamentPlayers.tournamentId} = ${tournamentId}
+      group by ${users.id}
+      order by score desc, games asc, lower(${users.username})
+    `);
+  }
+
   // Ratings
 
   /** A player's current rating, with deviation grown for the time they've been inactive. */
@@ -617,6 +699,7 @@ export class Store {
         oUsername: seats.o.username,
         xRating: seats.x.rating,
         oRating: seats.o.rating,
+        tournamentId: game.tournamentId,
         createdAt: new Date(),
         ...values,
       })
@@ -696,6 +779,7 @@ function toInit(row: GameRow): GameInit {
     seats: { x: seat('x'), o: seat('o') },
     moves: parseMoves(row.moves),
     clocks: { x: row.xClock, o: row.oClock },
+    tournamentId: row.tournamentId,
   };
 }
 
@@ -719,5 +803,6 @@ export function toState(row: GameRow): GameState {
     absence: { x: null, o: null },
     termination: row.termination,
     outcome: row.outcome,
+    tournamentId: row.tournamentId,
   };
 }

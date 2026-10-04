@@ -1,6 +1,7 @@
 <script lang="ts">
   import { CATEGORIES, type Category, type ReportReason } from '@uttt/core';
   import { api } from '#lib/session.svelte.ts';
+  import { timing, type Tournament } from '#lib/tournament.ts';
   import { onMount } from 'svelte';
 
   interface Report {
@@ -41,15 +42,21 @@
   let closeReason = $state('');
   let newName = $state('');
   let error = $state('');
+  let tournaments = $state<Tournament[]>([]);
+  /** The create-tournament form; `startsAt` is local time from a datetime-local input. */
+  let draft = $state({ name: '', timeControl: '3+2', startsAt: '', minutes: 60, rated: true });
 
   const date = (iso: string) => new Date(iso).toLocaleString();
 
   async function refresh() {
     try {
-      [reports, log] = await Promise.all([
+      let list: { current: Tournament[] };
+      [reports, log, list] = await Promise.all([
         api<Report[]>('GET', '/api/admin/reports'),
         api<LogEntry[]>('GET', '/api/admin/log'),
+        api<{ current: Tournament[] }>('GET', '/api/tournaments'),
       ]);
+      tournaments = list.current;
     } catch {
       allowed = false;
     }
@@ -210,6 +217,48 @@
   </section>
 
   <section class="card">
+    <h2>Tournaments</h2>
+    <form
+      class="create"
+      onsubmit={(event) => {
+        event.preventDefault();
+        const { startsAt, ...rest } = draft;
+        run(() =>
+          api('POST', '/api/admin/tournaments', {
+            ...rest,
+            startsAt: new Date(startsAt).toISOString(),
+          }),
+        );
+      }}
+    >
+      <label>Name <input bind:value={draft.name} placeholder="Sunday Arena" required /></label>
+      <label>
+        Time control <input bind:value={draft.timeControl} pattern="[0-9]+[+][0-9]+" required />
+      </label>
+      <label>Starts <input type="datetime-local" bind:value={draft.startsAt} required /></label>
+      <label>
+        Minutes <input type="number" min="10" max="240" bind:value={draft.minutes} required />
+      </label>
+      <label class="check"><input type="checkbox" bind:checked={draft.rated} /> Rated</label>
+      <button class="button primary">Create</button>
+    </form>
+    {#each tournaments as tournament (tournament.id)}
+      <p class="tournament">
+        <a href="/tournaments/{tournament.id}">{tournament.name}</a>
+        <span class="muted">
+          {tournament.timeControl} · {timing(tournament, Date.now())} · {tournament.players} players
+        </span>
+        <button
+          class="button"
+          onclick={() => run(() => api('POST', `/api/admin/tournaments/${tournament.id}/cancel`))}
+        >
+          Cancel
+        </button>
+      </p>
+    {/each}
+  </section>
+
+  <section class="card">
     <h2>Log</h2>
     {#if log.length === 0}
       <p class="muted">No admin actions yet.</p>
@@ -294,6 +343,35 @@
     display: grid;
     gap: 0.75rem;
     justify-items: start;
+  }
+
+  .create {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: end;
+    margin-bottom: 1rem;
+  }
+
+  .create label {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .create .check {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .tournament {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    align-items: center;
+    margin: 0;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--border);
   }
 
   .danger {

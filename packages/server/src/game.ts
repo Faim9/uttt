@@ -30,6 +30,7 @@ export interface GameInit {
   seats: Record<Player, Seat>;
   moves?: number[];
   clocks?: Record<Player, number>;
+  tournamentId?: string | null;
 }
 
 /** Without a first move from each player in this time, the game is aborted. */
@@ -55,6 +56,7 @@ export class LiveGame {
   readonly timeControl: TimeControl;
   readonly rated: boolean;
   readonly seats: Record<Player, Seat>;
+  readonly tournamentId: string | null;
   readonly moves: number[];
   readonly clocks: Record<Player, number>;
   position: Position;
@@ -76,6 +78,7 @@ export class LiveGame {
     this.timeControl = init.timeControl;
     this.rated = init.rated;
     this.seats = init.seats;
+    this.tournamentId = init.tournamentId ?? null;
     this.moves = init.moves ?? [];
     this.clocks = init.clocks ?? { x: initialMs, o: initialMs };
     this.position = replay(this.moves);
@@ -168,6 +171,7 @@ export class LiveGame {
       absence: { x: this.absence('x', now), o: this.absence('o', now) },
       termination: this.termination,
       outcome: this.outcome,
+      tournamentId: this.tournamentId,
     };
   }
 

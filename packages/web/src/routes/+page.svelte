@@ -8,6 +8,7 @@
   import FriendChallenge from '#lib/FriendChallenge.svelte';
   import { search, startSearch, stopSearch } from '#lib/search.svelte.ts';
   import { api, session, socket } from '#lib/session.svelte.ts';
+  import { phaseOf, timing, type Tournament } from '#lib/tournament.ts';
 
   let rated = $state(search.rated);
   let now = $state(Date.now());
@@ -17,6 +18,9 @@
     playing: 0,
     seeking: {},
   });
+
+  /** The running tournament, or the next one within a week, to feature in the lobby. */
+  let featured = $state<Tournament | null>(null);
 
   const ALONE_MS = 20_000;
   const ACTIVITY_MS = 3000;
@@ -44,6 +48,14 @@
       );
     refresh();
     const timers = [setInterval(refresh, ACTIVITY_MS), setInterval(() => (now = Date.now()), 1000)];
+    api<{ current: Tournament[] }>('GET', '/api/tournaments').then(
+      ({ current }) => {
+        const soon = (t: Tournament) => Date.parse(t.startsAt) - Date.now() < 7 * 86_400_000;
+        featured =
+          current.find((t) => phaseOf(t, Date.now()) === 'running') ?? current.find(soon) ?? null;
+      },
+      () => {},
+    );
 
     // "New opponent" after a game links here (`/?seek=3+2&rated`) to start looking straight away.
     const pool = TIME_CONTROLS.find((tc) => tc === page.url.searchParams.get('seek'));
@@ -168,6 +180,12 @@
 
   <aside class="actions">
     <nav class="ways" aria-label="Other ways to play">
+      {#if featured}
+        <a class="action featured" href="/tournaments/{featured.id}">
+          <strong>{featured.name}</strong>
+          <span>{featured.timeControl} arena · {timing(featured, now)}</span>
+        </a>
+      {/if}
       <button class="action" onclick={() => friend?.open()}>
         <strong>Play a friend</strong>
         <span>Send a link; the game starts when they open it</span>
@@ -442,6 +460,11 @@
   .action:hover {
     border-color: var(--accent);
     transform: translateY(-2px);
+  }
+
+  .featured {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface));
   }
 
   .action strong {

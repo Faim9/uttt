@@ -57,7 +57,7 @@ interface Challenge {
   color: Player | 'random';
 }
 
-const newId = () => Array.from({ length: 8 }, () => ID_ALPHABET[randomInt(62)]).join('');
+export const newId = () => Array.from({ length: 8 }, () => ID_ALPHABET[randomInt(62)]).join('');
 const randomSide = (): Player => (randomInt(2) === 0 ? 'x' : 'o');
 
 function send(client: Client, message: ServerMessage): void {
@@ -72,6 +72,10 @@ export class Hub {
   private readonly challenges = new Map<string, Challenge>();
   /** Finished games whose players may still agree to a rematch. */
   private readonly rematches = new Map<string, Rematch>();
+  /** Per tournament, the connections ready to be paired there (on the tournament page, not in a game). */
+  private readonly arenas = new Map<string, Set<Client>>();
+  /** Each player's last tournament opponent, so pairing avoids an immediate rematch. */
+  private readonly lastOpponent = new Map<string, string>();
   private seeks: Seek[] = [];
   private readonly store: Store;
   private readonly log: FastifyBaseLogger;
@@ -83,6 +87,7 @@ export class Hub {
     for (const init of store.activeGames()) this.addGame(init);
     this.ticker = setInterval(() => {
       this.pairSeeks(true);
+      this.pairArenas();
       this.pingClients();
       this.expireRematches();
     }, TICK_MS);
@@ -212,6 +217,8 @@ export class Hub {
         return this.rematch(client, message.gameId);
       case 'cancelRematch':
         return this.cancelRematch(client, message.gameId);
+      case 'arena':
+        return this.arena(client, message.tournamentId, message.ready);
     }
   }
 
@@ -298,7 +305,13 @@ export class Hub {
     this.startGame(x, o, challenge.timeControl, challenge.rated);
   }
 
-  private startGame(x: Client, o: Client, timeControl: TimeControl, rated: boolean): void {
+  private startGame(
+    x: Client,
+    o: Client,
+    timeControl: TimeControl,
+    rated: boolean,
+    tournamentId: string | null = null,
+  ): void {
     const seat = ({ key, user }: Identity): Seat => {
       const rating = user ? this.store.rating(user.id, categoryOf(timeControl)) : null;
       return {
@@ -311,7 +324,7 @@ export class Hub {
       };
     };
     const seats = { x: seat(x.identity), o: seat(o.identity) };
-    const game = this.addGame({ id: newId(), timeControl, rated, seats });
+    const game = this.addGame({ id: newId(), timeControl, rated, seats, tournamentId });
     this.store.saveGame(game);
     for (const client of [x, o]) send(client, { type: 'gameStarted', gameId: game.id });
   }
@@ -378,9 +391,72 @@ export class Hub {
 
   /** Players who blocked each other, either way, don't play each other. */
   private refuseIfBlocked(a: Client, b: Client): void {
+    if (this.blocked(a, b)) throw new GameError("You can't play this player");
+  }
+
+  private blocked(a: Client, b: Client): boolean {
     const [userA, userB] = [a.identity.user, b.identity.user];
-    if (userA && userB && this.store.blockedKeys(userA.id).has(`u:${userB.id}`)) {
-      throw new GameError("You can't play this player");
+    return !!userA && !!userB && this.store.blockedKeys(userA.id).has(`u:${userB.id}`);
+  }
+
+  /** Joins a tournament and gets ready to be paired there, or pauses between games. */
+  private arena(client: Client, tournamentId: string, ready: boolean): void {
+    if (!ready) {
+      this.arenas.get(tournamentId)?.delete(client);
+      return;
+    }
+    const { user } = client.identity;
+    if (!user) throw new GameError('Sign in to play in tournaments');
+    const tournament = this.store.tournament(tournamentId);
+    if (!tournament || tournament.endsAt.getTime() <= Date.now()) {
+      throw new GameError('This tournament is over');
+    }
+    requireAccountIfRated({ client, rated: tournament.rated });
+    this.store.joinTournament(tournamentId, user.id);
+    const clients = this.arenas.get(tournamentId) ?? new Set();
+    this.arenas.set(tournamentId, clients.add(client));
+  }
+
+  /**
+   * Pairs the ready players of every running tournament, closest scores first, avoiding blocked players
+   * and (when anyone else is free) the opponent they just played. Paired players leave the ready list
+   * until they're back on the tournament page.
+   */
+  private pairArenas(): void {
+    const now = Date.now();
+    for (const [id, ready] of this.arenas) {
+      const tournament = this.store.tournament(id);
+      if (!tournament || tournament.endsAt.getTime() <= now) {
+        this.arenas.delete(id);
+        continue;
+      }
+      if (tournament.startsAt.getTime() > now) continue;
+
+      // One connection per player, and nobody who's already playing.
+      const waiting = new Map<string, Client>();
+      for (const client of ready) {
+        const { key, user } = client.identity;
+        if (user && !this.isPlaying(user.id)) waiting.set(key, client);
+      }
+      if (waiting.size < 2) continue;
+      const scores = new Map(this.store.standings(id).map((row) => [`u:${row.userId}`, row.score]));
+      const score = (client: Client) => scores.get(client.identity.key) ?? 0;
+      const queue = [...waiting.values()].sort((a, b) => score(b) - score(a));
+
+      while (queue.length >= 2) {
+        const a = queue.shift() as Client;
+        const fresh = (b: Client) => this.lastOpponent.get(a.identity.key) !== b.identity.key;
+        let index = queue.findIndex((b) => fresh(b) && !this.blocked(a, b));
+        if (index < 0) index = queue.findIndex((b) => !this.blocked(a, b));
+        if (index < 0) continue;
+        const [b] = queue.splice(index, 1);
+        ready.delete(a);
+        ready.delete(b);
+        this.lastOpponent.set(a.identity.key, b.identity.key);
+        this.lastOpponent.set(b.identity.key, a.identity.key);
+        const [x, o] = randomSide() === 'x' ? [a, b] : [b, a];
+        this.startGame(x, o, tournament.timeControl as TimeControl, tournament.rated, id);
+      }
     }
   }
 
@@ -426,6 +502,7 @@ export class Hub {
 
   private disconnect(client: Client): void {
     this.clients.delete(client);
+    for (const ready of this.arenas.values()) ready.delete(client);
     this.seeks = this.seeks.filter((seek) => seek.client !== client);
     this.cancelChallenges(client);
     for (const [gameId, watchers] of this.watchers) {

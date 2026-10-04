@@ -657,6 +657,48 @@ test('rated games build a rating history, which a ratings reset clears', async (
   expect((await bob.request('GET', '/api/users/alice')).json().history.blitz).toEqual([]);
 });
 
+test('arena tournaments pair the players who are ready, and score their games', async () => {
+  const app = await newApp();
+  const boss = await admin(app);
+  const tournament = { name: 'Launch Arena', timeControl: '3+2', rated: false, minutes: 30 };
+  const now = { ...tournament, startsAt: new Date().toISOString() };
+  expect(
+    (await (await signedUp(app, 'carol')).request('POST', '/api/admin/tournaments', now))
+      .statusCode,
+  ).toBe(403);
+  const { id } = (await boss.request('POST', '/api/admin/tournaments', now)).json();
+  const later = { ...tournament, startsAt: new Date(Date.now() + 3_600_000).toISOString() };
+  const upcoming = (await boss.request('POST', '/api/admin/tournaments', later)).json();
+
+  const guest = await (await visitor(app)).connect();
+  guest.send({ type: 'arena', tournamentId: id, ready: true });
+  expect((await guest.next('error')).message).toBe('Sign in to play in tournaments');
+
+  const [alice, bob] = [await signedUp(app, 'alice'), await signedUp(app, 'bob')];
+  const [a, b] = [await alice.connect(), await bob.connect()];
+  a.send({ type: 'arena', tournamentId: id, ready: true });
+  b.send({ type: 'arena', tournamentId: id, ready: true });
+  const { gameId } = await a.next('gameStarted'); // paired on the next pairing wave
+  expect((await b.next('gameStarted')).gameId).toBe(gameId);
+  a.send({ type: 'watch', gameId });
+  const { game } = await a.next('game');
+  expect(game.tournamentId).toBe(id);
+  a.send({ type: 'resign', gameId });
+  await a.next('game');
+
+  const standings = (await alice.request('GET', `/api/tournaments/${id}`)).json().standings;
+  expect(standings).toEqual([
+    { username: 'bob', score: 2, games: 1, playing: null },
+    { username: 'alice', score: 0, games: 1, playing: null },
+  ]);
+
+  const cancel = (tid: string) => boss.request('POST', `/api/admin/tournaments/${tid}/cancel`);
+  expect((await cancel(id)).statusCode).toBe(400);
+  expect((await cancel(upcoming.id)).statusCode).toBe(200);
+  const list = (await alice.request('GET', '/api/tournaments')).json();
+  expect(list.current.map((t: { id: string }) => t.id)).toEqual([id]);
+});
+
 test('the health check reports a working database', async () => {
   const app = await newApp();
   expect((await app.inject({ method: 'GET', url: '/api/health' })).json()).toEqual({ ok: true });

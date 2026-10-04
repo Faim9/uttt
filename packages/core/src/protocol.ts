@@ -95,6 +95,14 @@ export const ReportBody = z.object({
   details: z.string().trim().min(1, 'Tell us what happened').max(1000),
 });
 
+export const CreateTournamentBody = z.object({
+  name: z.string().trim().min(1).max(60),
+  timeControl: TimeControl,
+  rated: z.boolean(),
+  startsAt: z.coerce.date(),
+  minutes: z.number().int().min(10).max(240),
+});
+
 export const CloseAccountBody = z.object({ reason: z.string().trim().min(1).max(500) });
 export const RenameBody = z.object({ username: Username });
 
@@ -128,6 +136,8 @@ export const ClientMessage = z.discriminatedUnion('type', [
   GameAction('cancelRematch'),
   /** After the opponent has been gone for the grace period: take the win, or settle for a draw. */
   z.object({ type: z.literal('claim'), gameId: Id, result: z.enum(['win', 'draw']) }),
+  /** Joins an arena tournament and asks to be paired (`ready`), or pauses between games. */
+  z.object({ type: z.literal('arena'), tournamentId: Id, ready: z.boolean() }),
 ]);
 export type ClientMessage = z.infer<typeof ClientMessage>;
 
@@ -165,6 +175,8 @@ export interface GameState {
   termination: Termination | null;
   /** Null while in progress and for aborted games. */
   outcome: Outcome | null;
+  /** The arena tournament the game belongs to, if any. */
+  tournamentId: string | null;
 }
 
 export type ServerMessage =

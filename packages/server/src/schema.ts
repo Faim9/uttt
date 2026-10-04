@@ -102,8 +102,11 @@ export const games = sqliteTable(
     outcome: text({ enum: ['x', 'o', 'draw'] }),
     createdAt: integer({ mode: 'timestamp_ms' }).notNull(),
     endedAt: integer({ mode: 'timestamp_ms' }),
+    /** The arena tournament this game was played in, if any; its standings are computed from these games. */
+    tournamentId: text(),
   },
   (t) => [
+    index('games_tournament').on(t.tournamentId),
     index('games_x_user').on(t.xUserId),
     index('games_o_user').on(t.oUserId),
     index('games_termination').on(t.termination),
@@ -187,4 +190,34 @@ export const ratingHistory = sqliteTable(
     at: integer({ mode: 'timestamp_ms' }).notNull(),
   },
   (t) => [index('rating_history_user').on(t.userId, t.category, t.at)],
+);
+
+/** Arena tournaments: from `startsAt` to `endsAt`, players who are present get paired again and again. */
+export const tournaments = sqliteTable(
+  'tournaments',
+  {
+    id: text().primaryKey(),
+    name: text().notNull(),
+    timeControl: text().notNull(),
+    rated: integer({ mode: 'boolean' }).notNull(),
+    startsAt: integer({ mode: 'timestamp_ms' }).notNull(),
+    endsAt: integer({ mode: 'timestamp_ms' }).notNull(),
+    createdAt: integer({ mode: 'timestamp_ms' }).notNull(),
+  },
+  (t) => [index('tournaments_starts').on(t.startsAt)],
+);
+
+/** Who joined each tournament, including players who haven't finished a game yet. */
+export const tournamentPlayers = sqliteTable(
+  'tournament_players',
+  {
+    tournamentId: text()
+      .notNull()
+      .references(() => tournaments.id, { onDelete: 'cascade' }),
+    userId: integer()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    joinedAt: integer({ mode: 'timestamp_ms' }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.tournamentId, t.userId] })],
 );

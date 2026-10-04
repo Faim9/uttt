@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import {
     DISCONNECT_GRACE_MS,
@@ -26,6 +27,9 @@
   let confirmingResign = $state(false);
   /** Who has offered a rematch since the game ended. */
   let rematchBy = $state<Player | null>(null);
+  /** After a tournament game, players head back to the tournament for their next pairing. */
+  const RETURN_MS = 4000;
+  let stayHere = $state(false);
 
   const unconfirmed = $derived(
     game?.termination === null && sent && game.moves.length < sent.ply ? sent : null,
@@ -73,6 +77,13 @@
     if (!game?.running && opponentAbsence === null) return;
     const timer = setInterval(() => (now = Date.now()), 100);
     return () => clearInterval(timer);
+  });
+
+  $effect(() => {
+    const tournament = game?.tournamentId;
+    if (!tournament || active || !you || stayHere) return;
+    const timer = setTimeout(() => goto(`/tournaments/${tournament}`), RETURN_MS);
+    return () => clearTimeout(timer);
   });
 
   /** Your clock stops when you move, not when the server's confirmation arrives. */
@@ -193,7 +204,19 @@
             </div>
           {/if}
         {:else if !active}
-          {#if you}
+          {#if you && game.tournamentId}
+            {#if !stayHere}
+              <p class="offer">Back to the tournament in a few seconds…</p>
+            {/if}
+            <div class="actions">
+              <a class="button primary" href="/tournaments/{game.tournamentId}"
+                >Back to tournament</a
+              >
+              {#if !stayHere}
+                <button class="button" onclick={() => (stayHere = true)}>Stay here</button>
+              {/if}
+            </div>
+          {:else if you}
             {#if rematchBy === other(you)}
               <p class="offer">Your opponent wants a rematch.</p>
             {/if}

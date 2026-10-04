@@ -19,6 +19,7 @@
     { href: '/', label: 'Play' },
     { href: '/watch', label: 'Watch' },
     { href: '/puzzles', label: 'Puzzles' },
+    { href: '/tournaments', label: 'Tournaments' },
     { href: '/computer', label: 'Computer' },
     { href: '/analysis', label: 'Analysis' },
     { href: '/leaderboard', label: 'Leaderboard' },

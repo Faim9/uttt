@@ -49,6 +49,11 @@ After that, the owner sets priorities. Candidates: basic anti-cheat, puzzle rati
 - **Community:** follow players (follower counts; a "Following" card on the home page shows who's online and
   links to their games), block players (never paired, no challenges or rematches; ends follows), and rating
   graphs per category on profiles (history recorded per rated game, backfilled from past games).
+- **Arena tournaments:** admins schedule them (name, time control, start, length, rated). Players with an
+  account join from the tournament page and are paired again and again while they stay there (closest
+  score, avoiding an immediate rematch and blocked players); 2 points per win, 1 per draw, computed from the
+  tournament's games; live standings; after a game you're taken back to the tournament. The lobby features
+  the running or next tournament.
 - **Puzzles:** 401 positions where one move forces a game win in one or two moves (unique at every step,
   checked exhaustively), generated from engine self-play with `pnpm puzzles`. A daily puzzle (the same for
   everyone), random unsolved puzzles, solved count in the browser, links to analyze.
