@@ -22,6 +22,10 @@ export type PoolTimeControl = (typeof TIME_CONTROLS)[number];
 export const CATEGORIES = ['bullet', 'blitz', 'rapid'] as const;
 export type Category = (typeof CATEGORIES)[number];
 
+/** Everything with its own rating: the game categories, and puzzles. */
+export const RATING_KINDS = [...CATEGORIES, 'puzzle'] as const;
+export type RatingKind = (typeof RATING_KINDS)[number];
+
 export function clockOf(timeControl: TimeControl): { initialMs: number; incrementMs: number } {
   const [minutes, seconds] = timeControl.split('+').map(Number);
   return { initialMs: minutes * 60_000, incrementMs: seconds * 1000 };
@@ -105,6 +109,11 @@ export const CreateTournamentBody = z.object({
 
 export const CloseAccountBody = z.object({ reason: z.string().trim().min(1).max(500) });
 export const RenameBody = z.object({ username: Username });
+
+/** The moves a player made on a puzzle, in UTN (their own moves, not the replies), for the server to judge. */
+export const PuzzleAttemptBody = z.object({
+  moves: z.array(z.string().regex(/^[1-9]-[1-9]$/)).max(4),
+});
 
 /** How long a player must be gone from a running game before the opponent may claim it. */
 export const DISCONNECT_GRACE_MS = 30_000;

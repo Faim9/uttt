@@ -11,10 +11,6 @@ work is finished or priorities change. The target product is described in PILLAR
 
 After that, the owner sets priorities:
 
-- **Puzzle ratings** (the owner wants these): a Glicko-2 rating per user for puzzles, and one per puzzle, so
-  solving moves your rating like lichess's puzzle rating; puzzles are then served near your level, and the
-  profile shows the puzzle rating and its graph. Needs puzzles stored server-side (solves are reported to and
-  judged by the server, so ratings can't be faked).
 - **Google Play listing:** wrap the installed app (a Trusted Web Activity, e.g. with Bubblewrap); needs a
   Google Play developer account ($25 once). The App Store is harder (Apple often rejects web wrappers).
 - Other candidates: basic anti-cheat.
@@ -63,13 +59,18 @@ After that, the owner sets priorities:
   tournament's games; live standings; after a game you're taken back to the tournament. The lobby features
   the running or next tournament.
 - **Installable app (PWA):** manifest and icons, so phones and desktops can install UTTT with its own icon and
-  open it full screen; a service worker caches the app (it opens instantly, and offline for the computer,
-  analysis, and puzzles). On phones: an app-style bottom tab bar (Play, Puzzles, Watch, Tournaments, More)
+  open it full screen; a service worker caches the app (it opens instantly, and offline for the computer
+  and analysis). On phones: an app-style bottom tab bar (Play, Puzzles, Watch, Tournaments, More)
   with a More sheet; "Install the app" where the browser allows it, instructions on iPhone.
 - **Puzzles:** 470 positions where one move forces a game win in one to four moves (60 / 220 / 150 / 40),
   unique at every step against the best defense, checked exhaustively; generated from engine self-play with
-  `pnpm puzzles`. A daily puzzle of two moves or more (the same for everyone), random unsolved puzzles, solved
-  count in the browser, links to analyze.
+  `pnpm puzzles` (new ones join the database when the server starts). A daily puzzle of two moves or more
+  (the same for everyone), links to analyze.
+- **Puzzle ratings** (like lichess's): every player and every puzzle has a Glicko-2 rating; solving counts
+  as a win against the puzzle, a wrong move or giving up as a loss. Only the first try at a puzzle is rated,
+  and the server judges the moves played. "Next puzzle" picks an untried one near your rating (guests get
+  random ones, unrated). Puzzles start rated by length (1100 / 1500 / 1800 / 2000 for one to four moves) and
+  settle as people play them. Profiles show the puzzle rating and its graph.
 - **Lobby for a small player base:** an honest activity line (players in games and looking, guests included),
   "N waiting" on each pool, a "Play now" button that joins the pool where someone already waits (3+2
   otherwise), and a search that follows you around the site: play the computer while you wait (suggested after

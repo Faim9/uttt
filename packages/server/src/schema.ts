@@ -1,4 +1,4 @@
-import { CATEGORIES, REPORT_REASONS } from '@uttt/core';
+import { RATING_KINDS, REPORT_REASONS } from '@uttt/core';
 import { sql } from 'drizzle-orm';
 import {
   index,
@@ -57,14 +57,14 @@ export const emailTokens = sqliteTable('email_tokens', {
   expiresAt: integer({ mode: 'timestamp_ms' }).notNull(),
 });
 
-/** Glicko-2 ratings, one row per user and category. */
+/** Glicko-2 ratings, one row per user and kind (a game category, or puzzles). */
 export const ratings = sqliteTable(
   'ratings',
   {
     userId: integer()
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    category: text({ enum: CATEGORIES }).notNull(),
+    category: text({ enum: RATING_KINDS }).notNull(),
     rating: real().notNull(),
     deviation: real().notNull(),
     volatility: real().notNull(),
@@ -178,14 +178,14 @@ export const blocks = sqliteTable(
   ],
 );
 
-/** A player's rating after each rated game, for the graphs on profiles. */
+/** A player's rating after each rated game or puzzle, for the graphs on profiles. */
 export const ratingHistory = sqliteTable(
   'rating_history',
   {
     userId: integer()
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    category: text({ enum: CATEGORIES }).notNull(),
+    category: text({ enum: RATING_KINDS }).notNull(),
     rating: integer().notNull(),
     at: integer({ mode: 'timestamp_ms' }).notNull(),
   },
@@ -220,4 +220,38 @@ export const tournamentPlayers = sqliteTable(
     joinedAt: integer({ mode: 'timestamp_ms' }).notNull(),
   },
   (t) => [primaryKey({ columns: [t.tournamentId, t.userId] })],
+);
+
+/** Puzzles, each with its own Glicko-2 rating: solving one counts as a win against it, failing as a loss. */
+export const puzzles = sqliteTable(
+  'puzzles',
+  {
+    id: integer().primaryKey({ autoIncrement: true }),
+    /** The start as a UTN position string; the side to move is the solver. */
+    position: text().notNull().unique(),
+    /** The solution in UTN: the solver's moves, with the best defense in between. */
+    line: text({ mode: 'json' }).$type<string[]>().notNull(),
+    winIn: integer().notNull(),
+    rating: real().notNull(),
+    deviation: real().notNull(),
+    volatility: real().notNull(),
+    plays: integer().notNull().default(0),
+  },
+  (t) => [index('puzzles_rating').on(t.rating)],
+);
+
+/** Each user's first try at each puzzle; only that try is rated. */
+export const puzzleAttempts = sqliteTable(
+  'puzzle_attempts',
+  {
+    userId: integer()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    puzzleId: integer()
+      .notNull()
+      .references(() => puzzles.id, { onDelete: 'cascade' }),
+    solved: integer({ mode: 'boolean' }).notNull(),
+    at: integer({ mode: 'timestamp_ms' }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.puzzleId] })],
 );

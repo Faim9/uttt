@@ -1,17 +1,32 @@
 import {
-  CATEGORIES,
+  RATING_KINDS,
   formatMove,
   parseMove,
   type Category,
   type GameState,
   type Outcome,
   type Player,
+  type Puzzle,
+  type RatingKind,
   type ReportReason,
   type TimeControl,
   type User,
 } from '@uttt/core';
 import Database from 'better-sqlite3';
-import { and, desc, eq, getTableColumns, gt, isNull, lte, ne, or, sql } from 'drizzle-orm';
+import {
+  and,
+  desc,
+  eq,
+  getTableColumns,
+  gt,
+  gte,
+  isNull,
+  lte,
+  ne,
+  notInArray,
+  or,
+  sql,
+} from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { alias } from 'drizzle-orm/sqlite-core';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
@@ -34,6 +49,8 @@ const {
   ratingHistory,
   tournaments,
   tournamentPlayers,
+  puzzles,
+  puzzleAttempts,
 } = schema;
 
 const DAY_MS = 86_400_000;
@@ -584,7 +601,7 @@ export class Store {
   // Ratings
 
   /** A player's current rating, with deviation grown for the time they've been inactive. */
-  rating(userId: number, category: Category): PlayerRating {
+  rating(userId: number, category: RatingKind): PlayerRating {
     const row = this.db
       .select()
       .from(ratings)
@@ -595,11 +612,31 @@ export class Store {
     return { ...current, games: row.games, provisional: current.deviation > PROVISIONAL_DEVIATION };
   }
 
-  ratings(userId: number): Record<Category, PlayerRating> {
-    return Object.fromEntries(CATEGORIES.map((c) => [c, this.rating(userId, c)])) as Record<
-      Category,
+  ratings(userId: number): Record<RatingKind, PlayerRating> {
+    return Object.fromEntries(RATING_KINDS.map((c) => [c, this.rating(userId, c)])) as Record<
+      RatingKind,
       PlayerRating
     >;
+  }
+
+  /** Stores a player's new rating, and adds it to their history. */
+  private saveRating(
+    userId: number,
+    category: RatingKind,
+    rating: Rating,
+    games: number,
+    at: Date,
+  ): void {
+    const values = { ...rating, games, updatedAt: at };
+    this.db
+      .insert(ratings)
+      .values({ userId, category, ...values })
+      .onConflictDoUpdate({ target: [ratings.userId, ratings.category], set: values })
+      .run();
+    this.db
+      .insert(ratingHistory)
+      .values({ userId, category, rating: Math.round(rating.rating), at })
+      .run();
   }
 
   /** Updates both players' ratings after a rated game and returns their rating changes. */
@@ -617,17 +654,7 @@ export class Store {
       };
       const now = new Date();
       for (const side of ['x', 'o'] as const) {
-        const values = { ...after[side], games: before[side].games + 1, updatedAt: now };
-        this.db
-          .insert(ratings)
-          .values({ userId: userIds[side], category, ...values })
-          .onConflictDoUpdate({ target: [ratings.userId, ratings.category], set: values })
-          .run();
-        const rating = Math.round(after[side].rating);
-        this.db
-          .insert(ratingHistory)
-          .values({ userId: userIds[side], category, rating, at: now })
-          .run();
+        this.saveRating(userIds[side], category, after[side], before[side].games + 1, now);
       }
       const diff = (side: Player) =>
         Math.round(after[side].rating) - Math.round(before[side].rating);
@@ -635,8 +662,8 @@ export class Store {
     });
   }
 
-  /** Each category's rating after every rated game, oldest first. */
-  ratingHistory(userId: number): Record<Category, { rating: number; at: Date }[]> {
+  /** Each kind's rating after every rated game or puzzle, oldest first. */
+  ratingHistory(userId: number): Record<RatingKind, { rating: number; at: Date }[]> {
     const rows = this.db
       .select()
       .from(ratingHistory)
@@ -644,11 +671,117 @@ export class Store {
       .orderBy(ratingHistory.at)
       .all();
     return Object.fromEntries(
-      CATEGORIES.map((category) => [
+      RATING_KINDS.map((category) => [
         category,
         rows.filter((row) => row.category === category).map(({ rating, at }) => ({ rating, at })),
       ]),
-    ) as Record<Category, { rating: number; at: Date }[]>;
+    ) as Record<RatingKind, { rating: number; at: Date }[]>;
+  }
+
+  // Puzzles
+
+  /** Adds the puzzles that aren't stored yet, starting at the given ratings. */
+  addPuzzles(list: (Puzzle & Rating)[]): void {
+    this.db.insert(puzzles).values(list).onConflictDoNothing().run();
+  }
+
+  puzzle(id: number) {
+    return this.db.select().from(puzzles).where(eq(puzzles.id, id)).get();
+  }
+
+  /**
+   * Today's puzzle, the same for everyone: days since 1970 (UTC), wrapped around the puzzles of two moves
+   * or more (one-movers are too plain to feature).
+   */
+  dailyPuzzle() {
+    const featured = gte(puzzles.winIn, 2);
+    const row = this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(puzzles)
+      .where(featured)
+      .get();
+    return this.db
+      .select()
+      .from(puzzles)
+      .where(featured)
+      .orderBy(puzzles.id)
+      .limit(1)
+      .offset(Math.floor(Date.now() / DAY_MS) % (row?.count ?? 1))
+      .get();
+  }
+
+  randomPuzzle() {
+    return this.db
+      .select()
+      .from(puzzles)
+      .orderBy(sql`random()`)
+      .limit(1)
+      .get();
+  }
+
+  /** The puzzles `userId` hasn't tried that are rated nearest to `rating`. */
+  puzzlesNear(userId: number, rating: number, limit: number) {
+    const tried = this.db
+      .select({ id: puzzleAttempts.puzzleId })
+      .from(puzzleAttempts)
+      .where(eq(puzzleAttempts.userId, userId));
+    return this.db
+      .select()
+      .from(puzzles)
+      .where(notInArray(puzzles.id, tried))
+      .orderBy(sql`abs(${puzzles.rating} - ${rating})`)
+      .limit(limit)
+      .all();
+  }
+
+  triedPuzzle(userId: number, puzzleId: number): boolean {
+    const row = this.db
+      .select()
+      .from(puzzleAttempts)
+      .where(and(eq(puzzleAttempts.userId, userId), eq(puzzleAttempts.puzzleId, puzzleId)))
+      .get();
+    return row !== undefined;
+  }
+
+  /** Every puzzle the user tried, for their data export. */
+  puzzleAttempts(userId: number) {
+    return this.db
+      .select({
+        puzzleId: puzzleAttempts.puzzleId,
+        solved: puzzleAttempts.solved,
+        at: puzzleAttempts.at,
+      })
+      .from(puzzleAttempts)
+      .where(eq(puzzleAttempts.userId, userId))
+      .orderBy(puzzleAttempts.at)
+      .all();
+  }
+
+  /**
+   * Records a user's try at a puzzle. The first try rates both, like a game the user wins by solving it;
+   * returns the user's rating change, or null for a later try, which isn't rated.
+   */
+  ratePuzzle(userId: number, puzzleId: number, solved: boolean): number | null {
+    return this.db.transaction(() => {
+      const at = new Date();
+      const first = this.db
+        .insert(puzzleAttempts)
+        .values({ userId, puzzleId, solved, at })
+        .onConflictDoNothing()
+        .run();
+      const puzzle = this.puzzle(puzzleId);
+      if (first.changes === 0 || !puzzle) return null;
+      const before = this.rating(userId, 'puzzle');
+      const score = solved ? 1 : 0;
+      const after = rate(before, [{ opponent: puzzle, score }]);
+      this.db
+        .update(puzzles)
+        .set({ ...rate(puzzle, [{ opponent: before, score: 1 - score }]), plays: puzzle.plays + 1 })
+        .where(eq(puzzles.id, puzzleId))
+        .run();
+      this.saveRating(userId, 'puzzle', after, before.games + 1, at);
+      return Math.round(after.rating) - Math.round(before.rating);
+    });
   }
 
   leaderboard(category: Category, limit = 50) {

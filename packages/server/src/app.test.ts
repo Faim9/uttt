@@ -699,6 +699,47 @@ test('arena tournaments pair the players who are ready, and score their games', 
   expect(list.current.map((t: { id: string }) => t.id)).toEqual([id]);
 });
 
+test('puzzles are rated on the first try, judged by the moves played', async () => {
+  const app = await newApp();
+  const guest = await visitor(app);
+  const shown = (await guest.request('GET', '/api/puzzles/next')).json();
+  expect(shown.line.length).toBe(shown.winIn * 2 - 1);
+  expect(shown.you).toBeNull();
+  expect((await guest.request('GET', '/api/puzzles/daily')).json().daily).toBe(true);
+  expect((await guest.request('GET', '/api/puzzles/999999')).statusCode).toBe(404);
+  const solve = (user: typeof guest, puzzle: typeof shown, moves: string[]) =>
+    user.request('POST', `/api/puzzles/${puzzle.id}/attempt`, { moves });
+  expect((await solve(guest, shown, [])).statusCode).toBe(401);
+
+  const alice = await signedUp(app, 'alice');
+  // A new player starts on puzzles rated like them.
+  const first = (await alice.request('GET', '/api/puzzles/next')).json();
+  expect(first.you).toEqual({ rating: 1500, provisional: true, rated: true });
+  expect(Math.abs(first.rating - 1500)).toBeLessThan(100);
+  const solution = first.line.filter((move: string, i: number) => i % 2 === 0);
+
+  const solved = (await solve(alice, first, solution)).json();
+  expect(solved).toMatchObject({ solved: true, puzzle: { plays: 1, you: { rated: false } } });
+  expect(solved.change).toBeGreaterThan(0);
+  expect(solved.puzzle.rating).toBeLessThan(first.rating);
+  // Only the first try counts.
+  expect((await solve(alice, first, solution)).json()).toMatchObject({
+    solved: true,
+    change: null,
+  });
+
+  const second = (await alice.request('GET', '/api/puzzles/next')).json();
+  expect(second.id).not.toBe(first.id);
+  const wrong = second.line[0] === '1-1' ? '1-2' : '1-1';
+  const failed = (await solve(alice, second, [wrong])).json();
+  expect(failed.solved).toBe(false);
+  expect(failed.change).toBeLessThan(0);
+
+  const profile = (await alice.request('GET', '/api/users/alice')).json();
+  expect(profile.ratings.puzzle.games).toBe(2);
+  expect(profile.history.puzzle).toHaveLength(2);
+});
+
 test('the health check reports a working database', async () => {
   const app = await newApp();
   expect((await app.inject({ method: 'GET', url: '/api/health' })).json()).toEqual({ ok: true });
@@ -717,6 +758,7 @@ test('users can download all their data', async () => {
   expect(data.account).toMatchObject({ username: 'alice', email: 'alice@example.com' });
   expect(data.sessions).toHaveLength(1);
   expect(data.ratings.blitz.games).toBe(0); // casual game
+  expect(data.puzzles).toEqual([]);
   expect(data.games).toHaveLength(1);
   expect(data.games[0]).toMatchObject({ termination: 'resign', moves: [] });
 });

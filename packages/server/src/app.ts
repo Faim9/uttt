@@ -13,6 +13,7 @@ import { turnstile, type HumanCheck } from './captcha.ts';
 import { Emails, smtpMailer, type SendMail } from './email.ts';
 import { Hub } from './hub.ts';
 import { moderationRoutes } from './moderation.ts';
+import { puzzleRoutes } from './puzzles.ts';
 import { socialRoutes } from './social.ts';
 import { tournamentRoutes } from './tournaments.ts';
 import type { Store } from './store.ts';
@@ -104,6 +105,7 @@ export async function buildApp({
   await app.register(moderationRoutes(services));
   await app.register(socialRoutes(services));
   await app.register(tournamentRoutes(services));
+  await app.register(puzzleRoutes(services));
   await app.register(apiRoutes(store, hub));
 
   // Open connections per visitor address, capped so one visitor can't exhaust the server's memory.

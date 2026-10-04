@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CATEGORIES, type Category, type ReportReason } from '@uttt/core';
+  import { RATING_KINDS, type RatingKind, type ReportReason } from '@uttt/core';
   import { api } from '#lib/session.svelte.ts';
   import { timing, type Tournament } from '#lib/tournament.ts';
   import { onMount } from 'svelte';
@@ -21,7 +21,7 @@
     twoFactor: boolean;
     closedAt: string | null;
     closedReason: string | null;
-    ratings: Record<Category, { rating: number; provisional: boolean; games: number }>;
+    ratings: Record<RatingKind, { rating: number; provisional: boolean; games: number }>;
     games: unknown[];
   }
 
@@ -162,7 +162,7 @@
         <dd>{player.twoFactor ? 'On' : 'Off'}</dd>
         <dt>Ratings</dt>
         <dd>
-          {#each CATEGORIES as category (category)}
+          {#each RATING_KINDS as category (category)}
             {@const rating = player.ratings[category]}
             <span>
               {category}

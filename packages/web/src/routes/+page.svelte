@@ -190,7 +190,7 @@
         <strong>Play a friend</strong>
         <span>Send a link; the game starts when they open it</span>
       </button>
-      <a class="action" href="/puzzles">
+      <a class="action" href="/puzzles?id=daily">
         <strong>Daily puzzle</strong>
         <span>Find the winning move; a new one every day</span>
       </a>

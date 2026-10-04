@@ -50,12 +50,3 @@ export function analysisLink(moves: number[], { review = false } = {}): string {
 }
 
 export const percent = (fraction: number) => `${Math.round(fraction * 100)}%`;
-
-/**
- * Today's puzzle is the same for everyone: days since 1970 (UTC), wrapped around the puzzles of two moves
- * or more (one-movers are too plain to feature). Returns its index in `puzzles`.
- */
-export function dailyPuzzle(puzzles: { winIn: number }[]): number {
-  const featured = puzzles.flatMap((puzzle, i) => (puzzle.winIn >= 2 ? [i] : []));
-  return featured[Math.floor(Date.now() / 86_400_000) % featured.length];
-}

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { CATEGORIES, type Category, type GameState, type Player } from '@uttt/core';
+  import { RATING_KINDS, type GameState, type Player, type RatingKind } from '@uttt/core';
   import { playerName, resultText } from '#lib/game.ts';
   import RatingGraph from '#lib/RatingGraph.svelte';
   import ReportDialog from '#lib/ReportDialog.svelte';
@@ -14,8 +14,8 @@
     /** How the signed-in viewer relates to this player. */
     following: boolean;
     blocked: boolean;
-    ratings: Record<Category, { rating: number; provisional: boolean; games: number }>;
-    history: Record<Category, { rating: number; at: string }[]>;
+    ratings: Record<RatingKind, { rating: number; provisional: boolean; games: number }>;
+    history: Record<RatingKind, { rating: number; at: string }[]>;
     games: GameState[];
   }
 
@@ -23,17 +23,17 @@
   let profile = $state<Profile | null>(null);
   let error = $state('');
   let report: ReportDialog | undefined = $state();
-  /** The category whose rating graph is shown; picked by clicking its rating. */
-  let graphed = $state<Category>('blitz');
+  /** The rating whose graph is shown; picked by clicking it. */
+  let graphed = $state<RatingKind>('blitz');
   const isMe = $derived(session.user?.username.toLowerCase() === username.toLowerCase());
   const path = $derived(`/api/users/${encodeURIComponent(username)}`);
 
   async function load() {
     try {
       const loaded = await api<Profile>('GET', path);
-      // Start on the category with the most rated games.
+      // Start on the rating with the most rated games or puzzles.
       if (profile?.username !== loaded.username) {
-        graphed = CATEGORIES.reduce((a, b) =>
+        graphed = RATING_KINDS.reduce((a, b) =>
           loaded.history[b].length > loaded.history[a].length ? b : a,
         );
       }
@@ -103,16 +103,13 @@
   <ReportDialog bind:this={report} username={profile.username} />
 
   <div class="ratings">
-    {#each CATEGORIES as category (category)}
-      {@const rating = profile.ratings[category]}
-      <button
-        class="card rating"
-        aria-pressed={graphed === category}
-        onclick={() => (graphed = category)}
-      >
-        <h2>{category}</h2>
+    {#each RATING_KINDS as kind (kind)}
+      {@const rating = profile.ratings[kind]}
+      {@const counted = kind === 'puzzle' ? 'puzzle' : 'game'}
+      <button class="card rating" aria-pressed={graphed === kind} onclick={() => (graphed = kind)}>
+        <h2>{kind === 'puzzle' ? 'puzzles' : kind}</h2>
         <strong>{rating.rating}{rating.provisional ? '?' : ''}</strong>
-        <span class="muted">{rating.games} {rating.games === 1 ? 'game' : 'games'}</span>
+        <span class="muted">{rating.games} {counted}{rating.games === 1 ? '' : 's'}</span>
       </button>
     {/each}
   </div>

@@ -147,6 +147,7 @@ export const accountRoutes =
           account: { ...store.account(user.id), twoFactor: store.twoFactor(user.id) !== null },
           sessions: store.sessions(user.id, token),
           ratings: store.ratings(user.id),
+          puzzles: store.puzzleAttempts(user.id),
           games: store.allGames(user.id).map(({ moves, outcome, ...game }) => ({
             ...game,
             result: outcome ? RESULTS[outcome] : null,

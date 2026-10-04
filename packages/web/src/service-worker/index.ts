@@ -1,10 +1,6 @@
-/// <reference no-default-lib="true"/>
-/// <reference lib="esnext" />
-/// <reference lib="webworker" />
-
 /**
  * Makes the site an installable app that opens instantly and works offline for everything that runs on the
- * device (play the computer, analysis, puzzles). The app's own files are cached per version; live data
+ * device (play the computer, analysis). The app's own files are cached per version; live data
  * (the API and games) always goes to the network.
  */
 

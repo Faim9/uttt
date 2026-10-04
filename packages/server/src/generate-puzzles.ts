@@ -1,6 +1,7 @@
 /**
  * Generates the site's puzzles from games the engine plays against itself, at varied strengths so there are
- * mistakes to punish. Run with `pnpm puzzles`; it writes packages/web/src/lib/puzzles.json in a few minutes.
+ * mistakes to punish. Run with `pnpm puzzles`; it writes packages/server/src/puzzles.json in a few minutes,
+ * and the server adds new puzzles to the database when it starts.
  */
 
 import { writeFileSync } from 'node:fs';
@@ -18,7 +19,7 @@ import {
 const TARGETS: Record<number, number> = { 1: 60, 2: 220, 3: 150, 4: 40 };
 /** Long wins are rare; stop after this many games even if a target isn't met. */
 const MAX_GAMES = 1200;
-const OUTPUT = new URL('../../web/src/lib/puzzles.json', import.meta.url);
+const OUTPUT = new URL('puzzles.json', import.meta.url);
 /** Random first moves, so games (and puzzles) differ. */
 const RANDOM_OPENING = 4;
 /** Forced wins rarely exist earlier; skipping these plies saves most of the work. */

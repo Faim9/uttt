@@ -4,5 +4,6 @@
     "strict": true,
     "erasableSyntaxOnly": true
   },
-  "include": ["src", "*"]
+  "include": ["src", "*"],
+  "exclude": ["src/service-worker"]
 }
