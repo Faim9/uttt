@@ -3,8 +3,8 @@ import { SvelteMap } from 'svelte/reactivity';
 import { Engine } from './engine.ts';
 import type { TreeNode } from './tree.svelte.ts';
 
-/** Per position. At this budget evals vary ~0.6% between runs, far below the 10% inaccuracy threshold. */
-const PLAYOUTS = 10_000;
+/** Per position. At this budget evals vary ~1% between runs (2.5% at worst), far below the 10% inaccuracy threshold. */
+const PLAYOUTS = 40_000;
 const WORKERS = Math.max(1, Math.min(4, (navigator.hardwareConcurrency ?? 2) - 1));
 
 /** Engine review of a line of play: evaluates every position in parallel workers, in order. */

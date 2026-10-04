@@ -6,7 +6,7 @@
   import { onDestroy } from 'svelte';
 
   /** Engine playouts per move at each level. */
-  const LEVELS = [50, 200, 1000, 4000, 15_000, 50_000];
+  const LEVELS = [50, 200, 1000, 5000, 30_000, 200_000];
 
   let level = $state(3);
   let side = $state<Player | 'random'>('x');

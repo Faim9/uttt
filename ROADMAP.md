@@ -18,13 +18,16 @@ graphs on profiles.
 ## Done
 
 - **Core:** rules, UTN notation (see docs/notation.md), MCTS engine. Full test coverage.
+- **Stronger engine:** MCTS-solver on a compact in-place board (~4× faster), playouts that take game-winning
+  moves, exploration tuned to 0.6. Against the old engine at equal time: 72 wins, 5 draws, 3 losses (≥ +450 Elo).
+  Levels 4–6 got bigger budgets (level 6: ~1 s per move), review 40k playouts per position, analysis up to 1M.
 - **Web:** board UI, play vs. computer (6 levels), analysis board (variation tree, live engine eval, import/export,
   share links).
 - **Online play:** accounts (Argon2id, DB sessions), guest play, quick pairing in five time controls, challenge
   links, server-authoritative games with clocks, resign (with confirmation) / draw / abort, games restored after
   a server restart. Your move shows the instant you click; the server confirms it in the background.
 - **Post-game review:** "Review game" after every game (online and vs. computer) and on the analysis board.
-  Evaluates each position at 10k playouts across parallel workers (~1–2 s per game), classifies every move
+  Evaluates each position at 40k playouts across parallel workers (~2–3 s per game), classifies every move
   (best / good / inaccuracy / mistake / blunder by win-chance lost: 10 / 20 / 30%), per-player accuracy,
   eval graph, jump to each player's next mistake, and "show best move".
 - **Rating-based matchmaking** (after lichess's pool): pairs by rating gap minus a wait bonus that grows every
@@ -59,7 +62,8 @@ graphs on profiles.
 
 - **Phase 2:** social (follow, block), basic anti-cheat, moderation tools, OAuth, rating graphs.
 - **Phase 3:** puzzles, tournaments, opening explorer, public API & bots, variants.
-- **Engine upgrades, only when needed:** MCTS-solver → smarter playouts → neural-network-guided search.
+- **Engine upgrades, only when needed:** neural-network-guided search; parallel search across workers on the
+  analysis board.
 
 ## Open decisions
 

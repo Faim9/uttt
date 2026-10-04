@@ -22,7 +22,7 @@
   import { onDestroy } from 'svelte';
 
   /** Caps memory use: the search tree grows by one node per playout. */
-  const MAX_PLAYOUTS = 200_000;
+  const MAX_PLAYOUTS = 1_000_000;
   const INITIAL = formatPosition(initialPosition);
 
   let error = $state('');

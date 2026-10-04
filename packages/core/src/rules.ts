@@ -18,14 +18,15 @@ export interface Position {
   readonly outcome: Outcome | null;
 }
 
-const FULL = 0b111_111_111;
+export const FULL = 0b111_111_111;
 // prettier-ignore
 const LINES = [
   0b000_000_111, 0b000_111_000, 0b111_000_000, // rows
   0b001_001_001, 0b010_010_010, 0b100_100_100, // columns
   0b100_010_001, 0b001_010_100, // diagonals
 ];
-const HAS_LINE = Array.from({ length: 512 }, (_, mask) =>
+/** Whether a 9-bit mask (of cells, or of local boards) contains three in a row. */
+export const HAS_LINE = Array.from({ length: 512 }, (_, mask) =>
   LINES.some((line) => (mask & line) === line),
 );
 

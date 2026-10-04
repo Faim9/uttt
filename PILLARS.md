@@ -55,8 +55,9 @@ What's built so far, and what comes next, lives in ROADMAP.md.
 
 The pillar that turns the site from "a place to play" into "a place to improve."
 
-- **Engine: plain MCTS** (UCT with random playouts). It's the simplest engine that plays well: no hand-tuned
-  evaluation, ~150 lines, ~16k playouts/second. Strength levels are playout budgets.
+- **Engine: MCTS with a solver** (UCT; random playouts that take a game-winning move when there is one;
+  proven wins and losses are exact). No hand-tuned evaluation, ~300 lines, ~200k playouts/second on a compact
+  board. Strength levels are playout budgets.
 - **The engine runs in the browser** (Web Workers): analysis, play vs. computer, and post-game review cost the
   server nothing. The server will only run it for anti-cheat.
 - **Analysis board:** free play from any position, variation tree, live eval bar and best line,
@@ -65,7 +66,8 @@ The pillar that turns the site from "a place to play" into "a place to improve."
   which moves were good: an eval graph, the best move for every position, and every move classified (best,
   good, inaccuracy, mistake, blunder), with an accuracy score per player.
 - **Later:** opening explorer, puzzles from real games' tactical moments, shared studies.
-- **Engine upgrades only when needed:** MCTS-solver → smarter playouts → neural-network guidance.
+- **Engine upgrades only when needed**, each proven in engine-vs-engine matches: next is neural-network
+  guidance (smarter playouts beyond game-winning moves didn't pay for their cost).
 
 ## 5. Rating & Ranking Ladder
 

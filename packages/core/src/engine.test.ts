@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { bestMove, Search } from './engine.ts';
 import { parseMove, parsePosition } from './notation.ts';
 import { initialPosition, legalMoves, play, type Player } from './rules.ts';
-import { seededRandom } from './testing.ts';
+import { randomGame, seededRandom } from './testing.ts';
 
 const EMPTY = '.........';
 
@@ -36,6 +36,17 @@ test('has nothing to suggest once the game is over', () => {
   search.run(10);
   expect(search.analysis).toMatchObject({ bestMove: null, winChance: 1, pv: [] });
   expect(() => bestMove(position, 10)).toThrow('game is over');
+});
+
+test('suggests only legal moves, in positions from random games', () => {
+  const random = seededRandom(7);
+  for (let game = 0; game < 40; game++) {
+    let position = initialPosition;
+    for (const move of randomGame(random)) {
+      expect(legalMoves(position)).toContain(bestMove(position, 50, random));
+      position = play(position, move);
+    }
+  }
 });
 
 test('beats a random player', () => {
