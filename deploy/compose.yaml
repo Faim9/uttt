@@ -57,7 +57,8 @@ services:
     healthcheck:
       disable: true
     depends_on:
-      - app
+      app:
+        condition: service_healthy
 
   backup:
     <<: *litestream
