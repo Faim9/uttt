@@ -10,6 +10,7 @@ import {
   type Player,
   type Puzzle,
   type RatingKind,
+  type FeedbackKind,
   type ReportReason,
   type TimeControl,
   type User,
@@ -48,6 +49,7 @@ const {
   ratings,
   games,
   reports,
+  feedback,
   auditLog,
   follows,
   blocks,
@@ -503,6 +505,52 @@ export class Store {
       .returning({ id: reports.id })
       .all();
     return resolved.length > 0;
+  }
+
+  createFeedback(entry: { userId: number; kind: FeedbackKind; text: string }): void {
+    this.db
+      .insert(feedback)
+      .values({ ...entry, createdAt: new Date() })
+      .run();
+  }
+
+  /** The player's own feedback, newest first. */
+  feedbackBy(userId: number) {
+    const { id, kind, text, createdAt, doneAt } = getTableColumns(feedback);
+    return this.db
+      .select({ id, kind, text, createdAt, doneAt })
+      .from(feedback)
+      .where(eq(feedback.userId, userId))
+      .orderBy(desc(feedback.id))
+      .all();
+  }
+
+  /** Feedback not yet dealt with, oldest first, with the sender's current username. */
+  openFeedback() {
+    return this.db
+      .select({
+        id: feedback.id,
+        username: users.username,
+        kind: feedback.kind,
+        text: feedback.text,
+        createdAt: feedback.createdAt,
+      })
+      .from(feedback)
+      .leftJoin(users, eq(feedback.userId, users.id))
+      .where(isNull(feedback.doneAt))
+      .orderBy(feedback.id)
+      .all();
+  }
+
+  /** Marks feedback as dealt with; returns false if there was no open feedback with that id. */
+  finishFeedback(id: number): boolean {
+    const done = this.db
+      .update(feedback)
+      .set({ doneAt: new Date() })
+      .where(and(eq(feedback.id, id), isNull(feedback.doneAt)))
+      .returning({ id: feedback.id })
+      .all();
+    return done.length > 0;
   }
 
   logAdminAction(entry: { admin: string; action: string; target: string; details: string }): void {

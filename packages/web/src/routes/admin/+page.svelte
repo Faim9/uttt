@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { RATING_KINDS, type RatingKind, type ReportReason } from '@uttt/core';
+  import { RATING_KINDS, type FeedbackKind, type RatingKind, type ReportReason } from '@uttt/core';
   import { api } from '#lib/session.svelte.ts';
   import { timing, type Tournament } from '#lib/tournament.ts';
   import TournamentForm from '#lib/TournamentForm.svelte';
@@ -11,6 +11,14 @@
     reported: string;
     reason: ReportReason;
     details: string;
+    createdAt: string;
+  }
+
+  interface Feedback {
+    id: number;
+    username: string | null;
+    kind: FeedbackKind;
+    text: string;
     createdAt: string;
   }
 
@@ -37,6 +45,7 @@
 
   let allowed = $state(true);
   let reports = $state<Report[]>([]);
+  let feedback = $state<Feedback[]>([]);
   let log = $state<LogEntry[]>([]);
   let lookup = $state('');
   let player = $state<Player | null>(null);
@@ -50,8 +59,9 @@
   async function refresh() {
     try {
       let list: { current: Tournament[] };
-      [reports, log, list] = await Promise.all([
+      [reports, feedback, log, list] = await Promise.all([
         api<Report[]>('GET', '/api/admin/reports'),
+        api<Feedback[]>('GET', '/api/admin/feedback'),
         api<LogEntry[]>('GET', '/api/admin/log'),
         api<{ current: Tournament[] }>('GET', '/api/tournaments'),
       ]);
@@ -130,6 +140,33 @@
                 Mark resolved
               </button>
             </div>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+  </section>
+
+  <section class="card">
+    <h2>Feedback</h2>
+    {#if feedback.length === 0}
+      <p class="muted">Nothing new.</p>
+    {:else}
+      <ul class="reports">
+        {#each feedback as item (item.id)}
+          <li>
+            <p>
+              <strong>{item.kind}</strong>
+              <span class="muted">
+                · from {item.username ?? 'a deleted account'} · {date(item.createdAt)}
+              </span>
+            </p>
+            <p class="details">{item.text}</p>
+            <button
+              class="button"
+              onclick={() => run(() => api('POST', `/api/admin/feedback/${item.id}/done`))}
+            >
+              Mark done
+            </button>
           </li>
         {/each}
       </ul>

@@ -1,4 +1,4 @@
-import { CATEGORIES, RATING_KINDS, REPORT_REASONS } from '@uttt/core';
+import { CATEGORIES, FEEDBACK_KINDS, RATING_KINDS, REPORT_REASONS } from '@uttt/core';
 import { sql } from 'drizzle-orm';
 import {
   index,
@@ -226,6 +226,21 @@ export const tournaments = sqliteTable(
     official: integer({ mode: 'boolean' }).notNull().default(false),
   },
   (t) => [index('tournaments_starts').on(t.startsAt)],
+);
+
+/** Bugs, ideas and other feedback from players, read by admins on the admin page. */
+export const feedback = sqliteTable(
+  'feedback',
+  {
+    id: integer().primaryKey({ autoIncrement: true }),
+    /** Null once the player deletes their account; the feedback stays, without their name. */
+    userId: integer().references(() => users.id, { onDelete: 'set null' }),
+    kind: text({ enum: FEEDBACK_KINDS }).notNull(),
+    text: text().notNull(),
+    createdAt: integer({ mode: 'timestamp_ms' }).notNull(),
+    doneAt: integer({ mode: 'timestamp_ms' }),
+  },
+  (t) => [index('feedback_user').on(t.userId), index('feedback_open').on(t.doneAt)],
 );
 
 /** Who joined each tournament, including players who haven't finished a game yet. */

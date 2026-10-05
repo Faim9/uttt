@@ -122,6 +122,15 @@ export const ReportBody = z.object({
   details: z.string().trim().min(1, 'Tell us what happened').max(1000),
 });
 
+/** What players send through the feedback page. */
+export const FEEDBACK_KINDS = ['bug', 'idea', 'other'] as const;
+export type FeedbackKind = (typeof FEEDBACK_KINDS)[number];
+
+export const FeedbackBody = z.object({
+  kind: z.enum(FEEDBACK_KINDS),
+  text: z.string().trim().min(1, 'Write a few words first').max(2000),
+});
+
 export const CreateTournamentBody = z.object({
   name: z.string().trim().min(1).max(60),
   timeControl: LiveTimeControl,

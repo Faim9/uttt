@@ -616,6 +616,28 @@ const fr: Messages = {
   'error.weekAhead': 'Un tournoi peut commencer au plus tard dans une semaine',
   'error.twoTournaments': 'Tu as déjà deux tournois à venir',
   'error.onlyCreatorCancels': 'Seul son créateur peut annuler un tournoi',
+  'footer.feedback': 'Suggestions',
+  'feedback.title': 'Suggestions et bugs',
+  'feedback.intro':
+    'Tu as trouvé un bug, ou tu as une idée pour améliorer UTTT ? Dis-le-nous. Chaque message est lu.',
+  'feedback.signIn': '{link} pour envoyer un message.',
+  'feedback.kind': 'De quoi s’agit-il ?',
+  'feedback.kind.bug': 'Bug',
+  'feedback.kind.idea': 'Idée',
+  'feedback.kind.other': 'Autre',
+  'feedback.prompt.bug':
+    'Que s’est-il passé, et à quoi t’attendais-tu ? Ton appareil et ton navigateur aident aussi.',
+  'feedback.prompt.idea': 'Qu’aimerais-tu voir, et pourquoi ?',
+  'feedback.prompt.other': 'Que veux-tu nous dire ?',
+  'feedback.send': 'Envoyer',
+  'feedback.thanks': 'Merci ! Nous l’avons bien reçu.',
+  'feedback.github': 'Tu connais {link} ? Tu peux aussi y ouvrir une issue.',
+  'feedback.yours': 'Ce que tu as envoyé',
+  'feedback.open': 'Ouvert',
+  'feedback.done': 'Traité',
+  'error.confirmToSendFeedback': 'Confirme ton e-mail pour envoyer un message',
+  'error.signInFeedback': 'Connecte-toi pour envoyer un message',
+  'error.writeSomething': 'Écris d’abord quelques mots',
 };
 
 export default fr;

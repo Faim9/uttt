@@ -635,6 +635,28 @@ const en = {
   'error.weekAhead': 'Tournaments can start at most a week ahead',
   'error.twoTournaments': 'You already have two tournaments coming up',
   'error.onlyCreatorCancels': 'Only its creator can cancel a tournament',
+  'footer.feedback': 'Feedback',
+  'feedback.title': 'Feedback',
+  'feedback.intro':
+    'Found a bug, or have an idea to make UTTT better? Tell us. Every message is read.',
+  'feedback.signIn': '{link} to send feedback.',
+  'feedback.kind': 'What is it about?',
+  'feedback.kind.bug': 'Bug',
+  'feedback.kind.idea': 'Idea',
+  'feedback.kind.other': 'Other',
+  'feedback.prompt.bug':
+    'What happened, and what did you expect? Your device and browser help too.',
+  'feedback.prompt.idea': 'What would you like to see, and why?',
+  'feedback.prompt.other': 'What would you like to tell us?',
+  'feedback.send': 'Send',
+  'feedback.thanks': 'Thank you! We got it.',
+  'feedback.github': 'Comfortable with {link}? You can also open an issue there.',
+  'feedback.yours': 'What you sent',
+  'feedback.open': 'Open',
+  'feedback.done': 'Done',
+  'error.confirmToSendFeedback': 'Confirm your email to send feedback',
+  'error.signInFeedback': 'Sign in to send feedback',
+  'error.writeSomething': 'Write a few words first',
 };
 
 export default en;

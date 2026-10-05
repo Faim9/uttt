@@ -71,6 +71,9 @@ After that, the owner sets priorities:
   per-socket), Zod validation of all input, hash-based CSP, helmet headers. After a review before launch:
   two-factor locks for 15 minutes after 5 wrong codes, at most 50 live connections per address, at most one
   email of each kind per user per minute, Cloudflare Turnstile on sign-up, weekly Dependabot updates.
+- **Feedback:** a Feedback page (footer; More on phones) where players with a confirmed email send bugs,
+  ideas, or anything else, and see what they sent and whether it's been dealt with. Admins read it on the
+  admin page and mark it done; it's in the data export, and stays without a name when an account is deleted.
 - **Terms of use** page, linked from the footer and the sign-up form.
 - **Community:** follow players (follower counts; a "Following" card on the home page shows who's online and
   links to their games), block players (never paired, no challenges or rematches; ends follows), and rating

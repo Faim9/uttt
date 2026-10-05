@@ -600,6 +600,29 @@ async function admin(app: App) {
   return user;
 }
 
+test('players with a confirmed email send feedback; admins read it and mark it done', async () => {
+  const app = await newApp();
+  const send = (user: Awaited<ReturnType<typeof visitor>>, text: string) =>
+    user.request('POST', '/api/feedback', { kind: 'bug', text });
+  expect((await send(await visitor(app), 'Hi')).statusCode).toBe(401);
+  const carol = await signedUp(app, 'carol', { verify: false });
+  expect((await send(carol, 'Hi')).json().error).toBe('Confirm your email to send feedback');
+  const alice = await signedUp(app, 'alice');
+  expect((await send(alice, '   ')).statusCode).toBe(400);
+  expect((await send(alice, 'The clock froze on my phone')).statusCode).toBe(200);
+  expect((await alice.request('GET', '/api/feedback')).json()).toMatchObject([
+    { kind: 'bug', text: 'The clock froze on my phone', doneAt: null },
+  ]);
+
+  expect((await alice.request('GET', '/api/admin/feedback')).statusCode).toBe(403);
+  const boss = await admin(app);
+  const [open] = (await boss.request('GET', '/api/admin/feedback')).json();
+  expect(open).toMatchObject({ username: 'alice', text: 'The clock froze on my phone' });
+  expect((await boss.request('POST', `/api/admin/feedback/${open.id}/done`)).statusCode).toBe(200);
+  expect((await boss.request('GET', '/api/admin/feedback')).json()).toEqual([]);
+  expect((await alice.request('GET', '/api/feedback')).json()[0].doneAt).not.toBeNull();
+});
+
 test('players can report players; only admins with two-factor see reports', async () => {
   const app = await newApp();
   const alice = await signedUp(app, 'alice');

@@ -29,6 +29,9 @@
       when each was last active, so you can sign them out in Settings.
     </li>
     <li>
+      <strong>Feedback you send</strong> (bugs, ideas), with your username, so we can follow up.
+    </li>
+    <li>
       <strong>Two cookies:</strong> one keeps you signed in, one lets guests reconnect to their games.
       Both are needed for the site to work, so we don't ask for consent. There are no other cookies.
     </li>
@@ -62,8 +65,8 @@
   <h2>How long we keep it</h2>
   <p>
     Your account stays until you delete it. Deleting it removes your account, ratings, and sessions
-    right away; your games stay in your opponents' histories, without your name. Backups keep a copy
-    for up to 7 days, then it's gone for good.
+    right away; your games stay in your opponents' histories, and your feedback stays, both without
+    your name. Backups keep a copy for up to 7 days, then it's gone for good.
   </p>
 
   <h2>Your rights</h2>

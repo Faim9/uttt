@@ -133,7 +133,7 @@
   {@const [free, after] = around('footer.freeSoftware', 'license')}
   <p>
     Created by Faim9, with AI assistance (Claude). · <a href="/terms">{t('footer.terms')}</a> ·
-    <a href="/privacy">{t('footer.privacy')}</a>
+    <a href="/privacy">{t('footer.privacy')}</a> · <a href="/feedback">{t('footer.feedback')}</a>
   </p>
   <p>
     {free}<a href="https://www.gnu.org/licenses/agpl-3.0.html" rel="license">GNU AGPL v3</a>{after} ·

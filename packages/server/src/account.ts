@@ -204,6 +204,7 @@ export const accountRoutes =
           sessions: store.sessions(user.id, token),
           ratings: store.ratings(user.id),
           puzzles: store.puzzleAttempts(user.id),
+          feedback: store.feedbackBy(user.id),
           games: store.allGames(user.id).map(({ moves, outcome, ...game }) => ({
             ...game,
             result: outcome ? RESULTS[outcome] : null,
