@@ -1,5 +1,5 @@
 import { parseMove, type ServerMessage } from '@uttt/core';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, expect, test } from 'vitest';
@@ -324,16 +324,30 @@ test('after a game, both players agreeing to a rematch starts one with colors sw
   expect((await x.next('game')).you).toBe('o');
 });
 
-test('the lobby counts players in games and players waiting in each pool', async () => {
+test('the lobby counts players in games and waiting in each pool, and features a game', async () => {
   const app = await newApp();
   const spectator = await visitor(app);
-  await pair(await visitor(app), await visitor(app));
+  const lobby = async () => (await spectator.request('GET', '/api/lobby')).json();
+  expect((await lobby()).featured).toBeNull();
+
+  const { gameId, x } = await pair(await visitor(app), await visitor(app));
   const waiting = await (await visitor(app)).connect();
   waiting.send({ type: 'seek', timeControl: '5+3', rated: false });
   await new Promise((resolve) => setTimeout(resolve, 50));
-  expect((await spectator.request('GET', '/api/lobby')).json()).toEqual({
+  expect(await lobby()).toMatchObject({
     playing: 2,
     seeking: { '5+3': 1 },
+    featured: { live: true, game: { id: gameId } },
+  });
+
+  // Once it's over, the last game played stands in.
+  x.send({ type: 'move', gameId, move: parseMove('5-5') });
+  await x.next('game');
+  x.send({ type: 'resign', gameId });
+  await x.next('game');
+  expect((await lobby()).featured).toMatchObject({
+    live: false,
+    game: { id: gameId, termination: 'resign' },
   });
 });
 
@@ -841,6 +855,27 @@ test('correspondence games wait for an opponent, and email whoever is away when 
     200,
   );
   expect((await guest.request('GET', '/api/correspondence')).json().open).toEqual([]);
+});
+
+test("the site's own files are cached and never rate limited; the API is", async () => {
+  const webRoot = mkdtempSync(join(tmpdir(), 'uttt-web-'));
+  writeFileSync(join(webRoot, '200.html'), '<html><head><title>UTTT</title></head></html>');
+  mkdirSync(join(webRoot, '_app/immutable'), { recursive: true });
+  writeFileSync(join(webRoot, '_app/immutable/app.abc123.js'), 'export {};');
+  const app = await buildApp({
+    store: new Store(':memory:'),
+    webRoot,
+    publicUrl: 'https://uttt.test',
+  });
+  apps.push(app);
+  const get = (url: string) => app.inject({ url, headers: HEADERS });
+
+  for (let i = 0; i < 300; i++) await get('/_app/immutable/app.abc123.js');
+  const file = await get('/_app/immutable/app.abc123.js');
+  expect(file.statusCode).toBe(200);
+  expect(file.headers['cache-control']).toBe('public, max-age=31536000, immutable');
+  for (let i = 0; i < 300; i++) await get('/api/health');
+  expect((await get('/api/health')).statusCode).toBe(429);
 });
 
 test('the health check reports a working database', async () => {

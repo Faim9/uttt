@@ -955,6 +955,18 @@ export class Store {
       .map(toState);
   }
 
+  /** The most recently finished game that was played out (not aborted), for the lobby. */
+  lastFinishedGame(): GameState | undefined {
+    const row = this.db
+      .select()
+      .from(games)
+      .where(and(isNotNull(games.endedAt), ne(games.termination, 'abort')))
+      .orderBy(desc(games.endedAt))
+      .limit(1)
+      .get();
+    return row && toState(row);
+  }
+
   recentGames(userId: number, limit = 20): GameState[] {
     return this.db
       .select()

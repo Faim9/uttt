@@ -13,6 +13,10 @@ After that, the owner sets priorities:
 
 - **Google Play listing:** wrap the installed app (a Trusted Web Activity, e.g. with Bubblewrap); needs a
   Google Play developer account ($25 once). The App Store is harder (Apple often rejects web wrappers).
+- **Game history on profiles:** every game a player played (not just the last 20), with filters (time
+  control, rated, result, opponent) and paging, like lichess. Every online game is already stored.
+- **Opening explorer** in the analysis board: for each position, the moves players chose, how often, and how
+  they scored. Worth it once there are a few thousand games; with launch-week numbers it would be mostly empty.
 - Other candidates: basic anti-cheat.
 
 ## Done
@@ -103,8 +107,11 @@ After that, the owner sets priorities:
 - **Link previews:** shared links (Reddit, Discord, WhatsApp...) show a title, a description and a picture of
   the board: games (players, result), puzzles, profiles (ratings), tournaments, challenges, and analysis
   positions. The server fills in the Open Graph tags and draws the board as a PNG itself (no image library).
-- **Look and feel:** the home page is the lobby (one click on a time control starts pairing, like lichess;
-  "Play a friend" opens a dialog), with a self-playing demo board and the rules. Logo, self-hosted Outfit font,
+- **Look and feel:** the home page is the lobby (one click on a time control starts pairing, like lichess),
+  with small buttons for a friend, the computer, and correspondence; beside it, the strongest live game
+  (or the last one played) and the daily puzzle as boards you click to watch or solve. Newcomers get a
+  "Learn to play" invitation and the rules with a self-playing demo board, until they finish the lessons
+  or say they know the rules. Only the API is rate limited; the site's hashed files are cached for a year. Logo, self-hosted Outfit font,
   and four themes picked in the footer: Classic (follows light/dark), Playful, Notebook, Arcade.
 
 ## Later

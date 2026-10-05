@@ -2,6 +2,7 @@
   import { parsePosition, play, type Position } from '@uttt/core';
   import Board from '#lib/Board.svelte';
   import { LESSONS } from '#lib/lessons.ts';
+  import { learned } from '#lib/newcomer.svelte.ts';
   import { playSound } from '#lib/sound.svelte.ts';
 
   /** The lesson shown; LESSONS.length once they're all done. */
@@ -19,6 +20,7 @@
     done = false;
     lastMove = null;
     if (LESSONS[next]) position = parsePosition(LESSONS[next].position);
+    else learned();
   }
 
   /** Right moves are played; wrong ones get a hint and stay off the board. */

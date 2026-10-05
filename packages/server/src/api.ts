@@ -48,8 +48,20 @@ export const apiRoutes =
 
     app.get('/api/games/live', async () => hub.liveGames());
 
-    /** For the lobby: how many are playing, and how many wait in each pool (`3+2`, `3+2 rated`). */
-    app.get('/api/lobby', async () => hub.activity());
+    /**
+     * For the lobby: how many are playing, how many wait in each pool (`3+2`, `3+2 rated`), and a game to
+     * show: the strongest live one, or else the last one played.
+     */
+    app.get('/api/lobby', async () => {
+      const [live] = hub.liveGames(1);
+      const last = live ? undefined : store.lastFinishedGame();
+      const featured = live
+        ? { live: true, game: live }
+        : last
+          ? { live: false, game: last }
+          : null;
+      return { ...hub.activity(), featured };
+    });
 
     app.get('/api/challenges/:name', async (request, reply) => {
       const challenge = hub.challenge(Params.parse(request.params).name);

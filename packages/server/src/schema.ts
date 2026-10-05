@@ -114,6 +114,7 @@ export const games = sqliteTable(
     index('games_x_user').on(t.xUserId),
     index('games_o_user').on(t.oUserId),
     index('games_termination').on(t.termination),
+    index('games_ended').on(t.endedAt),
   ],
 );
 

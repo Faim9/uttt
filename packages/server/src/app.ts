@@ -69,7 +69,14 @@ export async function buildApp({
 
   // The CSP is set by SvelteKit as a <meta> tag with hashes of its inline scripts.
   await app.register(helmet, { contentSecurityPolicy: false });
-  await app.register(rateLimit, { max: 300, timeWindow: '1 minute', keyGenerator: clientIp });
+  // Only the API is limited: one page load fetches dozens of the site's own files, and a class of students
+  // behind one school address would otherwise lock itself out.
+  await app.register(rateLimit, {
+    max: 300,
+    timeWindow: '1 minute',
+    keyGenerator: clientIp,
+    allowList: (request) => !request.url.startsWith('/api/'),
+  });
   await app.register(cookie);
   await app.register(websocket, { options: { maxPayload: 4096 } });
 
@@ -132,7 +139,15 @@ export async function buildApp({
   });
 
   if (webRoot) {
-    await app.register(fastifyStatic, { root: webRoot });
+    await app.register(fastifyStatic, {
+      root: webRoot,
+      // Built files with a content hash in their name never change, so browsers and Cloudflare keep them.
+      setHeaders: (response, path) => {
+        if (path.includes('/_app/immutable/')) {
+          response.header('cache-control', 'public, max-age=31536000, immutable');
+        }
+      },
+    });
     // Every page is the app's one page, with the link preview for its address filled in.
     const appPage = readFileSync(join(webRoot, '200.html'), 'utf8');
     const preview = linkPreview(store, hub, publicUrl);

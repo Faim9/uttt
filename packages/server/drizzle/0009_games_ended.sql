@@ -1,0 +1,1 @@
+CREATE INDEX `games_ended` ON `games` (`ended_at`);

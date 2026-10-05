@@ -3,6 +3,7 @@
   import { afterNavigate, goto } from '$app/navigation';
   import { page } from '$app/state';
   import { install, installApp, watchInstall } from '#lib/install.svelte.ts';
+  import { loadNewcomer } from '#lib/newcomer.svelte.ts';
   import Logo from '#lib/Logo.svelte';
   import SearchBar from '#lib/SearchBar.svelte';
   import { authenticate, session, socket, startSession } from '#lib/session.svelte.ts';
@@ -72,6 +73,7 @@
     theme = document.documentElement.dataset.theme ?? 'classic';
     watchInstall();
     loadSoundSetting();
+    loadNewcomer();
     startSession();
     // Seeks and challenges can be answered while browsing elsewhere; go to the game when it starts.
     return socket.listen((message) => {

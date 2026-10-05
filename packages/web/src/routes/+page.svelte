@@ -1,12 +1,24 @@
 <script lang="ts">
   import { replaceState } from '$app/navigation';
   import { page } from '$app/state';
-  import { categoryOf, TIME_CONTROLS, type PoolTimeControl } from '@uttt/core';
+  import {
+    categoryOf,
+    puzzleStart,
+    resultText,
+    TIME_CONTROLS,
+    type GameState,
+    type PoolTimeControl,
+    type Position,
+    type Puzzle,
+  } from '@uttt/core';
   import { onMount } from 'svelte';
+  import Board from '#lib/Board.svelte';
   import Correspondence from '#lib/Correspondence.svelte';
   import DemoBoard from '#lib/DemoBoard.svelte';
   import FollowingList from '#lib/Following.svelte';
   import FriendChallenge from '#lib/FriendChallenge.svelte';
+  import GameCard from '#lib/GameCard.svelte';
+  import { learned, newcomer } from '#lib/newcomer.svelte.ts';
   import { search, startSearch, stopSearch } from '#lib/search.svelte.ts';
   import { api, session, socket } from '#lib/session.svelte.ts';
   import { phaseOf, timing, type Tournament } from '#lib/tournament.ts';
@@ -14,14 +26,21 @@
   let rated = $state(search.rated);
   let now = $state(Date.now());
   let friend: FriendChallenge | undefined = $state();
-  /** Players in games, and players waiting per pool (`3+2`, `3+2 rated`), refreshed every few seconds. */
-  let activity = $state<{ playing: number; seeking: Record<string, number> }>({
-    playing: 0,
-    seeking: {},
-  });
+  /**
+   * Players in games, players waiting per pool (`3+2`, `3+2 rated`), and a game to show (the strongest
+   * live one, or the last one played), refreshed every few seconds.
+   */
+  let activity = $state<{
+    playing: number;
+    seeking: Record<string, number>;
+    featured: { live: boolean; game: GameState } | null;
+  }>({ playing: 0, seeking: {}, featured: null });
+  let activityAt = $state(0);
 
   /** The running tournament, or the next one within a week, to feature in the lobby. */
-  let featured = $state<Tournament | null>(null);
+  let tournament = $state<Tournament | null>(null);
+  let daily = $state<{ position: Position; winIn: number } | null>(null);
+  let showCorrespondence = $state(false);
 
   const ALONE_MS = 20_000;
   const ACTIVITY_MS = 3000;
@@ -44,7 +63,10 @@
   onMount(() => {
     const refresh = () =>
       api<typeof activity>('GET', '/api/lobby').then(
-        (loaded) => (activity = loaded),
+        (loaded) => {
+          activity = loaded;
+          activityAt = Date.now();
+        },
         () => {}, // A missed refresh is fine; the next one catches up.
       );
     refresh();
@@ -52,9 +74,13 @@
     api<{ current: Tournament[] }>('GET', '/api/tournaments').then(
       ({ current }) => {
         const soon = (t: Tournament) => Date.parse(t.startsAt) - Date.now() < 7 * 86_400_000;
-        featured =
+        tournament =
           current.find((t) => phaseOf(t, Date.now()) === 'running') ?? current.find(soon) ?? null;
       },
+      () => {},
+    );
+    api<Puzzle>('GET', '/api/puzzles/daily').then(
+      (puzzle) => (daily = { position: puzzleStart(puzzle).position, winIn: puzzle.winIn }),
       () => {},
     );
 
@@ -108,7 +134,25 @@
     </p>
   </section>
 
-  <section class="pairing" aria-label="Quick pairing">
+  <section class="pairing" aria-label="Play">
+    {#if newcomer.show}
+      <div class="welcome">
+        <p>
+          <strong>New to Ultimate Tic-Tac-Toe?</strong>
+          Learn the rules by playing: six quick lessons, about two minutes.
+        </p>
+        <a class="button primary" href="/learn">Learn to play</a>
+        <button class="dismiss" onclick={learned}>I know the rules</button>
+      </div>
+    {/if}
+
+    {#if tournament}
+      <a class="tournament" href="/tournaments/{tournament.id}">
+        <strong>{tournament.name}</strong>
+        <span>{tournament.timeControl} arena · {timing(tournament, now)}</span>
+      </a>
+    {/if}
+
     <div class="mode">
       <div class="toggle" role="group" aria-label="Game type">
         <button aria-pressed={!rated} disabled={!!search.pool} onclick={() => (rated = false)}>
@@ -166,6 +210,16 @@
       {/each}
     </div>
 
+    <div class="more" role="group" aria-label="Other ways to play">
+      <button class="button" onclick={() => friend?.open()}>Play a friend</button>
+      <a class="button" href="/computer">Play the computer</a>
+      <button
+        class="button"
+        aria-expanded={showCorrespondence}
+        onclick={() => (showCorrespondence = !showCorrespondence)}>Days per move</button
+      >
+    </div>
+
     {#if search.error}
       <p class="error" role="alert">{search.error}</p>
     {:else if search.pool && now - search.since > ALONE_MS}
@@ -178,81 +232,69 @@
       <p class="muted">Connecting…</p>
     {/if}
 
-    <Correspondence {rated} />
+    <Correspondence {rated} expanded={showCorrespondence} />
   </section>
 
-  <aside class="actions">
-    <nav class="ways" aria-label="Other ways to play">
-      {#if featured}
-        <a class="action featured" href="/tournaments/{featured.id}">
-          <strong>{featured.name}</strong>
-          <span>{featured.timeControl} arena · {timing(featured, now)}</span>
-        </a>
-      {/if}
-      <button class="action" onclick={() => friend?.open()}>
-        <strong>Play a friend</strong>
-        <span>Send a link; the game starts when they open it</span>
-      </button>
-      <a class="action" href="/learn">
-        <strong>Learn to play</strong>
-        <span>New to Ultimate Tic-Tac-Toe? Six quick lessons</span>
-      </a>
-      <a class="action" href="/puzzles?id=daily">
-        <strong>Daily puzzle</strong>
-        <span>Find the winning move; a new one every day</span>
-      </a>
-      <a class="action" href="/computer">
-        <strong>Play the computer</strong>
-        <span>Six levels, from first steps to a real fight</span>
-      </a>
-      <a class="action" href="/analysis">
-        <strong>Analysis board</strong>
-        <span>Explore any position with the engine</span>
-      </a>
-      <a class="action" href="/watch">
-        <strong>Watch live games</strong>
-        <span>See who's playing right now</span>
-      </a>
-    </nav>
+  <aside class="previews">
+    {#if activity.featured}
+      {@const { live, game } = activity.featured}
+      <GameCard {game} {now} receivedAt={activityAt}>
+        <h2 class="preview-title">
+          {#if live}
+            <span class="live" aria-hidden="true"></span> Live now
+          {:else}
+            Last game · <span class="muted">{resultText(game)}</span>
+          {/if}
+        </h2>
+      </GameCard>
+    {/if}
+    {#if daily}
+      <article class="card puzzle">
+        <h2 class="preview-title">Daily puzzle</h2>
+        <div class="preview-board">
+          <Board position={daily.position} disabled silent />
+          <a class="cover" href="/puzzles?id=daily" aria-label="Solve the daily puzzle"></a>
+        </div>
+        <p>
+          {daily.position.turn.toUpperCase()} to play and win in
+          {['', 'one move', 'two moves', 'three moves', 'four moves'][daily.winIn]}
+        </p>
+      </article>
+    {/if}
     <FollowingList />
   </aside>
 </div>
 
 <FriendChallenge bind:this={friend} {rated} />
 
-<section class="learn">
-  <div class="card demo">
-    <DemoBoard />
-  </div>
-  <div class="card rules">
-    <h2>How to play</h2>
-    <ol>
-      <li>Nine small tic-tac-toe boards make one big board. X moves first.</li>
-      <li>
-        <strong>Where you play decides where your opponent plays:</strong> take the top-right cell of
-        any board, and they must play in the top-right board. It's highlighted for them.
-      </li>
-      <li>If that board is already won or full, they may play anywhere.</li>
-      <li>Three in a row wins a small board. Three small boards in a row wins the game.</li>
-    </ol>
-    <p class="muted">
-      Moves are written <strong>board-cell</strong>, both numbered 1–9 like a phone keypad:
-      <code>5-3</code> is the center board, top-right cell.
-    </p>
-    <div class="rules-actions">
-      <a class="button primary" href="/learn">Learn by playing</a>
-      <a class="button" href="/computer">Try it against the computer</a>
+{#if newcomer.show}
+  <section class="rules-section">
+    <div class="card demo">
+      <DemoBoard />
     </div>
-  </div>
-</section>
+    <div class="card rules">
+      <h2>How to play</h2>
+      <ol>
+        <li>Nine small tic-tac-toe boards make one big board. X moves first.</li>
+        <li>
+          <strong>Where you play decides where your opponent plays:</strong> take the top-right cell of
+          any board, and they must play in the top-right board. It's highlighted for them.
+        </li>
+        <li>If that board is already won or full, they may play anywhere.</li>
+        <li>Three in a row wins a small board. Three small boards in a row wins the game.</li>
+      </ol>
+      <a class="button primary" href="/learn">Learn by playing</a>
+    </div>
+  </section>
+{/if}
 
 <style>
   .lobby {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 17rem;
+    grid-template-columns: minmax(0, 1fr) 18rem;
     grid-template-areas:
-      'intro actions'
-      'pairing actions';
+      'intro previews'
+      'pairing previews';
     grid-template-rows: auto 1fr;
     gap: 1.25rem 1.5rem;
     margin-bottom: 2.5rem;
@@ -439,64 +481,109 @@
     color: var(--blunder);
   }
 
-  .actions {
-    grid-area: actions;
-  }
-
-  .actions,
-  .ways {
-    display: grid;
-    gap: 0.75rem;
-    align-content: start;
-  }
-
-  .action {
-    display: grid;
-    gap: 0.1rem;
-    padding: 0.85rem 1rem;
-    border: var(--border-width) solid var(--border);
+  .welcome {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1rem;
+    align-items: center;
+    padding: 1rem 1.1rem;
+    border: 2px solid var(--accent);
     border-radius: var(--radius);
-    background: var(--surface);
-    box-shadow: var(--shadow), var(--depth);
-    color: inherit;
-    text-align: left;
-    text-decoration: none;
-    cursor: pointer;
-    transition:
-      transform 0.15s,
-      border-color 0.15s;
-  }
-
-  .action:hover {
-    border-color: var(--accent);
-    transform: translateY(-2px);
-  }
-
-  .featured {
-    border-color: var(--accent);
     background: color-mix(in srgb, var(--accent) 10%, var(--surface));
   }
 
-  .action strong {
-    font-size: 1.05rem;
+  .welcome p {
+    flex: 1 1 16rem;
+    margin: 0;
   }
 
-  .action span {
+  .welcome strong {
+    display: block;
+    font-size: 1.15rem;
+  }
+
+  .dismiss {
+    padding: 0;
+    border: 0;
+    background: none;
     color: var(--muted);
-    font-size: 0.9rem;
+    text-decoration: underline;
+    cursor: pointer;
   }
 
-  .learn {
+  .tournament {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    align-items: baseline;
+    padding: 0.6rem 1rem;
+    border: var(--border-width) solid var(--accent);
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .tournament span {
+    color: var(--muted);
+  }
+
+  .more {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .more .button[aria-expanded='true'] {
+    border-color: var(--accent);
+  }
+
+  .previews {
+    grid-area: previews;
+    display: grid;
+    gap: 1rem;
+    align-content: start;
+  }
+
+  .preview-title {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    margin: 0;
+    font-size: 0.85rem;
+  }
+
+  .puzzle {
+    display: grid;
+    gap: 0.5rem;
+    align-content: start;
+  }
+
+  .puzzle p {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .preview-board {
+    position: relative;
+  }
+
+  /* The board opens the puzzle; a link can't wrap the board's cells, so it lies on top. */
+  .cover {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+  }
+
+  .cover:hover {
+    box-shadow: inset 0 0 0 3px var(--accent);
+  }
+
+  .rules-section {
     display: grid;
     grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
     gap: 1.5rem;
     align-items: start;
-  }
-
-  .rules-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
   }
 
   .rules ol {
@@ -510,10 +597,19 @@
   @media (max-width: 860px) {
     .lobby {
       grid-template-columns: minmax(0, 1fr);
-      grid-template-areas: 'intro' 'pairing' 'actions';
+      grid-template-areas: 'intro' 'pairing' 'previews';
     }
 
-    .learn {
+    /* The live game and the daily puzzle side by side where there's room (tablets), stacked on phones. */
+    .previews {
+      grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    }
+
+    .previews > :global(*) {
+      min-width: 0;
+    }
+
+    .rules-section {
       grid-template-columns: minmax(0, 1fr);
     }
 

@@ -4,10 +4,10 @@
   import { api, session, socket } from './session.svelte.ts';
 
   /**
-   * Correspondence play in the lobby: your games (your move first), open games to accept, and new ones to
-   * post. Nobody needs to be online at the same time, which suits a small site.
+   * Correspondence play in the lobby: your games (your move first) always; when expanded, also open games
+   * to accept and new ones to post. Nobody needs to be online at the same time, which suits a small site.
    */
-  let { rated }: { rated: boolean } = $props();
+  let { rated, expanded }: { rated: boolean; expanded: boolean } = $props();
 
   const REFRESH_MS = 15_000;
 
@@ -78,75 +78,85 @@
   }
 </script>
 
-<section class="card correspondence">
-  <h2>Correspondence</h2>
-  <p class="muted">Days per move: play whenever you have time, no need to be online together.</p>
+{#if expanded || lists.games.length > 0}
+  <section class="card correspondence">
+    <h2>{expanded ? 'Correspondence' : 'Your correspondence games'}</h2>
+    {#if expanded}
+      <p class="muted">
+        Days per move: play whenever you have time, no need to be online together.
+      </p>
+    {/if}
 
-  {#if lists.games.length > 0}
-    <ul>
-      {#each lists.games as game (game.id)}
-        <li>
-          <a href="/game/{game.id}">vs {game.opponent ?? 'Anonymous'}</a>
-          {#if game.yourTurn}
-            <strong class="turn">Your move · {formatClock(game.timeLeft)} left</strong>
-          {:else}
-            <span class="muted">Their move</span>
-          {/if}
-        </li>
-      {/each}
-    </ul>
-  {/if}
-
-  {#if lists.open.length > 0}
-    <h3>Open games</h3>
-    <ul>
-      {#each lists.open as challenge (challenge.id)}
-        <li>
-          <span>
-            <a href="/@{challenge.username}">{challenge.username}</a>
-            <span class="muted">{challenge.rating}{challenge.provisional ? '?' : ''}</span>
-          </span>
-          <span class="muted"
-            >{timeControlName(challenge.timeControl)} · {challenge.rated ? 'rated' : 'casual'}</span
-          >
-          {#if session.user}
-            <button class="button" disabled={!socket.connected} onclick={() => accept(challenge.id)}
-              >Accept</button
-            >
-          {/if}
-        </li>
-      {/each}
-    </ul>
-  {/if}
-
-  {#if session.user}
-    {#if lists.mine.length > 0}
-      <h3>Your open games</h3>
+    {#if lists.games.length > 0}
       <ul>
-        {#each lists.mine as challenge (challenge.id)}
+        {#each lists.games as game (game.id)}
           <li>
-            <span class="muted">
-              {timeControlName(challenge.timeControl)} · {challenge.rated ? 'rated' : 'casual'}
-              · {challenge.listed ? 'waiting for an opponent' : 'shared by link'}
-            </span>
-            <button class="button" onclick={() => cancel(challenge.id)}>Cancel</button>
+            <a href="/game/{game.id}">vs {game.opponent ?? 'Anonymous'}</a>
+            {#if game.yourTurn}
+              <strong class="turn">Your move · {formatClock(game.timeLeft)} left</strong>
+            {:else}
+              <span class="muted">Their move</span>
+            {/if}
           </li>
         {/each}
       </ul>
     {/if}
-    <div class="new" role="group" aria-label="Start a correspondence game">
-      <span class="muted">New game:</span>
-      {#each CORRESPONDENCE as timeControl (timeControl)}
-        <button class="button" onclick={() => post(timeControl)}>
-          {timeControlName(timeControl).replace(' per move', '')}
-        </button>
-      {/each}
-    </div>
-  {:else if session.ready}
-    <p class="muted"><a href="/login">Sign in</a> to play correspondence games.</p>
-  {/if}
-  {#if error}<p class="error" role="alert">{error}</p>{/if}
-</section>
+
+    {#if expanded && lists.open.length > 0}
+      <h3>Open games</h3>
+      <ul>
+        {#each lists.open as challenge (challenge.id)}
+          <li>
+            <span>
+              <a href="/@{challenge.username}">{challenge.username}</a>
+              <span class="muted">{challenge.rating}{challenge.provisional ? '?' : ''}</span>
+            </span>
+            <span class="muted"
+              >{timeControlName(challenge.timeControl)} · {challenge.rated
+                ? 'rated'
+                : 'casual'}</span
+            >
+            {#if session.user}
+              <button
+                class="button"
+                disabled={!socket.connected}
+                onclick={() => accept(challenge.id)}>Accept</button
+              >
+            {/if}
+          </li>
+        {/each}
+      </ul>
+    {/if}
+
+    {#if expanded && session.user}
+      {#if lists.mine.length > 0}
+        <h3>Your open games</h3>
+        <ul>
+          {#each lists.mine as challenge (challenge.id)}
+            <li>
+              <span class="muted">
+                {timeControlName(challenge.timeControl)} · {challenge.rated ? 'rated' : 'casual'}
+                · {challenge.listed ? 'waiting for an opponent' : 'shared by link'}
+              </span>
+              <button class="button" onclick={() => cancel(challenge.id)}>Cancel</button>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+      <div class="new" role="group" aria-label="Start a correspondence game">
+        <span class="muted">New game:</span>
+        {#each CORRESPONDENCE as timeControl (timeControl)}
+          <button class="button" onclick={() => post(timeControl)}>
+            {timeControlName(timeControl).replace(' per move', '')}
+          </button>
+        {/each}
+      </div>
+    {:else if expanded && session.ready}
+      <p class="muted"><a href="/login">Sign in</a> to play correspondence games.</p>
+    {/if}
+    {#if error}<p class="error" role="alert">{error}</p>{/if}
+  </section>
+{/if}
 
 <style>
   h2 {
