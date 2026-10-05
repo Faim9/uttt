@@ -99,6 +99,7 @@ nano .env
 ```
 
 Fill in the tunnel token, the two Turnstile keys, and the backup values. Save with Ctrl+O, Enter, then exit with Ctrl+X.
+(If `nano` is missing, as on some providers' images, install it with `sudo apt install nano`.)
 Then create the data folder, owned by the user the site runs as:
 
 ```sh
