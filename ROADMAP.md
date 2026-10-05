@@ -62,7 +62,10 @@ After that, the owner sets priorities:
   over the site's WebSocket protocol with an API token (shown once, stored hashed, revocable). Bots seek in
   pools of their own and are rated among themselves on a separate leaderboard; people challenge them from
   the leaderboard's Bots tab for casual games. Bots can't join tournaments or correspondence. The guide's
-  example Python bot is tested against a real server.
+  example Python bot is tested against a real server. A bot that reconnects (after a restart, say) is told
+  of the games it's still in. The **house bot** (optional, `HOUSE_BOT_TOKEN`) waits in every bot pool, rated
+  and casual, so a new bot finds a game at once: its own process using the bot API, thinking with the site's
+  engine (up to 1 s a move, at most 3 games at once, one CPU core).
 - **Direct challenges:** challenge any player who's online from their profile; the challenge appears on
   whatever page they're on, to accept or decline.
 - **Game history on profiles:** every game a player played (in progress included, aborted ones left out),

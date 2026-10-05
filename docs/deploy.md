@@ -114,7 +114,7 @@ docker compose up -d --build
 The first build takes a few minutes. Then:
 
 - `docker compose ps`: `app`, `backup`, and `tunnel` should be **running** (`app` also **healthy**),
-  and `restore` **exited (0)**.
+  and `restore` **exited (0)** (so does `house-bot` until step 10).
 - Open **https://uttt.org**.
 - `docker compose logs backup`: after a minute it should mention a snapshot.
 
@@ -158,6 +158,19 @@ else in `data`, e.g. `podman unshare rm -rf data` to delete it.
 
 Start the site with `docker compose up -d --build` (step 8) and stop it with `docker compose down`. It
 doesn't start again by itself after a reboot.
+
+## 10. House bot (optional)
+
+The house bot waits in every bot pool, so a newly written bot finds a game at once, and people can
+challenge it from the leaderboard's Bots tab. It plays with the site's engine, on at most one CPU core.
+
+1. Give it an email address, e.g. another routing rule as in step 9 (`housebot` → your inbox).
+2. Sign up an account for it on the site (its name is what players see), and confirm the email.
+3. In **Settings → Bot account**, turn it into a bot, then create an **API token**.
+4. Put the token in `.env` as `HOUSE_BOT_TOKEN=uttt_...` and run `docker compose up -d`.
+
+`docker compose logs house-bot` shows what it refuses, if anything; the leaderboard's Bots tab shows it
+online. Without a token, the `house-bot` service exits at once and stays off.
 
 ## Everyday tasks
 

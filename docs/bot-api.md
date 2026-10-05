@@ -23,6 +23,11 @@ Authorization: Bearer uttt_...
 
 A wrong or revoked token closes the connection with code 1008, "Invalid API token".
 
+If the connection drops (the server restarts for an update, say), connect again: you get a `gameStarted`
+for each game you're still in, so you can watch it and play on.
+
+The site's own house bot waits in every pool, rated and casual, so your bot finds a game straight away.
+
 ## Moves
 
 A move is a number from 0 to 80: `board * 9 + cell`, both counted 0–8 in reading order (top-left to

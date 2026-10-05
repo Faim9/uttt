@@ -2,6 +2,7 @@
 #
 # restore: on first start, fetches the latest backup if there is no database yet.
 # app:     the site (web + API) on port 3000, reachable only inside this network.
+# house-bot: an always-online bot in the bot pools (packages/server/src/house-bot.ts); off without a token.
 # backup:  streams every database change to cloud storage (Litestream).
 # tunnel:  connects to Cloudflare, which serves https://uttt.org; no ports are opened on the server.
 #
@@ -40,6 +41,23 @@ services:
     depends_on:
       restore:
         condition: service_completed_successfully
+
+  house-bot:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    command: ['node', 'packages/server/src/house-bot.ts']
+    restart: on-failure
+    logging: *logging
+    environment:
+      UTTT_URL: ws://app:3000/ws
+      HOUSE_BOT_TOKEN: ${HOUSE_BOT_TOKEN:-}
+    # The engine thinks hard; one core stays free for the site.
+    cpus: 1
+    healthcheck:
+      disable: true
+    depends_on:
+      - app
 
   backup:
     <<: *litestream

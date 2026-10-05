@@ -121,6 +121,12 @@ export class Hub {
     });
     socket.on('message', (data) => this.receive(client, String(data)));
     socket.on('close', () => this.disconnect(client));
+    // A bot that reconnects (after a restart, say) picks up the games it's still in.
+    const { user } = identity;
+    if (user?.bot) {
+      for (const game of this.gamesOf(user.id))
+        send(client, { type: 'gameStarted', gameId: game.id });
+    }
   }
 
   /** Disconnects sockets opened with these (now revoked) sessions; they reconnect as guests. */

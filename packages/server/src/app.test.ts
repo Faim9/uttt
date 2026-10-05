@@ -1,10 +1,11 @@
-import { parseMove, type ServerMessage } from '@uttt/core';
+import { legalMoves, parseMove, replay, type ServerMessage } from '@uttt/core';
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, expect, test } from 'vitest';
 import type { WebSocket } from 'ws';
 import { buildApp } from './app.ts';
+import { houseBot } from './house-bot.ts';
 import { Store } from './store.ts';
 import { codeAt, currentStep } from './two-factor.ts';
 
@@ -992,11 +993,18 @@ test("the site's own files are cached and never rate limited; the API is", async
 
 /** Connects a program with a bot's API token, as docs/bot-api.md describes: no cookies, no Origin. */
 async function botSocket(app: App, token: string) {
-  const socket = await app.injectWS('/ws', {
-    headers: { host: 'uttt.test', authorization: `Bearer ${token}` },
-    socket: { remoteAddress: '127.0.0.1' },
-  } as object);
-  return messages(socket);
+  // Listens from the start: the server may send something the moment a bot connects.
+  let listened: ReturnType<typeof messages> | undefined;
+  await app.injectWS(
+    '/ws',
+    {
+      headers: { host: 'uttt.test', authorization: `Bearer ${token}` },
+      socket: { remoteAddress: '127.0.0.1' },
+    } as object,
+    { onInit: (socket) => (listened = messages(socket)) },
+  );
+  if (!listened) throw new Error('The socket never opened');
+  return listened;
 }
 
 /** Signs up a player and turns them into a bot with an API token. */
@@ -1051,6 +1059,63 @@ test('bot accounts start fresh, get API tokens, and only meet bots in the pools'
     refused.on('close', (code, why) => resolve(`${code} ${why}`)),
   );
   expect(reason).toBe('1008 Invalid API token');
+});
+
+test('the house bot waits in every bot pool, plays, takes challenges, and bots resume games', async () => {
+  const app = await newApp();
+  const { token } = await newBot(app, 'house');
+  const house = houseBot(
+    () =>
+      app.injectWS('/ws', {
+        headers: { host: 'uttt.test', authorization: `Bearer ${token}` },
+        socket: { remoteAddress: '127.0.0.1' },
+      } as object),
+    { thinkMs: 5, retryMs: 50 },
+  );
+  const { token: rivalToken } = await newBot(app, 'rival');
+  const rival = await botSocket(app, rivalToken);
+  rival.send({ type: 'seek', timeControl: '2+1', rated: true });
+  const { gameId } = await rival.next('gameStarted');
+
+  // A bot that connects again hears of the games it's still in.
+  const again = await botSocket(app, rivalToken);
+  expect((await again.next('gameStarted')).gameId).toBe(gameId);
+  again.socket.close();
+
+  // The house bot answers every move; the rival gives up after a few.
+  rival.send({ type: 'watch', gameId });
+  for (;;) {
+    const { game, you } = await rival.next('game');
+    if (game.termination) {
+      const houseSide = game.players.x.username === 'house' ? 'x' : 'o';
+      expect(game).toMatchObject({ rated: true, termination: 'resign', outcome: houseSide });
+      break;
+    }
+    if (you !== 'xo'[game.moves.length % 2]) continue;
+    if (game.moves.length >= 6) {
+      rival.send({ type: 'resign', gameId });
+    } else {
+      const moves = legalMoves(replay(game.moves));
+      rival.send({ type: 'move', gameId, move: moves[Math.floor(Math.random() * moves.length)] });
+    }
+  }
+
+  const bob = await (await signedUp(app, 'bob')).connect();
+  bob.send({
+    type: 'challengeUser',
+    username: 'house',
+    timeControl: '5+3',
+    rated: false,
+    color: 'x',
+  });
+  const started = await bob.next('gameStarted');
+  bob.send({ type: 'watch', gameId: started.gameId });
+  bob.send({ type: 'move', gameId: started.gameId, move: parseMove('5-5') });
+  for (;;) {
+    const { game } = await bob.next('game');
+    if (game.moves.length === 2) break;
+  }
+  house.stop();
 });
 
 test('people challenge bots directly, and those games are casual', async () => {

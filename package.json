@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "puzzles": "node packages/server/src/generate-puzzles.ts",
+    "house-bot": "node packages/server/src/house-bot.ts",
     "start": "pnpm --filter @uttt/server start"
   },
   "devDependencies": {
