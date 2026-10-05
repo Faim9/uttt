@@ -8,14 +8,30 @@ Everything the site knows lives in one SQLite database, `deploy/data/uttt.db`, s
 Cloudflare R2. Moving to another server is: set up the new one with these steps, and on first start it
 restores the latest backup.
 
-You need: the server (Ubuntu, reachable over SSH), the `uttt.org` domain on Cloudflare, and access to the
+You need: the server (Ubuntu 24.04, reachable over SSH), the `uttt.org` domain on Cloudflare, and access to the
 GitHub repository. To host from your own computer instead, see [On your own computer](#on-your-own-computer).
 
-## 1. Connect and update the server
+## 1. Connect and secure the server
+
+The site runs on a netcup VPS (Nuremberg) as the user `uttt`. Many providers, netcup included, hand over a
+server that logs in as `root` with a password. Put your key on it once (`ssh-copy-id root@SERVER_IP`), then:
 
 ```sh
-ssh -i path/to/private-key ubuntu@SERVER_IP
-sudo apt update && sudo apt upgrade -y
+ssh root@SERVER_IP
+apt update && apt upgrade -y
+adduser --disabled-password --gecos "" uttt
+echo "uttt ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/uttt && chmod 440 /etc/sudoers.d/uttt
+install -d -m 700 -o uttt -g uttt /home/uttt/.ssh
+install -m 600 -o uttt -g uttt /root/.ssh/authorized_keys /home/uttt/.ssh/
+```
+
+Check that `ssh uttt@SERVER_IP` works, then allow keys only, no root, and only SSH through the firewall
+(the tunnel connects outward, so the site needs no open port):
+
+```sh
+printf 'PermitRootLogin no\nPasswordAuthentication no\nKbdInteractiveAuthentication no\n' \
+  | sudo tee /etc/ssh/sshd_config.d/00-uttt.conf && sudo sshd -t && sudo systemctl reload ssh
+sudo ufw allow OpenSSH && sudo ufw --force enable
 ```
 
 Ubuntu installs security updates automatically (`unattended-upgrades`); nothing to do there.
@@ -24,7 +40,7 @@ Ubuntu installs security updates automatically (`unattended-upgrades`); nothing 
 
 ```sh
 curl -fsSL https://get.docker.com | sudo sh
-sudo usermod -aG docker ubuntu
+sudo usermod -aG docker uttt
 exit
 ```
 

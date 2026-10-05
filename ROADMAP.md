@@ -5,8 +5,8 @@ work is finished or priorities change. The target product is described in PILLAR
 
 ## Next, in priority order
 
-1. **Public launch** (the owner skipped a soft launch): move to a rented server (separate from the owner's
-   home network, runs 24/7) with an uptime alert, make the repository public (set `SOURCE_URL`), and launch.
+1. **Public launch** (the owner skipped a soft launch): the site runs on its own server with an uptime
+   alert; left: make the repository public (set `SOURCE_URL`), and launch.
 2. **Bring in players:** plan the launch so new visitors find opponents (owner and Claude to discuss).
 
 After that, the owner sets priorities:
@@ -127,9 +127,10 @@ After that, the owner sets priorities:
 
 ## Open decisions
 
-- **Hosting:** the owner's computer for tests, behind a Cloudflare Tunnel. Oracle Cloud Always Free (Madrid)
-  had no capacity when we tried; retry it or pick another server later. Portable by design: a new server restores
-  the latest backup on first start. Name the host on the privacy page when it's a provider.
+- **Hosting:** decided: a netcup VPS 500 in Nuremberg (2 cores, 4 GB; monthly contract), since 2026-10-05,
+  behind the Cloudflare Tunnel, UptimeRobot watching `/api/health`. Chosen when the RAM shortage priced
+  Hetzner's small servers out and OVH had no European stock. Portable by design: a new server restores the
+  latest backup on first start (see docs/deploy.md).
 - **Email provider:** decided: Brevo (EU, free tier), named on the privacy page. Any SMTP provider works
   through `SMTP_URL` and `MAIL_FROM`.
 - **Site name and domain:** decided: **UTTT**, at `uttt.org` (registered at Cloudflare, 2026-10). `u3t.org` as a

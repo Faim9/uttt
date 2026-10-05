@@ -33,7 +33,10 @@
 
   <h2>Who else handles it</h2>
   <ul>
-    <li>The server is a computer run by Faim9, in the EU.</li>
+    <li>
+      The server is rented from <strong>netcup</strong> (Germany, EU) and run by Faim9; our data is stored
+      there.
+    </li>
     <li>
       <strong>Cloudflare</strong> delivers the site to your browser, checks that sign-ups come from people
       rather than bots (Turnstile), and stores our encrypted backups in the EU.
