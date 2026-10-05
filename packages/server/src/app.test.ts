@@ -227,7 +227,54 @@ test('rated games need accounts and update both ratings', async () => {
 
   const profile = (await alice.request('GET', '/api/users/ALICE')).json();
   expect(profile.ratings.blitz.games).toBe(1);
-  expect(profile.games).toHaveLength(1); // aborted games aren't listed
+  // Aborted games aren't listed.
+  expect((await alice.request('GET', '/api/users/alice/games')).json().total).toBe(1);
+});
+
+test('game history filters by category, rating, result and opponent, a page at a time', async () => {
+  const store = new Store(':memory:');
+  const app = await newApp(store);
+  const alice = await signedUp(app, 'alice');
+  const [bob, carol] = [await signedUp(app, 'bob'), await signedUp(app, 'carol')];
+  // Alice challenges as X each time; she resigns the first two and her opponent resigns the last.
+  const games = [
+    { opponent: bob, rated: true, quitter: 'alice' },
+    { opponent: carol, rated: false, quitter: 'alice' },
+    { opponent: bob, rated: false, quitter: 'opponent' },
+  ];
+  for (const { opponent, rated, quitter } of games) {
+    const [creator, accepter] = [await alice.connect(), await opponent.connect()];
+    creator.send({ type: 'createChallenge', timeControl: '3+2', rated, color: 'x' });
+    accepter.send({ type: 'acceptChallenge', id: (await creator.next('challengeCreated')).id });
+    const { gameId } = await creator.next('gameStarted');
+    const resigning = quitter === 'alice' ? creator : accepter;
+    resigning.send({ type: 'watch', gameId });
+    await resigning.next('game');
+    resigning.send({ type: 'resign', gameId });
+    await resigning.next('game');
+  }
+  const history = async (query = '') =>
+    (await alice.request('GET', `/api/users/alice/games${query}`)).json();
+  expect((await history()).total).toBe(3);
+  expect((await history('?opponent=CAROL')).total).toBe(1);
+  expect((await history('?rated=true')).total).toBe(1);
+  expect((await history('?category=blitz')).total).toBe(3);
+  expect((await history('?category=bullet')).total).toBe(0);
+  expect((await history('?result=win')).total).toBe(1);
+  expect((await history('?result=loss')).total).toBe(2);
+  expect((await history('?result=loss&opponent=bob')).total).toBe(1);
+  expect((await history('?result=draw')).total).toBe(0);
+  expect((await alice.request('GET', '/api/users/alice/games?result=maybe')).statusCode).toBe(400);
+
+  // Pages follow each other, newest first.
+  const aliceId = (await alice.request('GET', '/api/me')).json().user.id;
+  const first = store.playerGames(aliceId, {}, 2);
+  expect(first.games).toHaveLength(2);
+  const rest = store.playerGames(aliceId, { before: new Date(first.next ?? 0) }, 2);
+  expect(rest.games).toHaveLength(1);
+  expect(rest.next).toBeNull();
+  const ids = [...first.games, ...rest.games].map((game) => game.id);
+  expect(new Set(ids).size).toBe(3);
 });
 
 test('challenge links start a game with the chosen colors', async () => {
@@ -926,7 +973,7 @@ test('deleting an account removes it and anonymizes its games', async () => {
 
   expect((await alice.request('GET', '/api/me')).json().user).toBeNull();
   expect((await bob.request('GET', '/api/users/alice')).statusCode).toBe(404);
-  const [game] = (await bob.request('GET', '/api/users/bob')).json().games;
+  const [game] = (await bob.request('GET', '/api/users/bob/games')).json().games;
   const names = [game.players.x.username, game.players.o.username];
   expect(names.sort()).toEqual(['bob', null].sort());
   // The name is free again.

@@ -14,8 +14,6 @@ After that, the owner sets priorities:
 
 - **Google Play listing:** wrap the installed app (a Trusted Web Activity, e.g. with Bubblewrap); needs a
   Google Play developer account ($25 once). The App Store is harder (Apple often rejects web wrappers).
-- **Game history on profiles:** every game a player played (not just the last 20), with filters (time
-  control, rated, result, opponent) and paging, like lichess. Every online game is already stored.
 - **Opening explorer** in the analysis board: for each position, the moves players chose, how often, and how
   they scored. Worth it once there are a few thousand games; with launch-week numbers it would be mostly empty.
 - Other candidates: basic anti-cheat.
@@ -51,7 +49,9 @@ After that, the owner sets priorities:
 - **Deployment prep:** Docker image, compose with Litestream backups to Cloudflare R2 (7-day point-in-time
   restore), restore-on-first-start, Cloudflare Tunnel, rotated logs, health check; guide in docs/deploy.md.
 - **Privacy (GDPR):** privacy page, download-my-data (JSON), account deletion (games kept, anonymized).
-- **Ratings:** Glicko-2 per category (bullet / blitz / rapid), profiles with recent games, leaderboard.
+- **Ratings:** Glicko-2 per category (bullet / blitz / rapid), profiles, leaderboard.
+- **Game history on profiles:** every game a player played (in progress included, aborted ones left out),
+  newest first, 30 at a time, filtered by category, rated or casual, result, and opponent.
 - **Security baseline:** same-origin checks on unsafe requests and WebSocket handshakes, rate limits (HTTP and
   per-socket), Zod validation of all input, hash-based CSP, helmet headers. After a review before launch:
   two-factor locks for 15 minutes after 5 wrong codes, at most 50 live connections per address, at most one

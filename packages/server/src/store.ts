@@ -1,5 +1,6 @@
 import {
   RATING_KINDS,
+  categoryOf,
   formatMove,
   isCorrespondence,
   parseMove,
@@ -23,6 +24,7 @@ import {
   gte,
   isNotNull,
   isNull,
+  lt,
   lte,
   ne,
   notInArray,
@@ -61,6 +63,15 @@ const HOUR_MS = 3_600_000;
 const SESSION_DAYS = 30;
 /** Players inactive for longer drop off the leaderboard (but keep their rating). */
 const LEADERBOARD_ACTIVE_DAYS = 30;
+
+export interface GameFilters {
+  category?: Category;
+  rated?: boolean;
+  result?: 'win' | 'loss' | 'draw';
+  opponent?: string;
+  /** Only games started before this time, for the next page. */
+  before?: Date;
+}
 
 export interface PlayerRating extends Rating {
   games: number;
@@ -899,6 +910,7 @@ export class Store {
       .values({
         id: game.id,
         timeControl: game.timeControl,
+        category: categoryOf(game.timeControl),
         rated: game.rated,
         xKey: seats.x.key,
         oKey: seats.o.key,
@@ -966,6 +978,52 @@ export class Store {
       .limit(1)
       .get();
     return row && toState(row);
+  }
+
+  /**
+   * A player's games, newest first, a page at a time (`before` is the last page's oldest `createdAt`),
+   * filtered by category, rated or casual, result for this player, and opponent. Games in progress are
+   * included; aborted ones are left out.
+   */
+  playerGames(userId: number, filters: GameFilters, limit = 30) {
+    const asX = eq(games.xUserId, userId);
+    const asO = eq(games.oUserId, userId);
+    const won = or(and(asX, eq(games.outcome, 'x')), and(asO, eq(games.outcome, 'o')));
+    const lost = or(and(asX, eq(games.outcome, 'o')), and(asO, eq(games.outcome, 'x')));
+    const opponent = filters.opponent?.toLowerCase();
+    const where = and(
+      or(asX, asO),
+      or(isNull(games.termination), ne(games.termination, 'abort')),
+      filters.category ? eq(games.category, filters.category) : undefined,
+      filters.rated === undefined ? undefined : eq(games.rated, filters.rated),
+      filters.result === 'win' ? won : undefined,
+      filters.result === 'loss' ? lost : undefined,
+      filters.result === 'draw' ? eq(games.outcome, 'draw') : undefined,
+      opponent
+        ? or(
+            and(asX, sql`lower(${games.oUsername}) = ${opponent}`),
+            and(asO, sql`lower(${games.xUsername}) = ${opponent}`),
+          )
+        : undefined,
+    );
+    const total =
+      this.db
+        .select({ count: sql<number>`count(*)` })
+        .from(games)
+        .where(where)
+        .get()?.count ?? 0;
+    const rows = this.db
+      .select()
+      .from(games)
+      .where(and(where, filters.before ? lt(games.createdAt, filters.before) : undefined))
+      .orderBy(desc(games.createdAt))
+      .limit(limit)
+      .all();
+    return {
+      total,
+      games: rows.map((row) => ({ ...toState(row), createdAt: row.createdAt })),
+      next: rows.length === limit ? (rows.at(-1)?.createdAt.getTime() ?? null) : null,
+    };
   }
 
   recentGames(userId: number, limit = 20): GameState[] {

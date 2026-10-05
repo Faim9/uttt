@@ -1,4 +1,4 @@
-import { RATING_KINDS, REPORT_REASONS } from '@uttt/core';
+import { CATEGORIES, RATING_KINDS, REPORT_REASONS } from '@uttt/core';
 import { sql } from 'drizzle-orm';
 import {
   index,
@@ -84,6 +84,8 @@ export const games = sqliteTable(
   {
     id: text().primaryKey(),
     timeControl: text().notNull(),
+    /** The rating category of the time control, stored so game lists can filter by it. */
+    category: text({ enum: CATEGORIES }).notNull().default('blitz'),
     rated: integer({ mode: 'boolean' }).notNull(),
     /** Player keys (`u:<userId>` or `g:<guestId>`), so guests can reconnect after a restart. */
     xKey: text().notNull(),
@@ -117,6 +119,8 @@ export const games = sqliteTable(
     index('games_o_user').on(t.oUserId),
     index('games_termination').on(t.termination),
     index('games_ended').on(t.endedAt),
+    index('games_x_created').on(t.xUserId, t.createdAt),
+    index('games_o_created').on(t.oUserId, t.createdAt),
   ],
 );
 

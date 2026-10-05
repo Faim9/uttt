@@ -6,6 +6,21 @@ import type { Hub } from './hub.ts';
 import { toState, type Store } from './store.ts';
 
 const Params = z.object({ name: z.string().max(20) });
+const GamesQuery = z.object({
+  category: z.enum(CATEGORIES).optional(),
+  rated: z
+    .enum(['true', 'false'])
+    .transform((value) => value === 'true')
+    .optional(),
+  result: z.enum(['win', 'loss', 'draw']).optional(),
+  opponent: z.string().max(20).optional(),
+  before: z.coerce
+    .number()
+    .int()
+    .positive()
+    .transform((ms) => new Date(ms))
+    .optional(),
+});
 
 /** Read-only REST endpoints. Everything that changes a game goes through the WebSocket hub. */
 export const apiRoutes =
@@ -37,8 +52,14 @@ export const apiRoutes =
         blocked: viewer !== undefined && store.hasBlocked(viewer, user.id),
         history: store.ratingHistory(user.id),
         ratings,
-        games: store.recentGames(user.id),
       };
+    });
+
+    /** A player's games, a page at a time, with filters (see `Store.playerGames`). */
+    app.get('/api/users/:name/games', async (request, reply) => {
+      const user = store.userByName(Params.parse(request.params).name);
+      if (!user) return reply.code(404).send({ error: 'No such player' });
+      return store.playerGames(user.id, GamesQuery.parse(request.query));
     });
 
     app.get('/api/leaderboard/:name', async (request) => {

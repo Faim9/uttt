@@ -1,13 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import {
-    RATING_KINDS,
-    resultText,
-    type GameState,
-    type Player,
-    type RatingKind,
-  } from '@uttt/core';
-  import { playerName, timeControlName } from '#lib/game.ts';
+  import { RATING_KINDS, type RatingKind } from '@uttt/core';
+  import GameHistory from '#lib/GameHistory.svelte';
   import RatingGraph from '#lib/RatingGraph.svelte';
   import ReportDialog from '#lib/ReportDialog.svelte';
   import { api, session } from '#lib/session.svelte.ts';
@@ -22,7 +16,6 @@
     blocked: boolean;
     ratings: Record<RatingKind, { rating: number; provisional: boolean; games: number }>;
     history: Record<RatingKind, { rating: number; at: string }[]>;
-    games: GameState[];
   }
 
   const username = $derived(page.params.username ?? '');
@@ -63,15 +56,6 @@
     }
     await api('POST', `${path}/${action}`);
     await load();
-  }
-
-  /** The side this profile's player had in `game`. */
-  const sideOf = (game: GameState, name: string): Player =>
-    game.players.x.username?.toLowerCase() === name.toLowerCase() ? 'x' : 'o';
-
-  function outcomeFor(game: GameState, side: Player): 'win' | 'loss' | 'draw' {
-    if (game.outcome === 'draw') return 'draw';
-    return game.outcome === side ? 'win' : 'loss';
   }
 </script>
 
@@ -125,31 +109,7 @@
     <RatingGraph points={profile.history[graphed]} />
   </section>
 
-  <section class="card">
-    <h2>Recent games</h2>
-    {#if profile.games.length === 0}
-      <p class="muted">No games yet.</p>
-    {:else}
-      <ul class="games">
-        {#each profile.games as game (game.id)}
-          {@const side = sideOf(game, profile.username)}
-          {@const opponent = game.players[side === 'x' ? 'o' : 'x']}
-          <li>
-            <a href="/game/{game.id}">
-              <span class="result {game.outcome ? outcomeFor(game, side) : ''}">
-                {game.outcome ? outcomeFor(game, side) : '…'}
-              </span>
-              <span>vs {playerName(opponent)}</span>
-              <span class="muted"
-                >{timeControlName(game.timeControl)} · {game.rated ? 'rated' : 'casual'}</span
-              >
-              <span class="muted">{resultText(game)}</span>
-            </a>
-          </li>
-        {/each}
-      </ul>
-    {/if}
-  </section>
+  <GameHistory username={profile.username} />
 {:else}
   <p class="muted">{error || 'Loading…'}</p>
 {/if}
@@ -204,43 +164,5 @@
 
   .graph {
     margin-bottom: 1rem;
-  }
-
-  .games {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .games a {
-    display: grid;
-    grid-template-columns: 3.5rem 1fr auto;
-    gap: 0 1rem;
-    padding: 0.5rem 0;
-    border-top: 1px solid var(--border);
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .games a:hover {
-    background: var(--bg);
-  }
-
-  .games a > :last-child {
-    grid-column: 2 / -1;
-    font-size: 0.85rem;
-  }
-
-  .result {
-    font-weight: 700;
-    text-transform: capitalize;
-  }
-
-  .win {
-    color: var(--hint);
-  }
-
-  .loss {
-    color: var(--o);
   }
 </style>

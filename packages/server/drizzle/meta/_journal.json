@@ -78,6 +78,13 @@
       "when": 1791161726222,
       "tag": "0010_clock_history",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1791200763504,
+      "tag": "0011_game_category",
+      "breakpoints": true
     }
   ]
 }
