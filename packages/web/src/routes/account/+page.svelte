@@ -2,6 +2,7 @@
   import { api, session } from '#lib/session.svelte.ts';
   import TwoFactorSettings from '#lib/TwoFactorSettings.svelte';
   import AccountData from '#lib/AccountData.svelte';
+  import BotSettings from '#lib/BotSettings.svelte';
 
   interface Account {
     username: string;
@@ -9,6 +10,8 @@
     emailVerified: boolean;
     twoFactor: boolean;
     turnEmails: boolean;
+    bot: boolean;
+    apiToken: boolean;
     admin: boolean;
     sessions: {
       id: string;
@@ -186,6 +189,12 @@
       </button>
     {/if}
   </section>
+
+  <BotSettings
+    bot={account.bot}
+    hasToken={account.apiToken}
+    onchange={() => load(api<Account>('GET', '/api/account'))}
+  />
 
   <AccountData twoFactor={account.twoFactor} />
 {:else}

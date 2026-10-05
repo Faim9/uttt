@@ -1,5 +1,6 @@
 import { hash, verify } from '@node-rs/argon2';
 import {
+  BecomeBotBody,
   ChangePasswordBody,
   DeleteAccountBody,
   formatMove,
@@ -9,6 +10,7 @@ import {
   type User,
 } from '@uttt/core';
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
+import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import {
   checkSecondFactor,
@@ -58,6 +60,8 @@ export const accountRoutes =
         emailVerified: Boolean(account?.emailVerifiedAt),
         twoFactor: store.twoFactor(user.id) !== null,
         turnEmails: account?.turnEmails ?? true,
+        bot: account?.bot ?? false,
+        apiToken: account?.hasApiToken ?? false,
         sessions: store.sessions(user.id, token),
         admin: isAdmin(services, user.id),
       };
@@ -98,6 +102,48 @@ export const accountRoutes =
       '/api/account/turn-emails',
       withSession((session, request) => {
         store.setTurnEmails(session.user.id, TurnEmailsBody.parse(request.body).on);
+        return overview(session);
+      }),
+    );
+
+    /**
+     * Turns the account into a bot account, for good: it then plays through the API (docs/bot-api.md)
+     * and is ranked apart from people. Only before its first game, so no human record turns into a bot's.
+     */
+    app.post(
+      '/api/account/bot',
+      strictLimit,
+      withSession(async (session, request, reply) => {
+        const { password } = BecomeBotBody.parse(request.body);
+        const currentHash = store.passwordHash(session.user.id);
+        if (!currentHash || !(await verify(currentHash, password))) {
+          return reply.code(403).send({ error: 'Your password is incorrect' });
+        }
+        if (!store.makeBot(session.user.id)) {
+          return reply.code(409).send({ error: 'Only an account with no games can become a bot' });
+        }
+        return overview(session);
+      }),
+    );
+
+    /** A new API token for a bot, replacing any old one. It's shown this once; only its hash is kept. */
+    app.post(
+      '/api/account/token',
+      strictLimit,
+      withSession((session, request, reply) => {
+        if (!store.account(session.user.id)?.bot) {
+          return reply.code(403).send({ error: 'Only bot accounts get API tokens' });
+        }
+        const token = `uttt_${randomBytes(32).toString('base64url')}`;
+        store.setApiToken(session.user.id, token);
+        return { ...overview(session), token };
+      }),
+    );
+
+    app.post(
+      '/api/account/token/revoke',
+      withSession((session) => {
+        store.setApiToken(session.user.id, null);
         return overview(session);
       }),
     );

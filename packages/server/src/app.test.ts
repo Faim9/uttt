@@ -133,7 +133,7 @@ test('sign up, sign in, and sign out', async () => {
   const app = await newApp();
   const alice = await signedUp(app, 'alice');
   expect((await alice.request('GET', '/api/me')).json()).toEqual({
-    user: { id: 1, username: 'alice', emailVerified: true },
+    user: { id: 1, username: 'alice', emailVerified: true, bot: false },
   });
 
   const taken = await (
@@ -175,7 +175,9 @@ test('sign up, sign in, and sign out', async () => {
     login: 'alice@example.com',
     password: PASSWORD,
   });
-  expect(right.json()).toEqual({ user: { id: 1, username: 'alice', emailVerified: true } });
+  expect(right.json()).toEqual({
+    user: { id: 1, username: 'alice', emailVerified: true, bot: false },
+  });
 });
 
 test('rejects cross-origin requests and WebSocket handshakes', async () => {
@@ -932,6 +934,125 @@ test("the site's own files are cached and never rate limited; the API is", async
   expect(file.headers['cache-control']).toBe('public, max-age=31536000, immutable');
   for (let i = 0; i < 300; i++) await get('/api/health');
   expect((await get('/api/health')).statusCode).toBe(429);
+});
+
+/** Connects a program with a bot's API token, as docs/bot-api.md describes: no cookies, no Origin. */
+async function botSocket(app: App, token: string) {
+  const socket = await app.injectWS('/ws', {
+    headers: { host: 'uttt.test', authorization: `Bearer ${token}` },
+    socket: { remoteAddress: '127.0.0.1' },
+  } as object);
+  return messages(socket);
+}
+
+/** Signs up a player and turns them into a bot with an API token. */
+async function newBot(app: App, username: string) {
+  const owner = await signedUp(app, username);
+  await owner.request('POST', '/api/account/bot', { password: PASSWORD });
+  const { token } = (await owner.request('POST', '/api/account/token')).json();
+  return { owner, token: token as string };
+}
+
+test('bot accounts start fresh, get API tokens, and only meet bots in the pools', async () => {
+  const app = await newApp();
+  const alice = await signedUp(app, 'alice');
+  const wrong = await alice.request('POST', '/api/account/bot', { password: 'wrong password' });
+  expect(wrong.statusCode).toBe(403);
+  expect((await alice.request('POST', '/api/account/token')).statusCode).toBe(403);
+  const made = await alice.request('POST', '/api/account/bot', { password: PASSWORD });
+  expect(made.json()).toMatchObject({ bot: true, apiToken: false });
+  const { token } = (await alice.request('POST', '/api/account/token')).json();
+  expect(token).toMatch(/^uttt_[\w-]{43}$/);
+
+  // Only accounts without games can become bots.
+  const bob = await signedUp(app, 'bob');
+  await pair(bob, await visitor(app));
+  const late = await bob.request('POST', '/api/account/bot', { password: PASSWORD });
+  expect(late.json().error).toMatch('no games');
+
+  // Bots never land in people's pools, and pair among themselves.
+  const person = await (await visitor(app)).connect();
+  const one = await botSocket(app, token);
+  const { token: other } = await newBot(app, 'carol');
+  const two = await botSocket(app, other);
+  person.send({ type: 'seek', timeControl: '1+0', rated: false });
+  one.send({ type: 'seek', timeControl: '1+0', rated: false });
+  expect((await (await visitor(app)).request('GET', '/api/lobby')).json().seeking).toEqual({
+    '1+0': 1,
+  });
+  two.send({ type: 'seek', timeControl: '1+0', rated: false });
+  const { gameId } = await one.next('gameStarted');
+  expect((await two.next('gameStarted')).gameId).toBe(gameId);
+  one.send({ type: 'watch', gameId });
+  const { game } = await one.next('game');
+  expect([game.players.x.bot, game.players.o.bot]).toEqual([true, true]);
+
+  // A wrong or revoked token is turned away.
+  await alice.request('POST', '/api/account/token/revoke');
+  const refused = await app.injectWS('/ws', {
+    headers: { host: 'uttt.test', authorization: `Bearer ${token}` },
+    socket: { remoteAddress: '127.0.0.1' },
+  } as object);
+  const reason = await new Promise((resolve) =>
+    refused.on('close', (code, why) => resolve(`${code} ${why}`)),
+  );
+  expect(reason).toBe('1008 Invalid API token');
+});
+
+test('people challenge bots directly, and those games are casual', async () => {
+  const app = await newApp();
+  const { token } = await newBot(app, 'robo');
+  const bot = await botSocket(app, token);
+  const bob = await signedUp(app, 'bob');
+  const person = await bob.connect();
+  expect((await bob.request('GET', '/api/bots')).json()).toMatchObject([
+    { username: 'robo', playing: false },
+  ]);
+  expect((await bob.request('GET', '/api/users/robo')).json()).toMatchObject({
+    bot: true,
+    online: true,
+  });
+
+  const challenge = (rated: boolean) =>
+    person.send({ type: 'challengeUser', username: 'robo', timeControl: '3+2', rated, color: 'x' });
+  challenge(true);
+  expect((await person.next('error')).message).toBe('Games between people and bots are casual');
+  person.send({
+    type: 'challengeUser',
+    username: 'nobody',
+    timeControl: '3+2',
+    rated: false,
+    color: 'x',
+  });
+  expect((await person.next('error')).message).toMatch("isn't online");
+
+  // The bot hears about the challenge and declines it...
+  challenge(false);
+  const { challenge: first } = await bot.next('challenge');
+  expect(first).toMatchObject({
+    from: 'bob',
+    bot: false,
+    timeControl: '3+2',
+    rated: false,
+    color: 'x',
+  });
+  bot.send({ type: 'declineChallenge', id: first.id });
+  expect((await person.next('challengeGone')).id).toBe(first.id);
+
+  // ...then accepts the next one; nobody else may accept it.
+  challenge(false);
+  const { challenge: second } = await bot.next('challenge');
+  const stranger = await (await visitor(app)).connect();
+  stranger.send({ type: 'acceptChallenge', id: second.id });
+  expect((await stranger.next('error')).message).toBe('This challenge is for another player');
+  bot.send({ type: 'acceptChallenge', id: second.id });
+  const { gameId } = await bot.next('gameStarted');
+  expect((await person.next('gameStarted')).gameId).toBe(gameId);
+  person.send({ type: 'watch', gameId });
+  const { game, you } = await person.next('game');
+  expect(you).toBe('x');
+  expect(game).toMatchObject({ rated: false, players: { o: { username: 'robo', bot: true } } });
+  expect((await bob.request('GET', '/api/bots')).json()[0].playing).toBe(true);
 });
 
 test('the health check reports a working database', async () => {

@@ -115,7 +115,7 @@ export class Store {
       .values({ username, email: email.toLowerCase(), passwordHash, createdAt: new Date() })
       .returning({ id: users.id, username: users.username })
       .get();
-    return { ...user, emailVerified: false };
+    return { ...user, emailVerified: false, bot: false };
   }
 
   userByName(username: string) {
@@ -125,10 +125,49 @@ export class Store {
         username: users.username,
         createdAt: users.createdAt,
         closedAt: users.closedAt,
+        bot: users.bot,
       })
       .from(users)
       .where(eq(lower(users.username), username.toLowerCase()))
       .get();
+  }
+
+  // Bot accounts
+
+  /** Turns an account into a bot, for good; only one that has played no games yet. */
+  makeBot(userId: number): boolean {
+    const played = this.db
+      .select({ id: games.id })
+      .from(games)
+      .where(or(eq(games.xUserId, userId), eq(games.oUserId, userId)))
+      .limit(1)
+      .get();
+    if (played) return false;
+    this.db.update(users).set({ bot: true }).where(eq(users.id, userId)).run();
+    return true;
+  }
+
+  /** Stores a new API token for a bot (replacing its old one), or revokes it with null. */
+  setApiToken(userId: number, token: string | null): void {
+    const apiTokenHash = token === null ? null : hashToken(token);
+    this.db.update(users).set({ apiTokenHash }).where(eq(users.id, userId)).run();
+  }
+
+  /** The bot an API token belongs to, if the token is valid and the account open. */
+  userByApiToken(token: string): User | undefined {
+    const row = this.db
+      .select({
+        id: users.id,
+        username: users.username,
+        emailVerifiedAt: users.emailVerifiedAt,
+      })
+      .from(users)
+      .where(
+        and(eq(users.apiTokenHash, hashToken(token)), eq(users.bot, true), isNull(users.closedAt)),
+      )
+      .get();
+    if (!row) return undefined;
+    return { id: row.id, username: row.username, emailVerified: !!row.emailVerifiedAt, bot: true };
   }
 
   emailTaken(email: string): boolean {
@@ -155,6 +194,8 @@ export class Store {
         closedAt: users.closedAt,
         closedReason: users.closedReason,
         turnEmails: users.turnEmails,
+        bot: users.bot,
+        hasApiToken: sql<boolean>`${users.apiTokenHash} is not null`.mapWith(Boolean),
       })
       .from(users)
       .where(eq(users.id, userId))
@@ -306,6 +347,7 @@ export class Store {
         username: users.username,
         emailVerifiedAt: users.emailVerifiedAt,
         closedAt: users.closedAt,
+        bot: users.bot,
         expiresAt: sessions.expiresAt,
         lastSeenAt: sessions.lastSeenAt,
       })
@@ -329,7 +371,12 @@ export class Store {
         .where(eq(sessions.id, id))
         .run();
     }
-    return { id: row.id, username: row.username, emailVerified: row.emailVerifiedAt !== null };
+    return {
+      id: row.id,
+      username: row.username,
+      emailVerified: row.emailVerifiedAt !== null,
+      bot: row.bot,
+    };
   }
 
   /** The user's signed-in devices, newest activity first; `current` marks the one making the request. */
@@ -869,7 +916,8 @@ export class Store {
     });
   }
 
-  leaderboard(category: Category, limit = 50) {
+  /** The leaderboard of people, or of bots: the two are ranked apart. */
+  leaderboard(category: Category, bots = false, limit = 50) {
     const activeSince = new Date(Date.now() - LEADERBOARD_ACTIVE_DAYS * DAY_MS);
     return this.db
       .select({ username: users.username, rating: ratings.rating, games: ratings.games })
@@ -881,6 +929,7 @@ export class Store {
           lte(ratings.deviation, PROVISIONAL_DEVIATION),
           gt(ratings.updatedAt, activeSince),
           isNull(users.closedAt),
+          eq(users.bot, bots),
         ),
       )
       .orderBy(desc(ratings.rating))
@@ -918,6 +967,8 @@ export class Store {
         oUserId: seats.o.userId,
         xUsername: seats.x.username,
         oUsername: seats.o.username,
+        xBot: seats.x.bot,
+        oBot: seats.o.bot,
         xRating: seats.x.rating,
         oRating: seats.o.rating,
         tournamentId: game.tournamentId,
@@ -1073,6 +1124,7 @@ function toInit(row: GameRow): GameInit {
 export function toState(row: GameRow): GameState {
   const player = (side: Player) => ({
     username: row[`${side}Username` as const],
+    bot: row[`${side}Bot` as const],
     rating: row[`${side}Rating` as const],
     provisional: false,
     ratingDiff: row[`${side}RatingDiff` as const],

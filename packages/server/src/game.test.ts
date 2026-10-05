@@ -6,6 +6,7 @@ const seat = (key: string): Seat => ({
   key,
   userId: null,
   username: null,
+  bot: false,
   rating: null,
   provisional: false,
   ratingDiff: null,

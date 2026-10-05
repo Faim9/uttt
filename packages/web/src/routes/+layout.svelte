@@ -2,6 +2,7 @@
   import '../app.css';
   import { afterNavigate, goto } from '$app/navigation';
   import { page } from '$app/state';
+  import IncomingChallenges from '#lib/IncomingChallenges.svelte';
   import { install, installApp, watchInstall } from '#lib/install.svelte.ts';
   import { loadNewcomer } from '#lib/newcomer.svelte.ts';
   import Logo from '#lib/Logo.svelte';
@@ -110,6 +111,7 @@
   </nav>
 </header>
 <SearchBar />
+<IncomingChallenges />
 
 <main>
   {@render children()}

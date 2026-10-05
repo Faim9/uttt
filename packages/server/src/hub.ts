@@ -41,6 +41,8 @@ interface Seek extends PoolMember {
   client: Client;
   timeControl: TimeControl;
   rated: boolean;
+  /** Bots wait in pools of their own: people are never paired with them by chance. */
+  bot: boolean;
 }
 
 interface Rematch {
@@ -56,6 +58,8 @@ interface Challenge {
   timeControl: TimeControl;
   rated: boolean;
   color: Player | 'random';
+  /** For a direct challenge, the player it's for (their key); null for one shared by link. */
+  to: string | null;
 }
 
 export const newId = () => Array.from({ length: 8 }, () => ID_ALPHABET[randomInt(62)]).join('');
@@ -167,6 +171,20 @@ export class Hub {
       .sort((a, b) => Number(b.yourTurn) - Number(a.yourTurn) || a.timeLeft - b.timeLeft);
   }
 
+  /** Bots connected right now, for people looking for one to play. */
+  onlineBots(): { username: string; playing: boolean }[] {
+    const bots = new Map<string, { username: string; playing: boolean }>();
+    for (const { identity } of this.clients) {
+      const { user } = identity;
+      if (!user?.bot || bots.has(user.username)) continue;
+      bots.set(user.username, {
+        username: user.username,
+        playing: this.gamesOf(user.id, true).length > 0,
+      });
+    }
+    return [...bots.values()];
+  }
+
   /** Games where both players are online right now (no correspondence). */
   private liveOnly(): LiveGame[] {
     return [...this.games.values()].filter((game) => !game.correspondence);
@@ -175,7 +193,7 @@ export class Hub {
   /** What's happening right now, guests included: players in games, and who's waiting in each pool. */
   activity(): { playing: number; seeking: Record<string, number> } {
     const seeking: Record<string, number> = {};
-    for (const seek of this.seeks) {
+    for (const seek of this.seeks.filter(({ bot }) => !bot)) {
       const pool = seek.rated ? `${seek.timeControl} rated` : seek.timeControl;
       seeking[pool] = (seeking[pool] ?? 0) + 1;
     }
@@ -235,11 +253,16 @@ export class Hub {
         this.seeks = this.seeks.filter((seek) => seek.client !== client);
         return;
       case 'createChallenge':
-        return this.createChallenge({ client, ...message });
+        this.createChallenge({ client, ...message, to: null });
+        return;
+      case 'challengeUser':
+        return this.challengeUser(client, message);
       case 'cancelChallenge':
         return this.cancelChallenges(client);
       case 'acceptChallenge':
         return this.acceptChallenge(client, message.id);
+      case 'declineChallenge':
+        return this.declineChallenge(client, message.id);
       case 'watch':
         return this.watch(client, message.gameId);
       case 'move': {
@@ -281,14 +304,11 @@ export class Hub {
       provisional: rating.provisional,
       avoid: user ? this.store.blockedKeys(user.id) : undefined,
       misses: 0,
+      bot: user?.bot ?? false,
     });
     this.pairSeeks(false);
   }
 
-  /**
-   * Pairs each pool (time control + rated) by rating. Runs on every new seek, so equal players meet at once,
-   * and on a timer, where every wave a player stays unpaired widens the gap they accept.
-   */
   /**
    * Browsers answer WebSocket pings automatically, so lag is measured by the server. A client that delays
    * its answers to look laggier gains at most its lag quota.
@@ -301,10 +321,14 @@ export class Hub {
     }
   }
 
+  /**
+   * Pairs each pool (time control + rated, people or bots) by rating. Runs on every new seek, so equal
+   * players meet at once, and on a timer, where every wave a player stays unpaired widens the gap they accept.
+   */
   private pairSeeks(wave: boolean): void {
     const pools = new Map<string, Seek[]>();
     for (const seek of this.seeks) {
-      const pool = `${seek.timeControl} ${seek.rated}`;
+      const pool = `${seek.timeControl} ${seek.rated} ${seek.bot}`;
       pools.set(pool, [...(pools.get(pool) ?? []), seek]);
     }
     const paired = new Set<Seek>();
@@ -319,18 +343,58 @@ export class Hub {
     if (wave) for (const seek of this.seeks) seek.misses++;
   }
 
-  private createChallenge(challenge: Challenge): void {
+  private createChallenge(challenge: Challenge): string {
     requireAccountIfRated(challenge);
     this.cancelChallenges(challenge.client);
     const id = newId();
     this.challenges.set(id, challenge);
     send(challenge.client, { type: 'challengeCreated', id });
+    return id;
   }
 
+  /** Challenges one player who's online; every connection of theirs hears about it. */
+  private challengeUser(
+    client: Client,
+    { username, timeControl, rated, color }: Extract<ClientMessage, { type: 'challengeUser' }>,
+  ): void {
+    if (!client.identity.user) throw new GameError('Sign in to challenge players');
+    const target = this.store.userByName(username);
+    const key = `u:${target?.id}`;
+    const theirs = [...this.clients].filter((c) => c.identity.key === key);
+    if (!target || target.closedAt || theirs.length === 0) {
+      throw new GameError(`${username} isn't online right now`);
+    }
+    if (key === client.identity.key) throw new GameError("You can't challenge yourself");
+    this.refuseIfBlocked(client, theirs[0]);
+    refuseRatedAgainstBots(rated, client.identity.user?.bot ?? false, target.bot);
+    const id = this.createChallenge({ client, timeControl, rated, color, to: key });
+    const { user } = client.identity;
+    const challenge = { id, from: user?.username ?? null, bot: user?.bot ?? false };
+    for (const them of theirs) {
+      send(them, { type: 'challenge', challenge: { ...challenge, timeControl, rated, color } });
+    }
+  }
+
+  /** Withdraws the client's challenges; the players they were for hear that they're off. */
   private cancelChallenges(client: Client): void {
     for (const [id, challenge] of this.challenges) {
-      if (challenge.client === client) this.challenges.delete(id);
+      if (challenge.client !== client) continue;
+      this.challenges.delete(id);
+      if (challenge.to) this.tell(challenge.to, { type: 'challengeGone', id });
     }
+  }
+
+  private declineChallenge(client: Client, id: string): void {
+    const challenge = this.challenges.get(id);
+    if (!challenge || challenge.to !== client.identity.key) return;
+    this.challenges.delete(id);
+    send(challenge.client, { type: 'challengeGone', id });
+    this.tell(challenge.to, { type: 'challengeGone', id });
+  }
+
+  /** Sends a message to every connection of one player. */
+  private tell(key: string, message: ServerMessage): void {
+    for (const client of this.clients) if (client.identity.key === key) send(client, message);
   }
 
   private acceptChallenge(client: Client, id: string): void {
@@ -342,9 +406,16 @@ export class Hub {
     if (challenge.client.identity.key === client.identity.key) {
       throw new GameError("You can't accept your own challenge");
     }
+    if (challenge.to !== null && challenge.to !== client.identity.key) {
+      throw new GameError('This challenge is for another player');
+    }
     requireAccountIfRated({ ...challenge, client });
     this.refuseIfBlocked(challenge.client, client);
+    const bots = [challenge.client, client].map(({ identity }) => identity.user?.bot ?? false);
+    refuseRatedAgainstBots(challenge.rated, bots[0], bots[1]);
     this.challenges.delete(id);
+    // Other tabs of the player it was for can drop it.
+    if (challenge.to) this.tell(challenge.to, { type: 'challengeGone', id });
     const creatorSide = challenge.color === 'random' ? randomSide() : challenge.color;
     const [x, o] = creatorSide === 'x' ? [challenge.client, client] : [client, challenge.client];
     this.startGame(x, o, challenge.timeControl, challenge.rated);
@@ -359,6 +430,7 @@ export class Hub {
     if (!challenge) throw new GameError('This challenge has expired or was cancelled');
     const { user } = identity;
     if (!user) throw new GameError('Sign in to play correspondence games');
+    if (user.bot) throw new GameError('Bots play live games only');
     if (challenge.userId === user.id) throw new GameError("You can't accept your own challenge");
     if (challenge.rated && !user.emailVerified) {
       throw new GameError('Verify your email to play rated games');
@@ -371,7 +443,8 @@ export class Hub {
     }
     const creator: Sitter = {
       key: `u:${challenge.userId}`,
-      user: { id: challenge.userId, username: challenge.username, emailVerified: true },
+      // Bots don't play correspondence, so the creator is a person.
+      user: { id: challenge.userId, username: challenge.username, emailVerified: true, bot: false },
     };
     const creatorSide = challenge.color === 'random' ? randomSide() : challenge.color;
     const [x, o] = creatorSide === 'x' ? [creator, identity] : [identity, creator];
@@ -415,6 +488,7 @@ export class Hub {
         key,
         userId: user?.id ?? null,
         username: user?.username ?? null,
+        bot: user?.bot ?? false,
         rating: rating && Math.round(rating.rating),
         provisional: rating?.provisional ?? false,
         ratingDiff: null,
@@ -504,6 +578,7 @@ export class Hub {
     }
     const { user } = client.identity;
     if (!user) throw new GameError('Sign in to play in tournaments');
+    if (user.bot) throw new GameError('Tournaments are for people, not bots');
     const tournament = this.store.tournament(tournamentId);
     if (!tournament || tournament.endsAt.getTime() <= Date.now()) {
       throw new GameError('This tournament is over');
@@ -612,6 +687,11 @@ export class Hub {
       if (game && side && !stillHere) game.setPresence(side, false);
     }
   }
+}
+
+/** Rated games are people against people, or bots against bots: the two ladders stay apart. */
+function refuseRatedAgainstBots(rated: boolean, aIsBot: boolean, bIsBot: boolean): void {
+  if (rated && aIsBot !== bIsBot) throw new GameError('Games between people and bots are casual');
 }
 
 function requireAccountIfRated({ client, rated }: { client: Client; rated: boolean }): void {

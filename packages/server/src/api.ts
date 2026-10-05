@@ -46,6 +46,8 @@ export const apiRoutes =
       return {
         username: user.username,
         createdAt: user.createdAt,
+        bot: user.bot,
+        online: hub.status(user.id).online,
         closed: user.closedAt !== null,
         followers: store.followerCount(user.id),
         following: viewer !== undefined && store.isFollowing(viewer, user.id),
@@ -62,10 +64,21 @@ export const apiRoutes =
       return store.playerGames(user.id, GamesQuery.parse(request.query));
     });
 
+    /** People's leaderboard, or the bots' with `?bots`: the two are ranked apart. */
     app.get('/api/leaderboard/:name', async (request) => {
       const category = z.enum(CATEGORIES).parse(Params.parse(request.params).name);
-      return store.leaderboard(category);
+      return store.leaderboard(category, 'bots' in (request.query as object));
     });
+
+    /** Bots online now, with their blitz and bullet ratings, for people looking for one to play. */
+    app.get('/api/bots', async () =>
+      hub.onlineBots().map(({ username, playing }) => {
+        const user = store.userByName(username);
+        const rating = (category: 'bullet' | 'blitz') =>
+          user ? Math.round(store.rating(user.id, category).rating) : null;
+        return { username, playing, bullet: rating('bullet'), blitz: rating('blitz') };
+      }),
+    );
 
     app.get('/api/games/live', async () => hub.liveGames());
 

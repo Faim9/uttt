@@ -37,6 +37,7 @@ export const correspondenceRoutes =
     app.post('/api/correspondence', async (request, reply) => {
       const user = signedIn(store, request)?.user;
       if (!user) return reply.code(401).send({ error: 'Sign in to play correspondence games' });
+      if (user.bot) return reply.code(403).send({ error: 'Bots play live games only' });
       const body = CorrespondenceBody.parse(request.body);
       if (body.rated && !user.emailVerified) {
         return reply.code(403).send({ error: 'Verify your email to play rated games' });

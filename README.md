@@ -21,8 +21,11 @@ free, no ads, open source.
 - **Analysis:** an analysis board with variations, live engine evaluation and best line, a board editor,
   import/export and shareable links; one-click post-game review that judges every move, with accuracy, an
   evaluation graph, and clock times.
-- **Community:** watch live games, arena tournaments, follow and block players, rematches, reports and
-  moderation tools.
+- **Community:** watch live games, arena tournaments, challenge players directly, follow and block players,
+  rematches, reports and moderation tools.
+- **Bot API:** write a program that plays: bot accounts connect over WebSocket with an API token, play each
+  other on a ladder of their own, and take challenges from people. See [docs/bot-api.md](docs/bot-api.md),
+  with a complete example bot.
 - **Everywhere:** installable as an app on phones and desktops, link previews when shared, light and dark
   themes, sounds.
 

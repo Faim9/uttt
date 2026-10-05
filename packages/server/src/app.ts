@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { ZodError } from 'zod';
 import { accountRoutes } from './account.ts';
 import { apiRoutes } from './api.ts';
-import { authRoutes, identify } from './auth.ts';
+import { apiToken, authRoutes, identify } from './auth.ts';
 import { isBreached as checkBreaches, type BreachCheck } from './breach.ts';
 import { turnstile, type HumanCheck } from './captcha.ts';
 import { correspondenceRoutes } from './correspondence.ts';
@@ -81,11 +81,13 @@ export async function buildApp({
   await app.register(websocket, { options: { maxPayload: 4096 } });
 
   // Browsers always send Origin on cross-site POSTs and WebSocket handshakes, so requiring the site's
-  // own origin blocks CSRF and cross-site WebSocket hijacking.
+  // own origin blocks CSRF and cross-site WebSocket hijacking. Bots' handshakes carry their API token
+  // instead of cookies, which no other site can attach, so they need no Origin.
   app.addHook('onRequest', async (request, reply) => {
     const unsafe = !['GET', 'HEAD'].includes(request.method);
     const upgrade = request.headers.upgrade?.toLowerCase() === 'websocket';
-    if ((unsafe || upgrade) && request.headers.origin !== siteOrigin) {
+    const bot = upgrade && apiToken(request) !== null;
+    if ((unsafe || upgrade) && !bot && request.headers.origin !== siteOrigin) {
       return reply.code(403).send({ error: 'Cross-origin request blocked' });
     }
   });
@@ -125,7 +127,12 @@ export async function buildApp({
   const socketsPerIp = new Map<string, number>();
   app.get('/ws', { websocket: true }, (socket, request) => {
     const identity = identify(store, request);
-    if (!identity) return socket.close(1008, 'Load the site first to get a guest identity');
+    if (!identity) {
+      const reason = apiToken(request)
+        ? 'Invalid API token'
+        : 'Load the site first to get a guest identity';
+      return socket.close(1008, reason);
+    }
     const ip = clientIp(request);
     const open = socketsPerIp.get(ip) ?? 0;
     if (open >= MAX_SOCKETS_PER_IP) return socket.close(1008, 'Too many connections');

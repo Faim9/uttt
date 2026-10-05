@@ -115,7 +115,19 @@ export function signedIn(
   return token && user ? { user, token } : null;
 }
 
+/** A bot's API token from `Authorization: Bearer <token>`, if the request carries one. */
+export function apiToken(request: FastifyRequest): string | null {
+  const match = /^Bearer (\S+)$/.exec(request.headers.authorization ?? '');
+  return match ? match[1] : null;
+}
+
 export function identify(store: Store, request: FastifyRequest): Identity | null {
+  // Bots connect with their API token instead of cookies.
+  const token = apiToken(request);
+  if (token !== null) {
+    const bot = store.userByApiToken(token);
+    return bot ? { key: `u:${bot.id}`, user: bot, sessionId: null } : null;
+  }
   const session = signedIn(store, request);
   if (session) {
     const { user, token } = session;
@@ -186,7 +198,8 @@ export const authRoutes =
         return reply.code(401).send({ error: 'That code is not valid', twoFactor: true });
       }
       const emailVerified = user.emailVerifiedAt !== null;
-      return startSession(request, reply, { id: user.id, username: user.username, emailVerified });
+      const { id, username, bot } = user;
+      return startSession(request, reply, { id, username, emailVerified, bot });
     });
 
     /** Verification links work without a session: they may be opened on another device. */

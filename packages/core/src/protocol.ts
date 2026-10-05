@@ -111,6 +111,7 @@ export const DeleteAccountBody = z.object({
 });
 
 export const DisableTwoFactorBody = z.object({ password: z.string().min(1).max(128) });
+export const BecomeBotBody = z.object({ password: z.string().min(1).max(128) });
 
 export const REPORT_REASONS = ['cheating', 'abuse', 'username', 'other'] as const;
 export type ReportReason = (typeof REPORT_REASONS)[number];
@@ -164,8 +165,17 @@ export const ClientMessage = z.discriminatedUnion('type', [
     rated: z.boolean(),
     color: z.enum(['x', 'o', 'random']),
   }),
+  /** Challenges one player who is online: a person or a bot. */
+  z.object({
+    type: z.literal('challengeUser'),
+    username: Username,
+    timeControl: LiveTimeControl,
+    rated: z.boolean(),
+    color: z.enum(['x', 'o', 'random']),
+  }),
   z.object({ type: z.literal('cancelChallenge') }),
   z.object({ type: z.literal('acceptChallenge'), id: Id }),
+  z.object({ type: z.literal('declineChallenge'), id: Id }),
   z.object({ type: z.literal('watch'), gameId: Id }),
   z.object({ type: z.literal('move'), gameId: Id, move: z.number().int().min(0).max(80) }),
   /** Offers a draw, or accepts the opponent's offer. */
@@ -188,11 +198,14 @@ export interface User {
   username: string;
   /** Rated play needs a verified email. */
   emailVerified: boolean;
+  /** Played by a program through the bot API (docs/bot-api.md); labelled everywhere, ranked apart. */
+  bot: boolean;
 }
 
 export interface GamePlayer {
   /** Null for guests. */
   username: string | null;
+  bot: boolean;
   rating: number | null;
   provisional: boolean;
   ratingDiff: number | null;
@@ -240,10 +253,25 @@ export function resultText({ termination, outcome }: GameState): string {
   return outcome === 'draw' ? `Draw by ${how}` : `${outcome.toUpperCase()} won by ${how}`;
 }
 
+export interface IncomingChallenge {
+  id: string;
+  /** Null for guests. */
+  from: string | null;
+  bot: boolean;
+  timeControl: TimeControl;
+  rated: boolean;
+  /** The challenger's side; you get the other one. */
+  color: Player | 'random';
+}
+
 export type ServerMessage =
   | { type: 'game'; game: GameState; you: Player | null }
   | { type: 'gameStarted'; gameId: string }
   | { type: 'challengeCreated'; id: string }
+  /** Someone challenged you directly (`challengeUser`): answer with `acceptChallenge` or `declineChallenge`. */
+  | { type: 'challenge'; challenge: IncomingChallenge }
+  /** A direct challenge is off: declined, withdrawn, or its creator left. */
+  | { type: 'challengeGone'; id: string }
   /** Who has offered a rematch after `gameId`, or null once the offer is withdrawn or declined. */
   | { type: 'rematch'; gameId: string; by: Player | null }
   | { type: 'error'; message: string };

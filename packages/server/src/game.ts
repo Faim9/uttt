@@ -242,6 +242,6 @@ export class LiveGame {
   }
 }
 
-function publicSeat({ username, rating, provisional, ratingDiff }: Seat): GamePlayer {
-  return { username, rating, provisional, ratingDiff };
+function publicSeat({ username, bot, rating, provisional, ratingDiff }: Seat): GamePlayer {
+  return { username, bot, rating, provisional, ratingDiff };
 }

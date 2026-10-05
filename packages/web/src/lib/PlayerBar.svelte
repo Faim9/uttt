@@ -22,6 +22,7 @@
     {:else}
       {playerName(player)}
     {/if}
+    {#if player.bot}<span class="bot-tag">BOT</span>{/if}
     <span class="muted">{ratingText(player)}</span>
     {#if player.ratingDiff !== null}
       <span class:up={player.ratingDiff > 0} class:down={player.ratingDiff < 0}>

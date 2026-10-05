@@ -50,6 +50,13 @@ After that, the owner sets priorities:
   restore), restore-on-first-start, Cloudflare Tunnel, rotated logs, health check; guide in docs/deploy.md.
 - **Privacy (GDPR):** privacy page, download-my-data (JSON), account deletion (games kept, anonymized).
 - **Ratings:** Glicko-2 per category (bullet / blitz / rapid), profiles, leaderboard.
+- **Bot API** (docs/bot-api.md): bot accounts (made from fresh accounts, for good, labelled BOT) connect
+  over the site's WebSocket protocol with an API token (shown once, stored hashed, revocable). Bots seek in
+  pools of their own and are rated among themselves on a separate leaderboard; people challenge them from
+  the leaderboard's Bots tab for casual games. Bots can't join tournaments or correspondence. The guide's
+  example Python bot is tested against a real server.
+- **Direct challenges:** challenge any player who's online from their profile; the challenge appears on
+  whatever page they're on, to accept or decline.
 - **Game history on profiles:** every game a player played (in progress included, aborted ones left out),
   newest first, 30 at a time, filtered by category, rated or casual, result, and opponent.
 - **Security baseline:** same-origin checks on unsafe requests and WebSocket handshakes, rate limits (HTTP and
@@ -121,8 +128,7 @@ After that, the owner sets priorities:
 
 ## Later
 
-- **Phase 2:** social (follow, block), basic anti-cheat, moderation tools, OAuth, rating graphs.
-- **Phase 3:** puzzles, tournaments, opening explorer, public API & bots, variants.
+- Sign-in with other accounts (OAuth); rule variants.
 - **Engine upgrades, only when needed:** neural-network-guided search; parallel search across workers on the
   analysis board.
 

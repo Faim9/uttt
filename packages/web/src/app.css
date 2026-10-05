@@ -344,3 +344,15 @@ dialog .error {
     transition: none !important;
   }
 }
+
+/* The label every bot account carries, wherever its name appears. */
+.bot-tag {
+  padding: 0.05rem 0.3rem;
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 0.7em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+}

@@ -31,6 +31,10 @@ export const users = sqliteTable(
     closedReason: text(),
     /** Whether to email the user when it's their move in a correspondence game and they're away. */
     turnEmails: integer({ mode: 'boolean' }).notNull().default(true),
+    /** A bot account, played by a program through the API; set once, for good. */
+    bot: integer({ mode: 'boolean' }).notNull().default(false),
+    /** SHA-256 of the bot's API token; the token itself is shown once, to its owner. */
+    apiTokenHash: text().unique(),
   },
   (t) => [uniqueIndex('users_username_lower').on(sql`lower(${t.username})`)],
 );
@@ -94,6 +98,8 @@ export const games = sqliteTable(
     oUserId: integer().references(() => users.id),
     xUsername: text(),
     oUsername: text(),
+    xBot: integer({ mode: 'boolean' }).notNull().default(false),
+    oBot: integer({ mode: 'boolean' }).notNull().default(false),
     xRating: integer(),
     oRating: integer(),
     xRatingDiff: integer(),

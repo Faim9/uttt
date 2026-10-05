@@ -1,6 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import { RATING_KINDS, type RatingKind } from '@uttt/core';
+  import ChallengeDialog from '#lib/ChallengeDialog.svelte';
   import GameHistory from '#lib/GameHistory.svelte';
   import RatingGraph from '#lib/RatingGraph.svelte';
   import ReportDialog from '#lib/ReportDialog.svelte';
@@ -9,6 +10,8 @@
   interface Profile {
     username: string;
     createdAt: string;
+    bot: boolean;
+    online: boolean;
     closed: boolean;
     followers: number;
     /** How the signed-in viewer relates to this player. */
@@ -22,6 +25,7 @@
   let profile = $state<Profile | null>(null);
   let error = $state('');
   let report: ReportDialog | undefined = $state();
+  let challenge: ChallengeDialog | undefined = $state();
   /** The rating whose graph is shown; picked by clicking it. */
   let graphed = $state<RatingKind>('blitz');
   const isMe = $derived(session.user?.username.toLowerCase() === username.toLowerCase());
@@ -62,8 +66,12 @@
 {#if profile}
   <header>
     <div>
-      <h1>{profile.username}</h1>
+      <h1>
+        {profile.username}
+        {#if profile.bot}<span class="bot-tag">BOT</span>{/if}
+      </h1>
       <p class="muted">
+        {#if profile.online}<span class="online">Online</span> ·{/if}
         Joined {new Date(profile.createdAt).toLocaleDateString()} ·
         {profile.followers}
         {profile.followers === 1 ? 'follower' : 'followers'}
@@ -74,9 +82,12 @@
         {#if profile.blocked}
           <button class="button" onclick={() => relate('unblock')}>Unblock</button>
         {:else}
+          {#if profile.online && !profile.closed}
+            <button class="button primary" onclick={() => challenge?.open()}>Challenge</button>
+          {/if}
           <button
             class="button"
-            class:primary={!profile.following}
+            class:primary={!profile.following && !profile.online}
             onclick={() => relate(profile?.following ? 'unfollow' : 'follow')}
           >
             {profile.following ? 'Following' : 'Follow'}
@@ -91,6 +102,7 @@
     <p class="card closed">This account was closed for breaking the terms of use.</p>
   {/if}
   <ReportDialog bind:this={report} username={profile.username} />
+  <ChallengeDialog bind:this={challenge} username={profile.username} bot={profile.bot} />
 
   <div class="ratings">
     {#each RATING_KINDS as kind (kind)}
@@ -134,6 +146,11 @@
   .actions {
     display: flex;
     gap: 0.5rem;
+  }
+
+  .online {
+    color: var(--hint);
+    font-weight: 600;
   }
 
   .closed {

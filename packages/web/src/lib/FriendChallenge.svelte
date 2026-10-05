@@ -1,13 +1,7 @@
 <script lang="ts">
-  import {
-    CORRESPONDENCE,
-    isCorrespondence,
-    isTimeControl,
-    TIME_CONTROLS,
-    type Player,
-  } from '@uttt/core';
-  import { timeControlName } from './game.ts';
+  import { isCorrespondence, isTimeControl, type Player } from '@uttt/core';
   import { api, socket } from './session.svelte.ts';
+  import TimeControlPicker from './TimeControlPicker.svelte';
 
   /**
    * A dialog that creates a challenge link; the game starts when the friend opens it. A correspondence
@@ -16,11 +10,7 @@
   let { rated }: { rated: boolean } = $props();
 
   let dialog: HTMLDialogElement;
-  let minutes = $state(5);
-  let increment = $state(3);
-  /** Days per move, when a correspondence time control is picked. */
-  let days = $state<number | null>(null);
-  const timeControl = $derived(days ? `${days}d` : `${minutes}+${increment}`);
+  let timeControl = $state('5+3');
   /** Whether the link is a stored correspondence challenge, which outlives this page. */
   let stored = $state(false);
   let color = $state<Player | 'random'>('random');
@@ -102,59 +92,7 @@
     </div>
     {#if !stored}<p class="muted waiting">Waiting for your friend…</p>{/if}
   {:else}
-    <fieldset>
-      <legend>Time control</legend>
-      <div class="presets">
-        {#each TIME_CONTROLS as preset (preset)}
-          <button
-            class="button"
-            aria-pressed={timeControl === preset}
-            onclick={() => {
-              [minutes, increment] = preset.split('+').map(Number);
-              days = null;
-            }}
-          >
-            {preset}
-          </button>
-        {/each}
-      </div>
-      <div class="presets" role="group" aria-label="Correspondence">
-        {#each CORRESPONDENCE as preset (preset)}
-          <button
-            class="button"
-            aria-pressed={timeControl === preset}
-            onclick={() => (days = parseInt(preset))}
-          >
-            {timeControlName(preset)}
-          </button>
-        {/each}
-      </div>
-      <div class="row">
-        <label>
-          Minutes
-          <input
-            type="number"
-            min="1"
-            max="60"
-            bind:value={minutes}
-            oninput={() => (days = null)}
-          />
-        </label>
-        <label>
-          Increment (seconds)
-          <input
-            type="number"
-            min="0"
-            max="30"
-            bind:value={increment}
-            oninput={() => (days = null)}
-          />
-        </label>
-      </div>
-      {#if !isTimeControl(timeControl)}
-        <p class="error">From 1 to 60 minutes, plus 0 to 30 seconds per move.</p>
-      {/if}
-    </fieldset>
+    <TimeControlPicker correspondence onchange={(value) => (timeControl = value)} />
     <label>
       You play
       <select bind:value={color}>
@@ -183,45 +121,6 @@
 </dialog>
 
 <style>
-  fieldset {
-    display: grid;
-    gap: 0.6rem;
-    margin: 0;
-    padding: 0;
-    border: 0;
-  }
-
-  legend {
-    margin-bottom: 0.4rem;
-    padding: 0;
-    font-weight: 500;
-  }
-
-  .presets {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .presets .button {
-    padding: 0.3rem 0.7rem;
-  }
-
-  .presets .button[aria-pressed='true'] {
-    border-color: var(--accent);
-    background: var(--accent);
-    color: var(--accent-text);
-  }
-
-  .row label {
-    flex: 1;
-  }
-
-  .row input {
-    flex: 1;
-    min-width: 0;
-  }
-
   .waiting {
     animation: pulse 1.6s ease-in-out infinite;
   }
