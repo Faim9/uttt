@@ -75,7 +75,9 @@ After that, the owner sets priorities:
 - **Community:** follow players (follower counts; a "Following" card on the home page shows who's online and
   links to their games), block players (never paired, no challenges or rematches; ends follows), and rating
   graphs per category on profiles (history recorded per rated game, backfilled from past games).
-- **Arena tournaments:** admins schedule them (name, time control, start, length, rated). Players with an
+- **Arena tournaments:** any player with a confirmed email schedules one (name, time control, start within a
+  week, length, rated; at most two coming up at once) and can cancel it before it starts; admins schedule the
+  official ones, the only ones featured in the lobby, and can cancel any. Players with an
   account join from the tournament page and are paired again and again while they stay there (closest
   score, avoiding an immediate rematch and blocked players); 2 points per win, 1 per draw, computed from the
   tournament's games; live standings; after a game you're taken back to the tournament. The lobby features

@@ -9,6 +9,9 @@ export interface Tournament {
   startsAt: string;
   endsAt: string;
   players: number;
+  /** Scheduled by the site's admins; otherwise by `creator` (null once their account is deleted). */
+  official: boolean;
+  creator: string | null;
 }
 
 export type Phase = 'upcoming' | 'running' | 'finished';

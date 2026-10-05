@@ -1,7 +1,8 @@
 <script lang="ts">
   import { t, tn } from '#lib/i18n.svelte.ts';
-  import { api } from '#lib/session.svelte.ts';
+  import { api, session } from '#lib/session.svelte.ts';
   import { timing, type Tournament } from '#lib/tournament.ts';
+  import TournamentForm from '#lib/TournamentForm.svelte';
   import { onMount } from 'svelte';
 
   let list = $state<{ current: Tournament[]; finished: Tournament[] } | null>(null);
@@ -17,9 +18,25 @@
 <h1>{t('nav.tournaments')}</h1>
 <p class="muted">{t('tournaments.intro')}</p>
 
+{#if session.user && !session.user.bot}
+  <details class="card create">
+    <summary>{t('tournaments.create')}</summary>
+    {#if session.user.emailVerified}
+      <TournamentForm />
+    {:else}
+      <p class="muted">{t('error.confirmToCreateTournaments')}</p>
+    {/if}
+  </details>
+{/if}
+
 {#snippet card(tournament: Tournament)}
   <a class="card tournament" href="/tournaments/{tournament.id}">
     <strong>{tournament.name}</strong>
+    <span class="muted">
+      {tournament.official
+        ? t('tournaments.official')
+        : t('tournaments.by', { name: tournament.creator ?? '—' })}
+    </span>
     <span>{tournament.timeControl} · {t(tournament.rated ? 'game.rated' : 'game.casual')}</span>
     <span class="muted">
       {timing(tournament, now)} · {tn('tournaments.players', tournament.players)}
@@ -60,6 +77,19 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
     gap: 0.75rem;
+  }
+
+  .create {
+    margin-top: 1rem;
+  }
+
+  .create summary {
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .create[open] summary {
+    margin-bottom: 1rem;
   }
 
   .tournament {

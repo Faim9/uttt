@@ -599,6 +599,21 @@ const de: Messages = {
   'history.result': 'Ergebnis',
   'graph.evalBar': 'Gewinnchance von X',
   'game.backToLive': 'Zurück zur Live-Stellung',
+  'tournaments.create': 'Turnier erstellen',
+  'tournaments.name': 'Name',
+  'tournaments.namePlaceholder': 'Freitags-Blitz',
+  'tournaments.starts': 'Beginn',
+  'tournaments.length': 'Dauer',
+  'tournaments.official': 'Offizielles Turnier',
+  'tournaments.by': 'Erstellt von {name}',
+  'tournament.cancel': 'Turnier absagen',
+  'tournament.cancelConfirm': 'Dieses Turnier absagen? Alle Angemeldeten werden ausgetragen.',
+  'error.confirmToCreateTournaments': 'Bestätige deine E-Mail, um Turniere zu erstellen',
+  'error.signInCreateTournaments': 'Melde dich an, um Turniere zu erstellen',
+  'error.startPassed': 'Der Startzeitpunkt ist schon vorbei',
+  'error.weekAhead': 'Turniere können höchstens eine Woche im Voraus beginnen',
+  'error.twoTournaments': 'Du hast schon zwei anstehende Turniere',
+  'error.onlyCreatorCancels': 'Nur wer ein Turnier erstellt hat, kann es absagen',
 };
 
 export default de;

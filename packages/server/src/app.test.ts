@@ -734,14 +734,13 @@ test('arena tournaments pair the players who are ready, and score their games', 
   const app = await newApp();
   const boss = await admin(app);
   const tournament = { name: 'Launch Arena', timeControl: '3+2', rated: false, minutes: 30 };
-  const now = { ...tournament, startsAt: new Date().toISOString() };
+  const now = { ...tournament, startsAt: new Date().toISOString(), official: true };
   expect(
-    (await (await signedUp(app, 'carol')).request('POST', '/api/admin/tournaments', now))
-      .statusCode,
+    (await (await signedUp(app, 'carol')).request('POST', '/api/tournaments', now)).statusCode,
   ).toBe(403);
-  const { id } = (await boss.request('POST', '/api/admin/tournaments', now)).json();
+  const { id } = (await boss.request('POST', '/api/tournaments', now)).json();
   const later = { ...tournament, startsAt: new Date(Date.now() + 3_600_000).toISOString() };
-  const upcoming = (await boss.request('POST', '/api/admin/tournaments', later)).json();
+  const upcoming = (await boss.request('POST', '/api/tournaments', later)).json();
 
   const guest = await (await visitor(app)).connect();
   guest.send({ type: 'arena', tournamentId: id, ready: true });
@@ -765,11 +764,43 @@ test('arena tournaments pair the players who are ready, and score their games', 
     { username: 'alice', score: 0, games: 1, playing: null },
   ]);
 
-  const cancel = (tid: string) => boss.request('POST', `/api/admin/tournaments/${tid}/cancel`);
+  const cancel = (tid: string) => boss.request('POST', `/api/tournaments/${tid}/cancel`);
   expect((await cancel(id)).statusCode).toBe(400);
   expect((await cancel(upcoming.id)).statusCode).toBe(200);
   const list = (await alice.request('GET', '/api/tournaments')).json();
   expect(list.current.map((t: { id: string }) => t.id)).toEqual([id]);
+  expect(list.current[0]).toMatchObject({ official: true, creator: 'admin' });
+});
+
+test('players with a confirmed email schedule a few tournaments of their own', async () => {
+  const app = await newApp();
+  const inHours = (hours: number) => new Date(Date.now() + hours * 3_600_000).toISOString();
+  const arena = { name: 'Friday Blitz', timeControl: '3+0', rated: true, minutes: 60 };
+  const create = (user: Awaited<ReturnType<typeof visitor>>, startsAt: string) =>
+    user.request('POST', '/api/tournaments', { ...arena, startsAt });
+
+  expect((await create(await visitor(app), inHours(1))).statusCode).toBe(401);
+  const unconfirmed = await signedUp(app, 'carol', { verify: false });
+  expect((await create(unconfirmed, inHours(1))).json().error).toBe(
+    'Confirm your email to create tournaments',
+  );
+  const alice = await signedUp(app, 'alice');
+  expect((await create(alice, inHours(-1))).statusCode).toBe(400);
+  expect((await create(alice, inHours(24 * 8))).statusCode).toBe(400);
+  const { id } = (await create(alice, inHours(1))).json();
+  expect((await create(alice, inHours(2))).statusCode).toBe(200);
+  expect((await create(alice, inHours(3))).json().error).toBe(
+    'You already have two tournaments coming up',
+  );
+
+  const shown = (await alice.request('GET', `/api/tournaments/${id}`)).json();
+  expect(shown).toMatchObject({ creator: 'alice', official: false, canCancel: true });
+  expect(shown).not.toHaveProperty('createdBy');
+  const bob = await signedUp(app, 'bob');
+  expect((await bob.request('GET', `/api/tournaments/${id}`)).json().canCancel).toBe(false);
+  expect((await bob.request('POST', `/api/tournaments/${id}/cancel`)).statusCode).toBe(403);
+  expect((await alice.request('POST', `/api/tournaments/${id}/cancel`)).statusCode).toBe(200);
+  expect((await create(alice, inHours(3))).statusCode).toBe(200);
 });
 
 test('puzzles are rated on the first try, judged by the moves played', async () => {

@@ -17,6 +17,7 @@ import {
 import Database from 'better-sqlite3';
 import {
   and,
+  count,
   desc,
   eq,
   getTableColumns,
@@ -610,7 +611,22 @@ export class Store {
   }
 
   tournament(id: string) {
-    return this.db.select().from(tournaments).where(eq(tournaments.id, id)).get();
+    return this.db
+      .select({ ...getTableColumns(tournaments), creator: users.username })
+      .from(tournaments)
+      .leftJoin(users, eq(users.id, tournaments.createdBy))
+      .where(eq(tournaments.id, id))
+      .get();
+  }
+
+  /** How many of the player's tournaments haven't finished yet. */
+  openTournamentsBy(userId: number): number {
+    const row = this.db
+      .select({ open: count() })
+      .from(tournaments)
+      .where(and(eq(tournaments.createdBy, userId), gt(tournaments.endsAt, new Date())))
+      .get();
+    return row?.open ?? 0;
   }
 
   /** Tournaments not yet over (soonest first), and the most recent finished ones. */
@@ -618,17 +634,15 @@ export class Store {
     const now = new Date();
     const players = sql<number>`(select count(*) from ${tournamentPlayers}
       where ${tournamentPlayers.tournamentId} = ${tournaments.id})`;
-    const columns = { ...getTableColumns(tournaments), players };
+    const columns = { ...getTableColumns(tournaments), players, creator: users.username };
+    const list = () =>
+      this.db
+        .select(columns)
+        .from(tournaments)
+        .leftJoin(users, eq(users.id, tournaments.createdBy));
     return {
-      current: this.db
-        .select(columns)
-        .from(tournaments)
-        .where(gt(tournaments.endsAt, now))
-        .orderBy(tournaments.startsAt)
-        .all(),
-      finished: this.db
-        .select(columns)
-        .from(tournaments)
+      current: list().where(gt(tournaments.endsAt, now)).orderBy(tournaments.startsAt).all(),
+      finished: list()
         .where(lte(tournaments.endsAt, now))
         .orderBy(desc(tournaments.endsAt))
         .limit(10)

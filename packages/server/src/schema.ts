@@ -220,6 +220,10 @@ export const tournaments = sqliteTable(
     startsAt: integer({ mode: 'timestamp_ms' }).notNull(),
     endsAt: integer({ mode: 'timestamp_ms' }).notNull(),
     createdAt: integer({ mode: 'timestamp_ms' }).notNull(),
+    /** The player who scheduled it; null once their account is deleted. */
+    createdBy: integer().references(() => users.id, { onDelete: 'set null' }),
+    /** Scheduled by the site's admins (featured in the lobby), not by a player. */
+    official: integer({ mode: 'boolean' }).notNull().default(false),
   },
   (t) => [index('tournaments_starts').on(t.startsAt)],
 );

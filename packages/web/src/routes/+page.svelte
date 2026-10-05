@@ -73,7 +73,9 @@
     refresh();
     const timers = [setInterval(refresh, ACTIVITY_MS), setInterval(() => (now = Date.now()), 1000)];
     api<{ current: Tournament[] }>('GET', '/api/tournaments').then(
-      ({ current }) => {
+      ({ current: all }) => {
+        // Only the site's own tournaments are featured; players' ones are on the tournaments page.
+        const current = all.filter((t) => t.official);
         const soon = (t: Tournament) => Date.parse(t.startsAt) - Date.now() < 7 * 86_400_000;
         tournament =
           current.find((t) => phaseOf(t, Date.now()) === 'running') ?? current.find(soon) ?? null;

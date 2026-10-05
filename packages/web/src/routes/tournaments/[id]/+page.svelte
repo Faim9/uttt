@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { around, t } from '#lib/i18n.svelte.ts';
   import { api, session, socket } from '#lib/session.svelte.ts';
@@ -7,6 +8,7 @@
 
   interface Details extends Omit<Tournament, 'players'> {
     joined: boolean;
+    canCancel: boolean;
     standings: { username: string; score: number; games: number; playing: string | null }[];
   }
 
@@ -52,6 +54,16 @@
     }),
   );
 
+  async function cancel() {
+    if (!confirm(t('tournament.cancelConfirm'))) return;
+    try {
+      await api('POST', `/api/tournaments/${id}/cancel`);
+      await goto('/tournaments');
+    } catch (e) {
+      error = (e as Error).message;
+    }
+  }
+
   function join() {
     error = '';
     joining = true;
@@ -68,6 +80,14 @@
           tournament.rated ? 'game.rated' : 'game.casual',
         )}
         · {t('tournament.arena')}
+      </p>
+      <p class="muted">
+        {#if tournament.official}
+          {t('tournaments.official')}
+        {:else if tournament.creator}
+          {@const [before, after] = around('tournaments.by', 'name')}
+          {before}<a href="/@{tournament.creator}">{tournament.creator}</a>{after}
+        {/if}
       </p>
       <p class="timing">{timing({ ...tournament, players: 0 }, now)}</p>
 
@@ -89,6 +109,9 @@
         <button class="button" onclick={() => (paused = true)}>{t('tournament.pause')}</button>
       {/if}
       <p class="muted rules">{t('tournament.rules')}</p>
+      {#if tournament.canCancel && phase === 'upcoming'}
+        <button class="button" onclick={cancel}>{t('tournament.cancel')}</button>
+      {/if}
     </section>
 
     <section class="card">

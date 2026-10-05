@@ -128,6 +128,8 @@ export const CreateTournamentBody = z.object({
   rated: z.boolean(),
   startsAt: z.coerce.date(),
   minutes: z.number().int().min(10).max(240),
+  /** Admins only: a site tournament, featured in the lobby. */
+  official: z.boolean().default(false),
 });
 
 /** An open correspondence game: listed in the lobby for anyone, or unlisted, to share by link. */

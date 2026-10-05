@@ -620,6 +620,21 @@ const en = {
   'graph.evalBar': "X's win chance",
   // Stepping through a game
   'game.backToLive': 'Back to the live position',
+  'tournaments.create': 'Create a tournament',
+  'tournaments.name': 'Name',
+  'tournaments.namePlaceholder': 'Friday Blitz',
+  'tournaments.starts': 'Starts',
+  'tournaments.length': 'Length',
+  'tournaments.official': 'Official tournament',
+  'tournaments.by': 'Created by {name}',
+  'tournament.cancel': 'Cancel tournament',
+  'tournament.cancelConfirm': 'Cancel this tournament? Everyone who joined will be taken out.',
+  'error.confirmToCreateTournaments': 'Confirm your email to create tournaments',
+  'error.signInCreateTournaments': 'Sign in to create tournaments',
+  'error.startPassed': 'The start time has passed',
+  'error.weekAhead': 'Tournaments can start at most a week ahead',
+  'error.twoTournaments': 'You already have two tournaments coming up',
+  'error.onlyCreatorCancels': 'Only its creator can cancel a tournament',
 };
 
 export default en;

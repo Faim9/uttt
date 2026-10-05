@@ -598,6 +598,21 @@ const es: Messages = {
   'history.result': 'Resultado',
   'graph.evalBar': 'Probabilidad de victoria de las X',
   'game.backToLive': 'Volver a la posición en directo',
+  'tournaments.create': 'Crear un torneo',
+  'tournaments.name': 'Nombre',
+  'tournaments.namePlaceholder': 'Blitz del viernes',
+  'tournaments.starts': 'Empieza',
+  'tournaments.length': 'Duración',
+  'tournaments.official': 'Torneo oficial',
+  'tournaments.by': 'Creado por {name}',
+  'tournament.cancel': 'Cancelar torneo',
+  'tournament.cancelConfirm': '¿Cancelar este torneo? Todos los inscritos quedarán fuera.',
+  'error.confirmToCreateTournaments': 'Confirma tu correo para crear torneos',
+  'error.signInCreateTournaments': 'Inicia sesión para crear torneos',
+  'error.startPassed': 'La hora de inicio ya pasó',
+  'error.weekAhead': 'Los torneos pueden empezar como mucho dentro de una semana',
+  'error.twoTournaments': 'Ya tienes dos torneos próximos',
+  'error.onlyCreatorCancels': 'Solo quien creó el torneo puede cancelarlo',
 };
 
 export default es;
