@@ -188,6 +188,10 @@ server reboot.
 
 **Turn on email** (once a provider is chosen): set `SMTP_URL` and `MAIL_FROM` in `.env`, then
 `docker compose up -d`. Until then, verification and reset emails only appear in the app's logs.
+Many hosts block the usual mail ports (25, 465, 587), so use the provider's alternative port (Brevo: 2525,
+with `?requireTLS=true`). To check, `timeout 5 bash -c '</dev/tcp/smtp-relay.brevo.com/465'` fails at
+once on a blocked port; a blocked port shows up only as "Email delivery failed" in the app's logs,
+two minutes after each email.
 
 ## Restoring or moving
 
