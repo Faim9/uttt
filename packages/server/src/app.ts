@@ -12,6 +12,7 @@ import { apiRoutes } from './api.ts';
 import { authRoutes, identify } from './auth.ts';
 import { isBreached as checkBreaches, type BreachCheck } from './breach.ts';
 import { turnstile, type HumanCheck } from './captcha.ts';
+import { correspondenceRoutes } from './correspondence.ts';
 import { Emails, smtpMailer, type SendMail } from './email.ts';
 import { Hub } from './hub.ts';
 import { moderationRoutes } from './moderation.ts';
@@ -91,9 +92,9 @@ export async function buildApp({
     reply.code(status).send({ error: status >= 500 ? 'Internal error' : (error as Error).message });
   });
 
-  const hub = new Hub(store, app.log);
-  app.addHook('onClose', async () => hub.close());
   const emails = new Emails(store, sendMail ?? smtpMailer(app.log), publicUrl);
+  const hub = new Hub(store, emails, app.log);
+  app.addHook('onClose', async () => hub.close());
   const services = {
     store,
     hub,
@@ -109,6 +110,7 @@ export async function buildApp({
   await app.register(socialRoutes(services));
   await app.register(tournamentRoutes(services));
   await app.register(puzzleRoutes(services));
+  await app.register(correspondenceRoutes(services));
   await app.register(apiRoutes(store, hub));
   await app.register(previewRoutes());
 

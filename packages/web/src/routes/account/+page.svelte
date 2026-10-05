@@ -8,6 +8,7 @@
     email: string;
     emailVerified: boolean;
     twoFactor: boolean;
+    turnEmails: boolean;
     admin: boolean;
     sessions: {
       id: string;
@@ -104,6 +105,17 @@
         </button>
       </p>
     {/if}
+    <label class="check">
+      <input
+        type="checkbox"
+        checked={account.turnEmails}
+        onchange={(event) =>
+          load(
+            api<Account>('POST', '/api/account/turn-emails', { on: event.currentTarget.checked }),
+          )}
+      />
+      Email me when it's my move in a correspondence game and I'm not on the site
+    </label>
   </section>
 
   <section class="card">
@@ -187,6 +199,12 @@
 
   section {
     margin-bottom: 1rem;
+  }
+
+  .check {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
   }
 
   form {

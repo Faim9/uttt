@@ -1,4 +1,5 @@
 import type { FastifyBaseLogger } from 'fastify';
+import { clockOf, type TimeControl } from '@uttt/core';
 import nodemailer from 'nodemailer';
 import type { Store } from './store.ts';
 
@@ -47,7 +48,7 @@ export class Emails {
   }
 
   /** Whether an email of this kind went to the user too recently to send another. */
-  private tooSoon(purpose: 'verify' | 'reset', userId: number): boolean {
+  private tooSoon(purpose: 'verify' | 'reset' | 'turn', userId: number): boolean {
     const key = `${purpose} ${userId}`;
     const now = Date.now();
     if (now - (this.lastSent.get(key) ?? 0) < RESEND_AFTER_MS) return true;
@@ -80,6 +81,27 @@ export class Emails {
         `Someone (hopefully you) asked to reset the password for ${user.username}.`,
         `Choose a new password here:\n${this.publicUrl}/reset-password?token=${token}`,
         "The link works for one hour. If you didn't ask, ignore this email; your password won't change.",
+      ].join('\n\n'),
+    });
+  }
+
+  /** It's the user's move in a correspondence game (sent only while they're away from the site). */
+  yourTurn(
+    userId: number,
+    opponent: string,
+    game: { id: string; timeControl: TimeControl },
+  ): Promise<void> {
+    const to = this.store.turnEmailTo(userId);
+    if (!to || this.tooSoon('turn', userId)) return Promise.resolve();
+    const days = clockOf(game.timeControl).initialMs / 86_400_000;
+    return this.send({
+      to: to.email,
+      subject: `Your move against ${opponent}`,
+      text: [
+        `Hi ${to.username}, it's your move in your correspondence game against ${opponent}:`,
+        `${this.publicUrl}/game/${game.id}`,
+        `You have ${days === 1 ? 'a day' : `${days} days`} to move.`,
+        `Don't want these emails? Turn them off in your settings: ${this.publicUrl}/account`,
       ].join('\n\n'),
     });
   }

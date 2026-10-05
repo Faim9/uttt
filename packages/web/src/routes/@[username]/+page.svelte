@@ -7,7 +7,7 @@
     type Player,
     type RatingKind,
   } from '@uttt/core';
-  import { playerName } from '#lib/game.ts';
+  import { playerName, timeControlName } from '#lib/game.ts';
   import RatingGraph from '#lib/RatingGraph.svelte';
   import ReportDialog from '#lib/ReportDialog.svelte';
   import { api, session } from '#lib/session.svelte.ts';
@@ -140,7 +140,9 @@
                 {game.outcome ? outcomeFor(game, side) : '…'}
               </span>
               <span>vs {playerName(opponent)}</span>
-              <span class="muted">{game.timeControl} · {game.rated ? 'rated' : 'casual'}</span>
+              <span class="muted"
+                >{timeControlName(game.timeControl)} · {game.rated ? 'rated' : 'casual'}</span
+              >
               <span class="muted">{resultText(game)}</span>
             </a>
           </li>

@@ -3,6 +3,7 @@
   import { page } from '$app/state';
   import { categoryOf, TIME_CONTROLS, type PoolTimeControl } from '@uttt/core';
   import { onMount } from 'svelte';
+  import Correspondence from '#lib/Correspondence.svelte';
   import DemoBoard from '#lib/DemoBoard.svelte';
   import FollowingList from '#lib/Following.svelte';
   import FriendChallenge from '#lib/FriendChallenge.svelte';
@@ -176,6 +177,8 @@
     {:else if !socket.connected && session.ready}
       <p class="muted">Connecting…</p>
     {/if}
+
+    <Correspondence {rated} />
   </section>
 
   <aside class="actions">

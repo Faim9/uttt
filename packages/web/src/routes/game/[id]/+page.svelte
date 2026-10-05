@@ -12,7 +12,7 @@
     type Player,
   } from '@uttt/core';
   import Board from '#lib/Board.svelte';
-  import { analysisLink } from '#lib/game.ts';
+  import { analysisLink, timeControlName } from '#lib/game.ts';
   import PlayerBar from '#lib/PlayerBar.svelte';
   import { socket } from '#lib/session.svelte.ts';
   import { playSound } from '#lib/sound.svelte.ts';
@@ -175,7 +175,7 @@
 
     <div class="panel">
       <section class="card">
-        <h2>{game.timeControl} · {game.rated ? 'Rated' : 'Casual'}</h2>
+        <h2>{timeControlName(game.timeControl)} · {game.rated ? 'Rated' : 'Casual'}</h2>
         <p class="status" aria-live="polite">{status()}</p>
         {#if active && you === null}
           <p class="muted">You're watching. <a href="/watch">More live games</a></p>

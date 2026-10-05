@@ -775,6 +775,74 @@ test('shared links get previews: a title, a description and a board image', asyn
   expect(await page('/@%3Cscript%3E')).not.toContain('<script>');
 });
 
+test('correspondence games wait for an opponent, and email whoever is away when it is their move', async () => {
+  const app = await newApp();
+  const alice = await signedUp(app, 'alice');
+  const bob = await signedUp(app, 'bob');
+  const turnEmails = () => mailbox.filter((email) => email.subject.startsWith('Your move'));
+  const open = (user: typeof alice, body: object) =>
+    user.request('POST', '/api/correspondence', {
+      timeControl: '3d',
+      rated: true,
+      color: 'x',
+      listed: true,
+      ...body,
+    });
+
+  const { id } = (await open(alice, {})).json();
+  const guest = await visitor(app);
+  expect((await guest.request('GET', '/api/correspondence')).json().open).toEqual([
+    { id, username: 'alice', rating: 1500, provisional: true, timeControl: '3d', rated: true },
+  ]);
+  expect((await guest.request('GET', `/api/challenges/${id}`)).json()).toMatchObject({
+    username: 'alice',
+    timeControl: '3d',
+  });
+  // Live challenges can't use days.
+  const live = await bob.connect();
+  live.send({ type: 'createChallenge', timeControl: '3d', rated: false, color: 'random' });
+  expect((await live.next('error')).message).toBe('Invalid message');
+
+  // Bob accepts while Alice is away: she gets an email, since she plays first.
+  live.send({ type: 'acceptChallenge', id });
+  const { gameId } = await live.next('gameStarted');
+  expect(turnEmails()).toMatchObject([
+    { to: 'alice@example.com', subject: 'Your move against bob' },
+  ]);
+  expect(turnEmails()[0].text).toContain(`/game/${gameId}`);
+  const games = (await alice.request('GET', '/api/correspondence')).json();
+  expect(games.mine).toEqual([]);
+  expect(games.games).toMatchObject([{ id: gameId, opponent: 'bob', yourTurn: true }]);
+  // Correspondence games aren't live play.
+  expect((await guest.request('GET', '/api/lobby')).json().playing).toBe(0);
+  expect((await guest.request('GET', '/api/games/live')).json()).toEqual([]);
+
+  // Bob is online when Alice moves, so no email.
+  const aliceSocket = await alice.connect();
+  aliceSocket.send({ type: 'watch', gameId });
+  await aliceSocket.next('game');
+  aliceSocket.send({ type: 'move', gameId, move: parseMove('5-5') });
+  await aliceSocket.next('game');
+  expect(turnEmails()).toHaveLength(1);
+
+  // Players can turn these emails off.
+  const carol = await signedUp(app, 'carol');
+  await carol.request('POST', '/api/account/turn-emails', { on: false });
+  live.send({ type: 'acceptChallenge', id: (await open(carol, {})).json().id });
+  await live.next('gameStarted');
+  expect(turnEmails()).toHaveLength(1);
+
+  // Open games: at most five, and only their owner cancels them.
+  const ids = [];
+  for (let i = 0; i < 5; i++) ids.push((await open(alice, { listed: false })).json().id);
+  expect((await open(alice, {})).statusCode).toBe(409);
+  expect((await bob.request('POST', `/api/correspondence/${ids[0]}/cancel`)).statusCode).toBe(404);
+  expect((await alice.request('POST', `/api/correspondence/${ids[0]}/cancel`)).statusCode).toBe(
+    200,
+  );
+  expect((await guest.request('GET', '/api/correspondence')).json().open).toEqual([]);
+});
+
 test('the health check reports a working database', async () => {
   const app = await newApp();
   expect((await app.inject({ method: 'GET', url: '/api/health' })).json()).toEqual({ ok: true });

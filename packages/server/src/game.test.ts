@@ -12,9 +12,15 @@ const seat = (key: string): Seat => ({
 });
 
 let changes: number;
-function newGame(timeControl: '1+0' | '3+2' = '3+2') {
+function newGame(timeControl: '1+0' | '3+2' | '1d' = '3+2', turnStartedAt?: number) {
   return new LiveGame(
-    { id: 'abcd1234', timeControl, rated: false, seats: { x: seat('alice'), o: seat('bob') } },
+    {
+      id: 'abcd1234',
+      timeControl,
+      rated: false,
+      seats: { x: seat('alice'), o: seat('bob') },
+      turnStartedAt,
+    },
     () => changes++,
   );
 }
@@ -164,4 +170,34 @@ test('the opponent of a disconnected player may settle for a draw instead', () =
   vi.advanceTimersByTime(DISCONNECT_GRACE_MS);
   game.claim('alice', 'draw');
   expect(game).toMatchObject({ outcome: 'draw', termination: 'disconnect' });
+});
+
+const DAY = 86_400_000;
+
+test('correspondence: each move gets the full time again, and missing a deadline loses', () => {
+  const game = newGame('1d');
+  vi.advanceTimersByTime(DAY - 1000); // no 30-second first-move rule: the first move has a day too
+  game.move('alice', parseMove('5-5'));
+  expect(game.state().clocks).toEqual({ x: DAY, o: DAY });
+  vi.advanceTimersByTime(20 * 3_600_000);
+  game.move('bob', parseMove('5-1'));
+  expect(game.state().clocks.o).toBe(DAY);
+  expect(game.state().absence).toEqual({ x: null, o: null });
+  game.setPresence('o', false);
+  vi.advanceTimersByTime(DAY - 1);
+  expect(game.termination).toBeNull();
+  expect(() => game.claim('bob', 'win')).toThrow('deadline');
+  vi.advanceTimersByTime(1);
+  expect(game).toMatchObject({ termination: 'timeout', outcome: 'o' });
+});
+
+test('correspondence: a first move left too long aborts, and deadlines survive a restart', () => {
+  const unplayed = newGame('1d');
+  vi.advanceTimersByTime(DAY);
+  expect(unplayed.termination).toBe('abort');
+
+  // Restored after the server was down: the time since the turn started still counts.
+  const restored = newGame('1d', Date.now() - DAY + 1000);
+  vi.advanceTimersByTime(1000);
+  expect(restored.termination).toBe('abort');
 });

@@ -1,4 +1,10 @@
-import { formatMove, type GamePlayer, type Judgement } from '@uttt/core';
+import {
+  formatMove,
+  isCorrespondence,
+  type GamePlayer,
+  type Judgement,
+  type TimeControl,
+} from '@uttt/core';
 
 export function playerName(player: GamePlayer): string {
   return player.username ?? 'Anonymous';
@@ -10,8 +16,18 @@ export function ratingText(player: GamePlayer): string {
   return `${player.rating}${player.provisional ? '?' : ''}`;
 }
 
-/** m:ss, with tenths in the last 10 seconds. */
+/** "3+2", or "3 days per move" for correspondence. */
+export function timeControlName(timeControl: TimeControl): string {
+  if (!isCorrespondence(timeControl)) return timeControl;
+  const days = parseInt(timeControl);
+  return `${days} ${days === 1 ? 'day' : 'days'} per move`;
+}
+
+/** m:ss, with tenths in the last 10 seconds; days and hours for correspondence clocks. */
 export function formatClock(ms: number): string {
+  const hours = Math.floor(ms / 3_600_000);
+  if (hours >= 24) return `${Math.floor(hours / 24)}d ${hours % 24}h`;
+  if (hours >= 2) return `${hours}h ${Math.floor(ms / 60_000) % 60}m`;
   if (ms < 10_000) return (ms / 1000).toFixed(1);
   const seconds = Math.ceil(ms / 1000);
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;

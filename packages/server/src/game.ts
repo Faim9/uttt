@@ -1,6 +1,7 @@
 import {
   clockOf,
   DISCONNECT_GRACE_MS,
+  isCorrespondence,
   isLegal,
   other,
   play,
@@ -31,6 +32,8 @@ export interface GameInit {
   moves?: number[];
   clocks?: Record<Player, number>;
   tournamentId?: string | null;
+  /** When the player to move got the turn; defaults to now (a restored live game gets its time back). */
+  turnStartedAt?: number;
 }
 
 /** Without a first move from each player in this time, the game is aborted. */
@@ -49,7 +52,8 @@ function lagQuotaGain(timeControl: TimeControl): number {
 
 /**
  * A game in progress. The server is the only authority on moves and clocks.
- * Clocks start once both players have made their first move.
+ * Live clocks start once both players have made their first move. Correspondence games instead give each
+ * move a fixed number of days from the start; missing a deadline loses (or aborts, in the first two moves).
  */
 export class LiveGame {
   readonly id: string;
@@ -64,7 +68,8 @@ export class LiveGame {
   termination: Termination | null = null;
   outcome: Outcome | null = null;
 
-  private turnStartedAt = Date.now();
+  turnStartedAt: number;
+  readonly correspondence: boolean;
   private readonly quotaGain: number;
   private readonly lagQuota: Record<Player, number>;
   /** When each player's last connection to the game dropped, or null while connected. */
@@ -82,6 +87,8 @@ export class LiveGame {
     this.moves = init.moves ?? [];
     this.clocks = init.clocks ?? { x: initialMs, o: initialMs };
     this.position = replay(this.moves);
+    this.turnStartedAt = init.turnStartedAt ?? Date.now();
+    this.correspondence = isCorrespondence(init.timeControl);
     this.onChange = onChange;
     this.quotaGain = lagQuotaGain(init.timeControl);
     this.lagQuota = { x: 3 * this.quotaGain, o: 3 * this.quotaGain };
@@ -99,7 +106,10 @@ export class LiveGame {
     if (side !== this.position.turn) throw new GameError('Not your turn');
     if (!isLegal(this.position, move)) throw new GameError('Illegal move');
 
-    if (this.clocksRunning) {
+    if (this.correspondence) {
+      // Each move gets the full time again.
+      this.clocks[side] = clockOf(this.timeControl).initialMs;
+    } else if (this.clocksRunning) {
       const elapsed = Date.now() - this.turnStartedAt;
       const refund = Math.min(Math.max(lagMs, 0), this.lagQuota[side], elapsed);
       const quota = this.lagQuota[side] - refund + this.quotaGain;
@@ -140,6 +150,8 @@ export class LiveGame {
   /** Ends the game after the opponent has been gone for the grace period: as a win, or a draw. */
   claim(key: string, result: 'win' | 'draw'): void {
     const side = this.playerSide(key);
+    if (this.correspondence)
+      throw new GameError('In correspondence games, only the move deadline counts');
     const goneSince = this.goneSince[other(side)];
     if (goneSince === null) throw new GameError('Your opponent is still connected');
     if (Date.now() - goneSince < DISCONNECT_GRACE_MS) {
@@ -150,7 +162,7 @@ export class LiveGame {
 
   abort(key: string): void {
     this.playerSide(key);
-    if (this.clocksRunning) throw new GameError('Too late to abort; resign instead');
+    if (this.moves.length >= 2) throw new GameError('Too late to abort; resign instead');
     this.end(null, 'abort');
   }
 
@@ -177,11 +189,13 @@ export class LiveGame {
 
   private absence(side: Player, now: number): number | null {
     const since = this.goneSince[side];
-    return since === null || this.termination !== null ? null : now - since;
+    // Correspondence players come and go; only the deadline matters.
+    if (since === null || this.termination !== null || this.correspondence) return null;
+    return now - since;
   }
 
   private get clocksRunning(): boolean {
-    return this.moves.length >= 2;
+    return this.correspondence || this.moves.length >= 2;
   }
 
   /** The side `key` plays in this still-running game. */
@@ -194,11 +208,18 @@ export class LiveGame {
 
   private schedule(): void {
     clearTimeout(this.timer);
-    // The flag waits out the mover's lag quota too, so a move still in transit can arrive and count.
+    if (!this.clocksRunning) {
+      this.timer = setTimeout(() => this.end(null, 'abort'), FIRST_MOVE_MS);
+      return;
+    }
+    // A live flag waits out the mover's lag quota too, so a move still in transit can arrive and count.
     const { turn } = this.position;
-    this.timer = this.clocksRunning
-      ? setTimeout(() => this.flag(), this.clocks[turn] + this.lagQuota[turn])
-      : setTimeout(() => this.end(null, 'abort'), FIRST_MOVE_MS);
+    const grace = this.correspondence ? 0 : this.lagQuota[turn];
+    const left = this.clocks[turn] - (Date.now() - this.turnStartedAt) + grace;
+    this.timer = setTimeout(
+      () => (this.moves.length < 2 ? this.end(null, 'abort') : this.flag()),
+      left,
+    );
   }
 
   private flag(): void {

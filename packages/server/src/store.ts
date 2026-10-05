@@ -1,6 +1,7 @@
 import {
   RATING_KINDS,
   formatMove,
+  isCorrespondence,
   parseMove,
   type Category,
   type GameState,
@@ -20,6 +21,7 @@ import {
   getTableColumns,
   gt,
   gte,
+  isNotNull,
   isNull,
   lte,
   ne,
@@ -51,6 +53,7 @@ const {
   tournamentPlayers,
   puzzles,
   puzzleAttempts,
+  correspondenceChallenges,
 } = schema;
 
 const DAY_MS = 86_400_000;
@@ -140,9 +143,30 @@ export class Store {
         createdAt: users.createdAt,
         closedAt: users.closedAt,
         closedReason: users.closedReason,
+        turnEmails: users.turnEmails,
       })
       .from(users)
       .where(eq(users.id, userId))
+      .get();
+  }
+
+  setTurnEmails(userId: number, on: boolean): void {
+    this.db.update(users).set({ turnEmails: on }).where(eq(users.id, userId)).run();
+  }
+
+  /** Where to tell a user it's their move: only a confirmed address, if they want these emails. */
+  turnEmailTo(userId: number): { username: string; email: string } | undefined {
+    return this.db
+      .select({ username: users.username, email: users.email })
+      .from(users)
+      .where(
+        and(
+          eq(users.id, userId),
+          eq(users.turnEmails, true),
+          isNotNull(users.emailVerifiedAt),
+          isNull(users.closedAt),
+        ),
+      )
       .get();
   }
 
@@ -678,6 +702,56 @@ export class Store {
     ) as Record<RatingKind, { rating: number; at: Date }[]>;
   }
 
+  // Correspondence challenges
+
+  createCorrespondenceChallenge(
+    challenge: Omit<typeof correspondenceChallenges.$inferInsert, 'createdAt'>,
+  ): void {
+    this.db
+      .insert(correspondenceChallenges)
+      .values({ ...challenge, createdAt: new Date() })
+      .run();
+  }
+
+  correspondenceChallenge(id: string) {
+    return this.db
+      .select({
+        ...getTableColumns(correspondenceChallenges),
+        username: users.username,
+      })
+      .from(correspondenceChallenges)
+      .innerJoin(users, eq(correspondenceChallenges.userId, users.id))
+      .where(eq(correspondenceChallenges.id, id))
+      .get();
+  }
+
+  /** The challenges listed in the lobby (oldest first), or the ones `userId` made. */
+  correspondenceChallenges(userId?: number) {
+    return this.db
+      .select({
+        ...getTableColumns(correspondenceChallenges),
+        username: users.username,
+      })
+      .from(correspondenceChallenges)
+      .innerJoin(users, eq(correspondenceChallenges.userId, users.id))
+      .where(
+        userId === undefined
+          ? and(eq(correspondenceChallenges.listed, true), isNull(users.closedAt))
+          : eq(correspondenceChallenges.userId, userId),
+      )
+      .orderBy(correspondenceChallenges.createdAt)
+      .all();
+  }
+
+  /** Removes a challenge; false if it was already gone (e.g. someone else accepted it first). */
+  deleteCorrespondenceChallenge(id: string): boolean {
+    const result = this.db
+      .delete(correspondenceChallenges)
+      .where(eq(correspondenceChallenges.id, id))
+      .run();
+    return result.changes > 0;
+  }
+
   // Puzzles
 
   /** Adds the puzzles that aren't stored yet, starting at the given ratings. */
@@ -817,6 +891,7 @@ export class Store {
       termination: game.termination,
       outcome: game.outcome,
       endedAt: game.termination ? new Date() : null,
+      turnStartedAt: new Date(game.turnStartedAt),
     };
     this.db
       .insert(games)
@@ -913,6 +988,11 @@ function toInit(row: GameRow): GameInit {
     moves: parseMoves(row.moves),
     clocks: { x: row.xClock, o: row.oClock },
     tournamentId: row.tournamentId,
+    // A correspondence deadline keeps counting while the server is down; live games get the time back.
+    turnStartedAt:
+      isCorrespondence(row.timeControl as TimeControl) && row.turnStartedAt
+        ? row.turnStartedAt.getTime()
+        : undefined,
   };
 }
 

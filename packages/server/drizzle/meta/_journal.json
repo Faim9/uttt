@@ -57,6 +57,13 @@
       "when": 1791121767229,
       "tag": "0007_puzzles",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1791158443989,
+      "tag": "0008_correspondence",
+      "breakpoints": true
     }
   ]
 }

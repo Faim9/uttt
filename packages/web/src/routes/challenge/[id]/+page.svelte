@@ -1,6 +1,7 @@
 <script lang="ts">
   import { page } from '$app/state';
   import type { Player, TimeControl } from '@uttt/core';
+  import { timeControlName } from '#lib/game.ts';
   import { api, socket } from '#lib/session.svelte.ts';
 
   interface Challenge {
@@ -37,7 +38,9 @@
   {#if challenge}
     <h1>{challenge.username ?? 'An anonymous player'} challenges you</h1>
     <p>
-      <strong>{challenge.timeControl}</strong> · {challenge.rated ? 'Rated' : 'Casual'} · you play
+      <strong>{timeControlName(challenge.timeControl)}</strong> · {challenge.rated
+        ? 'Rated'
+        : 'Casual'} · you play
       {yourColor(challenge)}
     </p>
     <button

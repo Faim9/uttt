@@ -87,6 +87,12 @@ After that, the owner sets priorities:
   clocks; opening one follows it move by move.
 - **Time controls:** six quick-pairing pools (1+0, 2+1, 3+0, 3+2, 5+3, 10+5); challenges take any time
   control from 1+0 to 60+30.
+- **Correspondence games:** 1 to 14 days per move (1, 3 and 7 offered), so players needn't be online
+  together. Open games are stored and listed in the lobby (or shared by link from "Play a friend"); anyone
+  signed in accepts, even while the creator is away. Each move gets the full time again; missing it loses
+  (or aborts in the first two moves), and deadlines keep counting across restarts. A correspondence rating,
+  a lobby card with your games (your move first), and an email when it's your move and you're away (can be
+  turned off in Settings). Not counted as live play (activity, Watch, tournaments).
 - **Learn to play:** six one-move lessons at /learn that teach the rules by doing them (nine boards, your
   move picks their board, winning a small board, free moves after being sent to a closed board, not sending
   the opponent where they win, winning the game), with hints for wrong moves. Linked from the lobby, the

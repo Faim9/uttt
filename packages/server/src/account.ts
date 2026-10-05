@@ -29,6 +29,7 @@ import {
 } from './two-factor.ts';
 
 const SessionBody = z.object({ id: z.string().regex(/^[0-9a-f]{64}$/) });
+const TurnEmailsBody = z.object({ on: z.boolean() });
 
 interface Session {
   user: User;
@@ -56,6 +57,7 @@ export const accountRoutes =
         email: account?.email,
         emailVerified: Boolean(account?.emailVerifiedAt),
         twoFactor: store.twoFactor(user.id) !== null,
+        turnEmails: account?.turnEmails ?? true,
         sessions: store.sessions(user.id, token),
         admin: isAdmin(services, user.id),
       };
@@ -88,6 +90,14 @@ export const accountRoutes =
         if (account && !account.emailVerifiedAt) {
           deliver(request, emails.verification({ ...session.user, email: account.email }));
         }
+        return overview(session);
+      }),
+    );
+
+    app.post(
+      '/api/account/turn-emails',
+      withSession((session, request) => {
+        store.setTurnEmails(session.user.id, TurnEmailsBody.parse(request.body).on);
         return overview(session);
       }),
     );

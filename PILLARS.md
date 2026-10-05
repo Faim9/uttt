@@ -32,7 +32,8 @@ What's built so far, and what comes next, lives in ROADMAP.md.
 
 - **Fully browser-based**, responsive (desktop + mobile web), no install.
 - **Real-time games over WebSockets**, with server-authoritative moves and clocks; clients only render time.
-- **Time controls** with increment (e.g. `3+2`), grouped into bullet / blitz / rapid; correspondence later.
+- **Time controls** with increment (e.g. `3+2`), grouped into bullet / blitz / rapid, plus
+  correspondence (days per move).
 - **Fair clocks:** lag compensation, so players aren't charged for network transit.
 - **Matchmaking:** quick-pairing pools by time control, pairing players close in rating; direct challenges by link.
 - **Reconnection:** a dropped connection resumes the game; after a grace period the opponent may claim victory.

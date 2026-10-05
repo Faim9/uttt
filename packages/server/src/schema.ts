@@ -29,6 +29,8 @@ export const users = sqliteTable(
     /** Set when an admin closes the account for breaking the terms; it can't sign in until reopened. */
     closedAt: integer({ mode: 'timestamp_ms' }),
     closedReason: text(),
+    /** Whether to email the user when it's their move in a correspondence game and they're away. */
+    turnEmails: integer({ mode: 'boolean' }).notNull().default(true),
   },
   (t) => [uniqueIndex('users_username_lower').on(sql`lower(${t.username})`)],
 );
@@ -104,6 +106,8 @@ export const games = sqliteTable(
     endedAt: integer({ mode: 'timestamp_ms' }),
     /** The arena tournament this game was played in, if any; its standings are computed from these games. */
     tournamentId: text(),
+    /** When the player to move got the turn: correspondence deadlines count from it, even across restarts. */
+    turnStartedAt: integer({ mode: 'timestamp_ms' }),
   },
   (t) => [
     index('games_tournament').on(t.tournamentId),
@@ -254,4 +258,22 @@ export const puzzleAttempts = sqliteTable(
     at: integer({ mode: 'timestamp_ms' }).notNull(),
   },
   (t) => [primaryKey({ columns: [t.userId, t.puzzleId] })],
+);
+
+/** Open correspondence games: they wait (for days, if need be) until someone accepts, online or not. */
+export const correspondenceChallenges = sqliteTable(
+  'correspondence_challenges',
+  {
+    id: text().primaryKey(),
+    userId: integer()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    timeControl: text().notNull(),
+    rated: integer({ mode: 'boolean' }).notNull(),
+    color: text({ enum: ['x', 'o', 'random'] }).notNull(),
+    /** Listed in the lobby for anyone; otherwise only reachable through its link. */
+    listed: integer({ mode: 'boolean' }).notNull(),
+    createdAt: integer({ mode: 'timestamp_ms' }).notNull(),
+  },
+  (t) => [index('correspondence_challenges_user').on(t.userId)],
 );

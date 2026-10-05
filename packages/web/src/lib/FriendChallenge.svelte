@@ -1,14 +1,28 @@
 <script lang="ts">
-  import { isTimeControl, TIME_CONTROLS, type Player } from '@uttt/core';
-  import { socket } from './session.svelte.ts';
+  import {
+    CORRESPONDENCE,
+    isCorrespondence,
+    isTimeControl,
+    TIME_CONTROLS,
+    type Player,
+  } from '@uttt/core';
+  import { timeControlName } from './game.ts';
+  import { api, socket } from './session.svelte.ts';
 
-  /** A dialog that creates a challenge link; the game starts when the friend opens it. */
+  /**
+   * A dialog that creates a challenge link; the game starts when the friend opens it. A correspondence
+   * link is stored instead: it waits until the friend accepts, whether or not you're still here.
+   */
   let { rated }: { rated: boolean } = $props();
 
   let dialog: HTMLDialogElement;
   let minutes = $state(5);
   let increment = $state(3);
-  const timeControl = $derived(`${minutes}+${increment}`);
+  /** Days per move, when a correspondence time control is picked. */
+  let days = $state<number | null>(null);
+  const timeControl = $derived(days ? `${days}d` : `${minutes}+${increment}`);
+  /** Whether the link is a stored correspondence challenge, which outlives this page. */
+  let stored = $state(false);
   let color = $state<Player | 'random'>('random');
   let link = $state<string | null>(null);
   let creating = $state(false);
@@ -34,21 +48,33 @@
 
   // The server forgets challenges when the connection drops or we leave the page.
   $effect(() => {
-    if (!socket.connected) link = null;
+    if (!socket.connected && !stored) link = null;
   });
   $effect(() => () => socket.send({ type: 'cancelChallenge' }));
 
-  function create() {
+  async function create() {
     error = '';
     if (!isTimeControl(timeControl)) return;
     creating = true;
-    socket.send({ type: 'createChallenge', timeControl, color, rated });
+    if (!isCorrespondence(timeControl)) {
+      return socket.send({ type: 'createChallenge', timeControl, color, rated });
+    }
+    try {
+      const body = { timeControl, color, rated, listed: false };
+      const { id } = await api<{ id: string }>('POST', '/api/correspondence', body);
+      link = `${location.origin}/challenge/${id}`;
+      stored = true;
+    } catch (e) {
+      error = (e as Error).message;
+    }
+    creating = false;
   }
 
-  /** Closing the dialog withdraws the challenge, so a stale link can't start a game later. */
+  /** Closing the dialog withdraws a live challenge, so a stale link can't start a game later. */
   function closed() {
-    if (link) socket.send({ type: 'cancelChallenge' });
+    if (link && !stored) socket.send({ type: 'cancelChallenge' });
     link = null;
+    stored = false;
   }
 
   async function copy() {
@@ -62,12 +88,19 @@
 <dialog bind:this={dialog} onclose={closed} aria-labelledby="friend-title">
   <h2 id="friend-title">Play a friend</h2>
   {#if link}
-    <p>Send this link to your friend. The game starts as soon as they open it.</p>
+    {#if stored}
+      <p>
+        Send this link to your friend. They can accept it whenever they like; the game then shows up
+        on your home page, and we email you when it's your move.
+      </p>
+    {:else}
+      <p>Send this link to your friend. The game starts as soon as they open it.</p>
+    {/if}
     <div class="row">
       <input readonly value={link} aria-label="Challenge link" />
       <button class="button primary" onclick={copy}>{copied ? 'Copied!' : 'Copy'}</button>
     </div>
-    <p class="muted waiting">Waiting for your friend…</p>
+    {#if !stored}<p class="muted waiting">Waiting for your friend…</p>{/if}
   {:else}
     <fieldset>
       <legend>Time control</legend>
@@ -76,20 +109,46 @@
           <button
             class="button"
             aria-pressed={timeControl === preset}
-            onclick={() => ([minutes, increment] = preset.split('+').map(Number))}
+            onclick={() => {
+              [minutes, increment] = preset.split('+').map(Number);
+              days = null;
+            }}
           >
             {preset}
+          </button>
+        {/each}
+      </div>
+      <div class="presets" role="group" aria-label="Correspondence">
+        {#each CORRESPONDENCE as preset (preset)}
+          <button
+            class="button"
+            aria-pressed={timeControl === preset}
+            onclick={() => (days = parseInt(preset))}
+          >
+            {timeControlName(preset)}
           </button>
         {/each}
       </div>
       <div class="row">
         <label>
           Minutes
-          <input type="number" min="1" max="60" bind:value={minutes} />
+          <input
+            type="number"
+            min="1"
+            max="60"
+            bind:value={minutes}
+            oninput={() => (days = null)}
+          />
         </label>
         <label>
           Increment (seconds)
-          <input type="number" min="0" max="30" bind:value={increment} />
+          <input
+            type="number"
+            min="0"
+            max="30"
+            bind:value={increment}
+            oninput={() => (days = null)}
+          />
         </label>
       </div>
       {#if !isTimeControl(timeControl)}
@@ -109,7 +168,7 @@
   {/if}
   <div class="actions">
     <button class="button" onclick={() => dialog.close()}
-      >{link ? 'Cancel challenge' : 'Close'}</button
+      >{link && !stored ? 'Cancel challenge' : 'Close'}</button
     >
     {#if !link}
       <button

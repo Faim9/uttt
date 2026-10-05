@@ -11,6 +11,7 @@ import type { FastifyBaseLogger } from 'fastify';
 import { randomInt } from 'node:crypto';
 import type { WebSocket } from 'ws';
 import type { Identity } from './auth.ts';
+import type { Emails } from './email.ts';
 import { GameError, LiveGame, type GameInit, type Seat } from './game.ts';
 import { DEFAULT_RATING } from './glicko.ts';
 import { matchmake, type PoolMember } from './matchmaking.ts';
@@ -59,6 +60,8 @@ interface Challenge {
 
 export const newId = () => Array.from({ length: 8 }, () => ID_ALPHABET[randomInt(62)]).join('');
 const randomSide = (): Player => (randomInt(2) === 0 ? 'x' : 'o');
+/** Who sits at a board: a connection's identity, or a player who may be offline (correspondence). */
+type Sitter = Pick<Identity, 'key' | 'user'>;
 
 function send(client: Client, message: ServerMessage): void {
   if (client.socket.readyState === client.socket.OPEN) client.socket.send(JSON.stringify(message));
@@ -78,11 +81,13 @@ export class Hub {
   private readonly lastOpponent = new Map<string, string>();
   private seeks: Seek[] = [];
   private readonly store: Store;
+  private readonly emails: Emails;
   private readonly log: FastifyBaseLogger;
   private readonly ticker: ReturnType<typeof setInterval>;
 
-  constructor(store: Store, log: FastifyBaseLogger) {
+  constructor(store: Store, emails: Emails, log: FastifyBaseLogger) {
     this.store = store;
+    this.emails = emails;
     this.log = log;
     for (const init of store.activeGames()) this.addGame(init);
     this.ticker = setInterval(() => {
@@ -122,21 +127,49 @@ export class Hub {
     }
   }
 
-  /** Whether the user is in a game that hasn't ended. */
-  isPlaying(userId: number): boolean {
-    return [...this.games.values()].some(
-      (game) => game.seats.x.userId === userId || game.seats.o.userId === userId,
+  /** The user's games that haven't ended, correspondence included unless `live`. */
+  private gamesOf(userId: number, live = false): LiveGame[] {
+    return [...this.games.values()].filter(
+      (game) =>
+        (game.seats.x.userId === userId || game.seats.o.userId === userId) &&
+        !(live && game.correspondence),
     );
   }
 
-  /** Whether a user is connected, and the game they're playing, if any; for the people following them. */
+  /** Whether the user is in a game that hasn't ended. */
+  isPlaying(userId: number): boolean {
+    return this.gamesOf(userId).length > 0;
+  }
+
+  /** Whether a user is connected, and the live game they're playing, if any; for their followers. */
   status(userId: number): { online: boolean; gameId: string | null } {
     const key = `u:${userId}`;
     const online = [...this.clients].some((client) => client.identity.key === key);
-    const game = [...this.games.values()].find(
-      ({ seats }) => seats.x.key === key || seats.o.key === key,
-    );
-    return { online, gameId: game?.id ?? null };
+    return { online, gameId: this.gamesOf(userId, true)[0]?.id ?? null };
+  }
+
+  /** The user's correspondence games in progress: the ones where it's their move first, then by time left. */
+  correspondenceGames(userId: number) {
+    const now = Date.now();
+    return this.gamesOf(userId)
+      .filter((game) => game.correspondence)
+      .map((game) => {
+        const you = game.seats.x.userId === userId ? 'x' : 'o';
+        const { clocks, running } = game.state(now);
+        return {
+          id: game.id,
+          opponent: game.seats[other(you)].username,
+          timeControl: game.timeControl,
+          yourTurn: running === you,
+          timeLeft: running ? clocks[running] : 0,
+        };
+      })
+      .sort((a, b) => Number(b.yourTurn) - Number(a.yourTurn) || a.timeLeft - b.timeLeft);
+  }
+
+  /** Games where both players are online right now (no correspondence). */
+  private liveOnly(): LiveGame[] {
+    return [...this.games.values()].filter((game) => !game.correspondence);
   }
 
   /** What's happening right now, guests included: players in games, and who's waiting in each pool. */
@@ -146,23 +179,29 @@ export class Hub {
       const pool = seek.rated ? `${seek.timeControl} rated` : seek.timeControl;
       seeking[pool] = (seeking[pool] ?? 0) + 1;
     }
-    return { playing: this.games.size * 2, seeking };
+    return { playing: this.liveOnly().length * 2, seeking };
   }
 
   /** Games in progress for spectators, strongest players first. */
   liveGames(limit = 30): GameState[] {
     const strength = ({ seats }: LiveGame) => (seats.x.rating ?? 0) + (seats.o.rating ?? 0);
-    return [...this.games.values()]
+    return this.liveOnly()
       .sort((a, b) => strength(b) - strength(a))
       .slice(0, limit)
       .map((game) => game.state());
   }
 
+  /** A challenge by link: a live one (in memory), or a stored correspondence one. */
   challenge(id: string) {
-    const challenge = this.challenges.get(id);
-    if (!challenge) return undefined;
-    const { client, timeControl, rated, color } = challenge;
-    return { username: client.identity.user?.username ?? null, timeControl, rated, color };
+    const live = this.challenges.get(id);
+    if (live) {
+      const { client, timeControl, rated, color } = live;
+      return { username: client.identity.user?.username ?? null, timeControl, rated, color };
+    }
+    const stored = this.store.correspondenceChallenge(id);
+    if (!stored) return undefined;
+    const { username, timeControl, rated, color } = stored;
+    return { username, timeControl: timeControl as TimeControl, rated, color };
   }
 
   private receive(client: Client, data: string): void {
@@ -203,8 +242,11 @@ export class Hub {
         return this.acceptChallenge(client, message.id);
       case 'watch':
         return this.watch(client, message.gameId);
-      case 'move':
-        return this.liveGame(message.gameId).move(key, message.move, client.lag);
+      case 'move': {
+        const game = this.liveGame(message.gameId);
+        game.move(key, message.move, client.lag);
+        return this.notifyTurn(game);
+      }
       case 'draw':
         return this.liveGame(message.gameId).draw(key);
       case 'resign':
@@ -293,7 +335,10 @@ export class Hub {
 
   private acceptChallenge(client: Client, id: string): void {
     const challenge = this.challenges.get(id);
-    if (!challenge) throw new GameError('This challenge has expired or was cancelled');
+    if (!challenge) {
+      const gameId = this.acceptCorrespondence(id, client.identity);
+      return send(client, { type: 'gameStarted', gameId });
+    }
     if (challenge.client.identity.key === client.identity.key) {
       throw new GameError("You can't accept your own challenge");
     }
@@ -305,6 +350,47 @@ export class Hub {
     this.startGame(x, o, challenge.timeControl, challenge.rated);
   }
 
+  /**
+   * Starts a correspondence game from a stored challenge. Its creator may be offline: they'll find the
+   * game on the home page (and by email, when it's their move).
+   */
+  private acceptCorrespondence(id: string, identity: Identity): string {
+    const challenge = this.store.correspondenceChallenge(id);
+    if (!challenge) throw new GameError('This challenge has expired or was cancelled');
+    const { user } = identity;
+    if (!user) throw new GameError('Sign in to play correspondence games');
+    if (challenge.userId === user.id) throw new GameError("You can't accept your own challenge");
+    if (challenge.rated && !user.emailVerified) {
+      throw new GameError('Verify your email to play rated games');
+    }
+    if (this.store.blockedKeys(user.id).has(`u:${challenge.userId}`)) {
+      throw new GameError("You can't play this player");
+    }
+    if (!this.store.deleteCorrespondenceChallenge(id)) {
+      throw new GameError('Someone else accepted this challenge first');
+    }
+    const creator: Sitter = {
+      key: `u:${challenge.userId}`,
+      user: { id: challenge.userId, username: challenge.username, emailVerified: true },
+    };
+    const creatorSide = challenge.color === 'random' ? randomSide() : challenge.color;
+    const [x, o] = creatorSide === 'x' ? [creator, identity] : [identity, creator];
+    const game = this.createGame(x, o, challenge.timeControl as TimeControl, challenge.rated);
+    this.notifyTurn(game);
+    return game.id;
+  }
+
+  /** Emails the player to move in a correspondence game, unless they're on the site right now. */
+  private notifyTurn(game: LiveGame): void {
+    if (!game.correspondence || game.termination) return;
+    const { turn } = game.position;
+    const seat = game.seats[turn];
+    const online = [...this.clients].some((client) => client.identity.key === seat.key);
+    if (online || seat.userId === null) return;
+    const opponent = game.seats[other(turn)].username ?? 'your opponent';
+    this.emails.yourTurn(seat.userId, opponent, game).catch((error) => this.log.error(error));
+  }
+
   private startGame(
     x: Client,
     o: Client,
@@ -312,7 +398,18 @@ export class Hub {
     rated: boolean,
     tournamentId: string | null = null,
   ): void {
-    const seat = ({ key, user }: Identity): Seat => {
+    const game = this.createGame(x.identity, o.identity, timeControl, rated, tournamentId);
+    for (const client of [x, o]) send(client, { type: 'gameStarted', gameId: game.id });
+  }
+
+  private createGame(
+    x: Sitter,
+    o: Sitter,
+    timeControl: TimeControl,
+    rated: boolean,
+    tournamentId: string | null = null,
+  ): LiveGame {
+    const seat = ({ key, user }: Sitter): Seat => {
       const rating = user ? this.store.rating(user.id, categoryOf(timeControl)) : null;
       return {
         key,
@@ -323,10 +420,10 @@ export class Hub {
         ratingDiff: null,
       };
     };
-    const seats = { x: seat(x.identity), o: seat(o.identity) };
+    const seats = { x: seat(x), o: seat(o) };
     const game = this.addGame({ id: newId(), timeControl, rated, seats, tournamentId });
     this.store.saveGame(game);
-    for (const client of [x, o]) send(client, { type: 'gameStarted', gameId: game.id });
+    return game;
   }
 
   private addGame(init: GameInit): LiveGame {
@@ -436,7 +533,7 @@ export class Hub {
       const waiting = new Map<string, Client>();
       for (const client of ready) {
         const { key, user } = client.identity;
-        if (user && !this.isPlaying(user.id)) waiting.set(key, client);
+        if (user && this.gamesOf(user.id, true).length === 0) waiting.set(key, client);
       }
       if (waiting.size < 2) continue;
       const scores = new Map(this.store.standings(id).map((row) => [`u:${row.userId}`, row.score]));
