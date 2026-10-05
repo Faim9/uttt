@@ -2,6 +2,8 @@
   import { replay, type GameState, type Player } from '@uttt/core';
   import type { Snippet } from 'svelte';
   import Board from './Board.svelte';
+  import { playerName } from './game.ts';
+  import { t } from './i18n.svelte.ts';
   import PlayerBar from './PlayerBar.svelte';
 
   /** A game as a small card: the players and their clocks around the board, which opens the game. */
@@ -20,9 +22,7 @@
     return Math.max(0, game.clocks[side] - elapsed);
   }
 
-  const names = $derived(
-    `${game.players.x.username ?? 'Anonymous'} vs ${game.players.o.username ?? 'Anonymous'}`,
-  );
+  const names = $derived(`${playerName(game.players.x)} – ${playerName(game.players.o)}`);
 </script>
 
 <article class="card game">
@@ -36,7 +36,7 @@
       disabled
       silent
     />
-    <a class="cover" href="/game/{game.id}" aria-label="Watch {names}"></a>
+    <a class="cover" href="/game/{game.id}" aria-label={t('watch.game', { names })}></a>
   </div>
   <PlayerBar side="x" player={game.players.x} clock={clock('x')} running={game.running === 'x'} />
 </article>

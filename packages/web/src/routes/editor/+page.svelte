@@ -2,6 +2,7 @@
   import { page } from '$app/state';
   import { cellAt, createPosition, parsePosition, type Player } from '@uttt/core';
   import Board from '#lib/Board.svelte';
+  import { t } from '#lib/i18n.svelte.ts';
 
   const NINE = [0, 1, 2, 3, 4, 5, 6, 7, 8];
   const TOOLS = { x: 'X', o: 'O', erase: 'Erase' } as const;
@@ -62,26 +63,24 @@
 
   <div class="panel">
     <section class="card">
-      <h2>Board editor</h2>
-      <p class="muted">
-        Copying a screenshot? Place the pieces in any order, then pick the board the next move must
-        be played in (the highlighted one).
-      </p>
-      <div class="tools" role="group" aria-label="Place">
+      <h2>{t('analysis.editor')}</h2>
+      <p class="muted">{t('editor.help')}</p>
+      <div class="tools" role="group" aria-label={t('editor.place')}>
         {#each Object.entries(TOOLS) as [value, label] (value)}
           <button
             class="button"
             aria-pressed={tool === value}
-            onclick={() => (tool = value as keyof typeof TOOLS)}>{label}</button
+            onclick={() => (tool = value as keyof typeof TOOLS)}
+            >{value === 'erase' ? t('editor.erase') : label}</button
           >
         {/each}
       </div>
       <label>
-        Next move in
+        {t('editor.nextIn')}
         <select bind:value={forced}>
-          <option value={null}>any board (free move)</option>
+          <option value={null}>{t('editor.free')}</option>
           {#each NINE as board (board)}
-            <option value={board}>board {board + 1}</option>
+            <option value={board}>{t('analysis.board', { n: board + 1 })}</option>
           {/each}
         </select>
       </label>
@@ -90,19 +89,23 @@
       {:else}
         <p class="ok" role="status">
           {position.outcome
-            ? 'The game is over.'
-            : `${turn.toUpperCase()} to move, in ${forced === null ? 'any board' : `board ${forced + 1}`}.`}
+            ? t('editor.over')
+            : t('editor.toMove', {
+                side: turn.toUpperCase(),
+                where:
+                  forced === null ? t('analysis.anyBoard') : t('analysis.board', { n: forced + 1 }),
+              })}
         </p>
       {/if}
       <div class="actions">
         {#if problem}
-          <button class="button primary" disabled>Analyze</button>
+          <button class="button primary" disabled>{t('puzzle.analyze')}</button>
         {:else}
           <a class="button primary" href="/analysis?{new URLSearchParams({ position: text })}"
-            >Analyze</a
+            >{t('puzzle.analyze')}</a
           >
         {/if}
-        <button class="button" onclick={clear}>Clear board</button>
+        <button class="button" onclick={clear}>{t('editor.clear')}</button>
       </div>
     </section>
   </div>

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { t } from './i18n.svelte.ts';
+
   /** X's win chance, 0–1, or null when there is no evaluation. */
   let { winChance }: { winChance: number | null } = $props();
 
@@ -8,7 +10,7 @@
 <div
   class="bar"
   role="meter"
-  aria-label="X win chance"
+  aria-label={t('graph.evalBar')}
   aria-valuemin="0"
   aria-valuemax="100"
   aria-valuenow={percent}

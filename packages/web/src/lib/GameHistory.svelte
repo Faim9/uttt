@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { CATEGORIES, resultText, type GameState, type Player } from '@uttt/core';
-  import { playerName, timeControlName } from './game.ts';
+  import { CATEGORIES, type GameState, type Player } from '@uttt/core';
+  import { playerName, resultText, timeControlName } from './game.ts';
+  import { t } from './i18n.svelte.ts';
   import { api } from './session.svelte.ts';
 
   /** Every game a player played, newest first, with filters and a page at a time. */
@@ -64,36 +65,36 @@
 </script>
 
 <section class="card">
-  <h2>Games{total === null ? '' : ` (${total})`}</h2>
+  <h2>{t('history.title')}{total === null ? '' : ` (${total})`}</h2>
   <div class="filters">
-    <select bind:value={category} aria-label="Time control">
-      <option value="">All time controls</option>
+    <select bind:value={category} aria-label={t('time.control')}>
+      <option value="">{t('history.allTimeControls')}</option>
       {#each CATEGORIES as value (value)}
-        <option {value}>{value[0].toUpperCase() + value.slice(1)}</option>
+        <option {value}>{t(`category.${value}`)}</option>
       {/each}
     </select>
-    <select bind:value={rated} aria-label="Rated or casual">
-      <option value="">Rated and casual</option>
-      <option value="true">Rated</option>
-      <option value="false">Casual</option>
+    <select bind:value={rated} aria-label={t('history.ratedOrCasual')}>
+      <option value="">{t('history.ratedAndCasual')}</option>
+      <option value="true">{t('game.rated')}</option>
+      <option value="false">{t('game.casual')}</option>
     </select>
-    <select bind:value={result} aria-label="Result">
-      <option value="">All results</option>
-      <option value="win">Wins</option>
-      <option value="loss">Losses</option>
-      <option value="draw">Draws</option>
+    <select bind:value={result} aria-label={t('history.result')}>
+      <option value="">{t('history.allResults')}</option>
+      <option value="win">{t('history.wins')}</option>
+      <option value="loss">{t('history.losses')}</option>
+      <option value="draw">{t('history.draws')}</option>
     </select>
     <!-- Applies on Enter or leaving the field, not on every keystroke. -->
     <input
       value={opponent}
       onchange={(event) => (opponent = event.currentTarget.value)}
-      placeholder="Opponent"
-      aria-label="Opponent's username"
+      placeholder={t('history.opponent')}
+      aria-label={t('history.opponentName')}
     />
   </div>
 
   {#if total === 0}
-    <p class="muted">No games{query.size > 0 ? ' match these filters' : ' yet'}.</p>
+    <p class="muted">{t(query.size > 0 ? 'history.noMatch' : 'history.none')}</p>
   {:else}
     <ul class="games">
       {#each games as game (game.id)}
@@ -101,9 +102,10 @@
         <li>
           <a href="/game/{game.id}">
             <span class="result {game.outcome ? outcomeFor(game, side) : ''}">
-              {game.outcome ? outcomeFor(game, side) : 'playing'}
+              {t(game.outcome ? `history.${outcomeFor(game, side)}` : 'history.playing')}
             </span>
-            <span>vs {playerName(game.players[side === 'x' ? 'o' : 'x'])}</span>
+            <span>{t('game.vs', { name: playerName(game.players[side === 'x' ? 'o' : 'x']) })}</span
+            >
             <span class="muted">{new Date(game.createdAt).toLocaleDateString()}</span>
             <span class="muted details">
               {timeControlName(game.timeControl)} · {game.rated ? 'rated' : 'casual'} ·
@@ -114,7 +116,9 @@
       {/each}
     </ul>
     {#if next !== null}
-      <button class="button more" disabled={loading} onclick={() => load(next)}>Load more</button>
+      <button class="button more" disabled={loading} onclick={() => load(next)}
+        >{t('history.more')}</button
+      >
     {/if}
   {/if}
 </section>

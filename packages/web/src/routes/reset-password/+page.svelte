@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { t } from '#lib/i18n.svelte.ts';
   import { api, session, socket } from '#lib/session.svelte.ts';
 
   /** Without a token this page asks for the email; with one (from the emailed link) it sets the password. */
@@ -34,17 +35,17 @@
 </script>
 
 <form class="card" onsubmit={submit}>
-  <h1>{token ? 'Choose a new password' : 'Reset your password'}</h1>
+  <h1>{t(token ? 'reset.choose' : 'reset.title')}</h1>
 
   {#if done && token}
-    <p>Your password was changed and all your devices were signed out.</p>
-    <a class="button primary" href="/login">Sign in</a>
+    <p>{t('reset.changed')}</p>
+    <a class="button primary" href="/login">{t('nav.signIn')}</a>
   {:else if done}
-    <p>If an account uses <strong>{email}</strong>, we've sent it a link to reset the password.</p>
+    <p>{t('reset.sent', { email })}</p>
   {:else}
     {#if token}
       <label>
-        New password
+        {t('account.newPassword')}
         <input
           type="password"
           bind:value={password}
@@ -55,13 +56,13 @@
       </label>
     {:else}
       <label>
-        Email
+        {t('auth.email')}
         <input type="email" bind:value={email} autocomplete="email" required />
       </label>
     {/if}
     {#if error}<p class="error" role="alert">{error}</p>{/if}
     <button class="button primary" disabled={busy}>
-      {token ? 'Set password' : 'Send reset link'}
+      {t(token ? 'reset.set' : 'reset.send')}
     </button>
   {/if}
 </form>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t, tn } from '#lib/i18n.svelte.ts';
   import { api } from '#lib/session.svelte.ts';
   import { timing, type Tournament } from '#lib/tournament.ts';
   import { onMount } from 'svelte';
@@ -13,40 +14,36 @@
   });
 </script>
 
-<h1>Tournaments</h1>
-<p class="muted">
-  Arena tournaments: for a fixed time, you're paired again and again as soon as your game ends. A
-  win scores 2 points, a draw 1. Join any time while it runs.
-</p>
+<h1>{t('nav.tournaments')}</h1>
+<p class="muted">{t('tournaments.intro')}</p>
 
 {#snippet card(tournament: Tournament)}
   <a class="card tournament" href="/tournaments/{tournament.id}">
     <strong>{tournament.name}</strong>
-    <span>{tournament.timeControl} · {tournament.rated ? 'Rated' : 'Casual'}</span>
+    <span>{tournament.timeControl} · {t(tournament.rated ? 'game.rated' : 'game.casual')}</span>
     <span class="muted">
-      {timing(tournament, now)} · {tournament.players}
-      {tournament.players === 1 ? 'player' : 'players'}
+      {timing(tournament, now)} · {tn('tournaments.players', tournament.players)}
     </span>
   </a>
 {/snippet}
 
 {#if list}
-  <h2>Coming up and running</h2>
+  <h2>{t('tournaments.current')}</h2>
   {#if list.current.length === 0}
-    <p class="muted">No tournaments scheduled right now. Check back soon!</p>
+    <p class="muted">{t('tournaments.none')}</p>
   {/if}
   <div class="list">
     {#each list.current as tournament (tournament.id)}{@render card(tournament)}{/each}
   </div>
 
   {#if list.finished.length > 0}
-    <h2>Recently finished</h2>
+    <h2>{t('tournaments.finished')}</h2>
     <div class="list">
       {#each list.finished as tournament (tournament.id)}{@render card(tournament)}{/each}
     </div>
   {/if}
 {:else}
-  <p class="muted">Loading…</p>
+  <p class="muted">{t('common.loading')}</p>
 {/if}
 
 <style>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { isTimeControl, type Player } from '@uttt/core';
+  import { t } from './i18n.svelte.ts';
   import { session, socket } from './session.svelte.ts';
   import TimeControlPicker from './TimeControlPicker.svelte';
 
@@ -56,31 +57,31 @@
 </script>
 
 <dialog bind:this={dialog} onclose={closed} aria-labelledby="challenge-title">
-  <h2 id="challenge-title">Challenge {username}</h2>
+  <h2 id="challenge-title">{t('challenge.title', { name: username })}</h2>
   {#if status === 'waiting'}
-    <p class="muted waiting">Waiting for {username} to accept…</p>
+    <p class="muted waiting">{t('challenge.waiting', { name: username })}</p>
   {:else if status === 'declined'}
-    <p>{username} declined, or is no longer available.</p>
+    <p>{t('challenge.declined', { name: username })}</p>
   {:else}
     <TimeControlPicker onchange={(value) => (timeControl = value)} />
     <label>
-      You play
+      {t('challenge.youPlay')}
       <select bind:value={color}>
-        <option value="random">Random</option>
-        <option value="x">X (moves first)</option>
+        <option value="random">{t('challenge.random')}</option>
+        <option value="x">{t('challenge.x')}</option>
         <option value="o">O</option>
       </select>
     </label>
     <label class="check">
       <input type="checkbox" bind:checked={rated} disabled={!canRate} />
-      Rated
-      {#if bot}<span class="muted">(games against bots are casual)</span>{/if}
+      {t('game.rated')}
+      {#if bot}<span class="muted">{t('challenge.botsCasual')}</span>{/if}
     </label>
     {#if error}<p class="error" role="alert">{error}</p>{/if}
   {/if}
   <div class="actions">
     <button class="button" onclick={() => dialog.close()}
-      >{status === 'waiting' ? 'Cancel challenge' : 'Close'}</button
+      >{t(status === 'waiting' ? 'challenge.cancel' : 'common.close')}</button
     >
     {#if status !== 'waiting'}
       <button
@@ -88,7 +89,7 @@
         disabled={!socket.connected || !isTimeControl(timeControl)}
         onclick={send}
       >
-        {status === 'declined' ? 'Try again' : 'Send challenge'}
+        {t(status === 'declined' ? 'challenge.again' : 'challenge.send')}
       </button>
     {/if}
   </div>

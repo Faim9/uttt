@@ -2,6 +2,15 @@
   import '../app.css';
   import { afterNavigate, goto } from '$app/navigation';
   import { page } from '$app/state';
+  import {
+    around,
+    i18n,
+    LANGUAGES,
+    loadLanguage,
+    setLanguage,
+    t,
+    type Language,
+  } from '#lib/i18n.svelte.ts';
   import IncomingChallenges from '#lib/IncomingChallenges.svelte';
   import { install, installApp, watchInstall } from '#lib/install.svelte.ts';
   import { loadNewcomer } from '#lib/newcomer.svelte.ts';
@@ -17,38 +26,38 @@
   const SOURCE_URL = 'https://github.com/Faim9/uttt';
 
   const links = [
-    { href: '/', label: 'Play' },
-    { href: '/watch', label: 'Watch' },
-    { href: '/puzzles', label: 'Puzzles' },
-    { href: '/tournaments', label: 'Tournaments' },
-    { href: '/computer', label: 'Computer' },
-    { href: '/analysis', label: 'Analysis' },
-    { href: '/leaderboard', label: 'Leaderboard' },
-    { href: '/learn', label: 'Learn' },
-  ];
+    { href: '/', label: 'nav.play' },
+    { href: '/watch', label: 'nav.watch' },
+    { href: '/puzzles', label: 'nav.puzzles' },
+    { href: '/tournaments', label: 'nav.tournaments' },
+    { href: '/computer', label: 'nav.computer' },
+    { href: '/analysis', label: 'nav.analysis' },
+    { href: '/leaderboard', label: 'nav.leaderboard' },
+    { href: '/learn', label: 'nav.learn' },
+  ] as const;
 
   /** Classic follows the system's light or dark mode; the others are fixed looks. See app.css. */
-  const THEMES = { classic: 'Classic', playful: 'Playful', notebook: 'Notebook', arcade: 'Arcade' };
+  const THEMES = ['classic', 'playful', 'notebook', 'arcade'] as const;
   let theme = $state('classic');
   /** The phone tab bar's destinations; icons are 24×24 stroked paths. */
   const TABS = [
-    { href: '/', label: 'Play', icon: 'M8 5l11 7-11 7z' },
+    { href: '/', label: 'nav.play', icon: 'M8 5l11 7-11 7z' },
     {
       href: '/puzzles',
-      label: 'Puzzles',
+      label: 'nav.puzzles',
       icon: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8',
     },
     {
       href: '/watch',
-      label: 'Watch',
+      label: 'nav.watch',
       icon: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6',
     },
     {
       href: '/tournaments',
-      label: 'Tournaments',
+      label: 'nav.tournaments',
       icon: 'M7 4h10v5a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 20h8',
     },
-  ];
+  ] as const;
   /** On phones, More opens a sheet with everything the tab bar doesn't hold; any navigation closes it. */
   let menuOpen = $state(false);
   afterNavigate(() => (menuOpen = false));
@@ -70,6 +79,7 @@
   onMount(() => {
     theme = document.documentElement.dataset.theme ?? 'classic';
     watchInstall();
+    loadLanguage();
     loadSoundSetting();
     loadNewcomer();
     startSession();
@@ -92,20 +102,20 @@
 
 <header>
   <nav>
-    <a class="brand" href="/" aria-label="UTTT home"><Logo /> UTTT</a>
+    <a class="brand" href="/" aria-label={t('nav.home')}><Logo /> UTTT</a>
     <span class="links wide">
       {#each links as { href, label } (href)}
-        <a {href} aria-current={page.url.pathname === href ? 'page' : undefined}>{label}</a>
+        <a {href} aria-current={page.url.pathname === href ? 'page' : undefined}>{t(label)}</a>
       {/each}
     </span>
     <span class="account">
       {#if session.user}
         <a href="/@{session.user.username}">{session.user.username}</a>
-        <a class="wide" href="/account">Settings</a>
-        <button class="link wide" onclick={signOut}>Sign out</button>
+        <a class="wide" href="/account">{t('nav.settings')}</a>
+        <button class="link wide" onclick={signOut}>{t('nav.signOut')}</button>
       {:else if session.ready}
-        <a href="/login">Sign in</a>
-        <a class="button primary wide" href="/signup">Sign up</a>
+        <a href="/login">{t('nav.signIn')}</a>
+        <a class="button primary wide" href="/signup">{t('nav.signUp')}</a>
       {/if}
     </span>
   </nav>
@@ -117,25 +127,37 @@
   {@render children()}
 </main>
 
-<!-- The author credit is an attribution the license requires forks to keep (see README, "License"). -->
+<!-- The author credit is an attribution the license requires forks to keep (see README, "License"),
+     so it stays in English in every language. -->
 {#snippet colophon()}
+  {@const [free, after] = around('footer.freeSoftware', 'license')}
   <p>
-    Created by Faim9, with AI assistance (Claude). · <a href="/terms">Terms</a> ·
-    <a href="/privacy">Privacy</a>
+    Created by Faim9, with AI assistance (Claude). · <a href="/terms">{t('footer.terms')}</a> ·
+    <a href="/privacy">{t('footer.privacy')}</a>
   </p>
   <p>
-    Free software under the
-    <a href="https://www.gnu.org/licenses/agpl-3.0.html" rel="license">GNU AGPL v3</a> ·
-    <a href={SOURCE_URL}>Source code</a>.
+    {free}<a href="https://www.gnu.org/licenses/agpl-3.0.html" rel="license">GNU AGPL v3</a>{after} ·
+    <a href={SOURCE_URL}>{t('footer.source')}</a>
   </p>
 {/snippet}
 
 {#snippet themePicker()}
   <label>
-    Theme
+    {t('settings.language')}
+    <select
+      value={i18n.language}
+      onchange={(event) => setLanguage(event.currentTarget.value as Language)}
+    >
+      {#each Object.entries(LANGUAGES) as [value, name] (value)}
+        <option {value}>{name}</option>
+      {/each}
+    </select>
+  </label>
+  <label>
+    {t('settings.theme')}
     <select value={theme} onchange={(event) => setTheme(event.currentTarget.value)}>
-      {#each Object.entries(THEMES) as [value, label] (value)}
-        <option {value}>{label}</option>
+      {#each THEMES as value (value)}
+        <option {value}>{t(`theme.${value}`)}</option>
       {/each}
     </select>
   </label>
@@ -145,17 +167,15 @@
       checked={sound.on}
       onchange={(event) => setSound(event.currentTarget.checked)}
     />
-    Sound
+    {t('settings.sound')}
   </label>
 {/snippet}
 
 {#snippet installOffer()}
   {#if install.prompt}
-    <button class="button primary" onclick={installApp}>Install the app</button>
+    <button class="button primary" onclick={installApp}>{t('install.button')}</button>
   {:else if install.ios}
-    <p class="muted">
-      Get the app: tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.
-    </p>
+    <p class="muted">{t('install.ios')}</p>
   {/if}
 {/snippet}
 
@@ -165,31 +185,32 @@
 </footer>
 
 <!-- Phones get an app-style tab bar; everything else lives in the More sheet. -->
-<nav class="tabs" aria-label="Main">
+<nav class="tabs" aria-label={t('nav.main')}>
   {#each TABS as { href, label, icon } (href)}
     <a {href} aria-current={page.url.pathname === href ? 'page' : undefined}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d={icon} /></svg>
-      {label}
+      {t(label)}
     </a>
   {/each}
   <button aria-expanded={menuOpen} aria-controls="more" onclick={() => (menuOpen = !menuOpen)}>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-    More
+    {t('nav.more')}
   </button>
 </nav>
 
 {#if menuOpen}
-  <button class="backdrop" aria-label="Close menu" onclick={() => (menuOpen = false)}></button>
+  <button class="backdrop" aria-label={t('nav.closeMenu')} onclick={() => (menuOpen = false)}
+  ></button>
   <div class="sheet" id="more">
     <div class="sheet-links">
       {#each links.filter((link) => !TABS.some((tab) => tab.href === link.href)) as { href, label } (href)}
-        <a {href}>{label}</a>
+        <a {href}>{t(label)}</a>
       {/each}
       {#if session.user}
-        <a href="/account">Settings</a>
-        <button class="link" onclick={signOut}>Sign out</button>
+        <a href="/account">{t('nav.settings')}</a>
+        <button class="link" onclick={signOut}>{t('nav.signOut')}</button>
       {:else if session.ready}
-        <a href="/signup">Create an account</a>
+        <a href="/signup">{t('nav.createAccount')}</a>
       {/if}
     </div>
     {@render installOffer()}

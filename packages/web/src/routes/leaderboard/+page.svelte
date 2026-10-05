@@ -1,6 +1,7 @@
 <script lang="ts">
   import { CATEGORIES, type Category } from '@uttt/core';
   import ChallengeDialog from '#lib/ChallengeDialog.svelte';
+  import { around, t } from '#lib/i18n.svelte.ts';
   import { api, session } from '#lib/session.svelte.ts';
   import { onMount } from 'svelte';
 
@@ -37,66 +38,73 @@
   }
 </script>
 
-<h1>Leaderboard</h1>
+<h1>{t('nav.leaderboard')}</h1>
 
-<div class="tabs" role="group" aria-label="Who">
-  <button class="button" class:primary={!bots} onclick={() => (bots = false)}>People</button>
-  <button class="button" class:primary={bots} onclick={() => (bots = true)}>Bots</button>
+<div class="tabs" role="group" aria-label={t('leaderboard.who')}>
+  <button class="button" class:primary={!bots} onclick={() => (bots = false)}
+    >{t('leaderboard.people')}</button
+  >
+  <button class="button" class:primary={bots} onclick={() => (bots = true)}
+    >{t('leaderboard.bots')}</button
+  >
 </div>
 
 {#if bots}
+  {@const [before, after] = around('leaderboard.botsAbout', 'link')}
   <section class="card">
-    <h2>Bots online</h2>
+    <h2>{t('leaderboard.botsOnline')}</h2>
     {#if online.length === 0}
-      <p class="muted">No bots are online right now.</p>
+      <p class="muted">{t('leaderboard.noBots')}</p>
     {:else}
       <ul class="bots">
         {#each online as bot (bot.username)}
           <li>
             <a href="/@{bot.username}">{bot.username}</a>
             <span class="bot-tag">BOT</span>
-            <span class="muted">blitz {bot.blitz} · bullet {bot.bullet}</span>
+            <span class="muted"
+              >{t('category.blitz')} {bot.blitz} · {t('category.bullet')} {bot.bullet}</span
+            >
             {#if bot.playing}
-              <span class="muted">playing</span>
+              <span class="muted">{t('leaderboard.playing')}</span>
             {:else if session.user}
-              <button class="button" onclick={() => challenge(bot.username)}>Challenge</button>
+              <button class="button" onclick={() => challenge(bot.username)}
+                >{t('profile.challenge')}</button
+              >
             {/if}
           </li>
         {/each}
       </ul>
     {/if}
-    <p class="muted">
-      Bots are programs playing through the <a href={BOT_GUIDE}>bot API</a>: write your own and see
-      how it ranks. Games against people are casual; bots are rated among themselves.
-    </p>
+    <p class="muted">{before}<a href={BOT_GUIDE}>{t('bots.api')}</a>{after}</p>
   </section>
   <ChallengeDialog bind:this={dialog} username={challenged} bot />
 {/if}
 
-<div class="tabs" role="tablist" aria-label="Category">
+<div class="tabs" role="tablist" aria-label={t('leaderboard.category')}>
   {#each CATEGORIES as tab (tab)}
     <button
       class="button"
       class:primary={tab === category}
       role="tab"
       aria-selected={tab === category}
-      onclick={() => (category = tab)}>{tab}</button
+      onclick={() => (category = tab)}>{t(`category.${tab}`)}</button
     >
   {/each}
 </div>
 
 <section class="card">
   {#if entries === null}
-    <p class="muted">Loading…</p>
+    <p class="muted">{t('common.loading')}</p>
   {:else if entries.length === 0}
-    <p class="muted">
-      No ranked players yet. Players appear once their rating is established and they've played in
-      the last 30 days.
-    </p>
+    <p class="muted">{t('leaderboard.empty')}</p>
   {:else}
     <table>
       <thead>
-        <tr><th>#</th><th>Player</th><th>Rating</th><th>Games</th></tr>
+        <tr>
+          <th>#</th><th>{t('leaderboard.player')}</th><th>{t('graph.ratingColumn')}</th><th
+            >{t('history.title')}</th
+          >
+        </tr>
       </thead>
       <tbody>
         {#each entries as entry, i (entry.username)}

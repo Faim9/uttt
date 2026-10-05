@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from './i18n.svelte.ts';
   import type { GameReview } from './review.ts';
   import type { TreeNode } from './tree.svelte.ts';
 
@@ -45,12 +46,7 @@
 
 <!-- Mouse shortcut only: every position is also reachable from the move list and the keyboard. -->
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
-<div
-  class="graph"
-  role="img"
-  aria-label="X's win chance over the game; dots mark mistakes and blunders"
-  {onclick}
->
+<div class="graph" role="img" aria-label={t('graph.eval')} {onclick}>
   <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
     <path d={area} />
     <line x1="0" y1="50" x2="100" y2="50" />

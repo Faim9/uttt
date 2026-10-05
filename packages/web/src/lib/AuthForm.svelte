@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import Captcha from './Captcha.svelte';
+  import { around, t } from './i18n.svelte.ts';
   import { ApiError, authenticate } from './session.svelte.ts';
 
   let { mode }: { mode: 'login' | 'signup' } = $props();
@@ -40,31 +41,30 @@
 </script>
 
 <form class="card" onsubmit={submit}>
-  <h1>{mode === 'login' ? 'Sign in' : 'Create an account'}</h1>
-
+  <h1>{t(mode === 'login' ? 'nav.signIn' : 'nav.createAccount')}</h1>
   {#if mode === 'login'}
     <label>
-      Username or email
+      {t('auth.login')}
       <input bind:value={fields.login} autocomplete="username" required />
     </label>
   {:else}
     <label>
-      Username
+      {t('auth.username')}
       <input
         bind:value={fields.username}
         autocomplete="username"
         pattern={'[A-Za-z0-9_\\-]{3,20}'}
-        title="3–20 letters, digits, _ or -"
+        title={t('auth.usernameRule')}
         required
       />
     </label>
     <label>
-      Email
+      {t('auth.email')}
       <input type="email" bind:value={fields.email} autocomplete="email" required />
     </label>
   {/if}
   <label>
-    Password
+    {t('auth.password')}
     <input
       type="password"
       bind:value={fields.password}
@@ -80,11 +80,11 @@
 
   {#if needsCode}
     <label>
-      Authentication code
+      {t('auth.code')}
       <input
         bind:value={fields.code}
         autocomplete="one-time-code"
-        placeholder="6-digit code or a recovery code"
+        placeholder={t('auth.codePlaceholder')}
         required
       />
     </label>
@@ -95,20 +95,22 @@
   {/if}
 
   <button class="button primary" disabled={busy}>
-    {mode === 'login' ? 'Sign in' : 'Sign up'}
+    {t(mode === 'login' ? 'nav.signIn' : 'nav.signUp')}
   </button>
   <p class="muted">
     {#if mode === 'login'}
-      New here? <a href="/signup">Create an account</a> ·
-      <a href="/reset-password">Forgot your password?</a>
+      {t('auth.newHere')} <a href="/signup">{t('nav.createAccount')}</a> ·
+      <a href="/reset-password">{t('auth.forgot')}</a>
     {:else}
-      Already have an account? <a href="/login">Sign in</a>
+      {t('auth.haveAccount')} <a href="/login">{t('nav.signIn')}</a>
     {/if}
   </p>
   {#if mode === 'signup'}
+    {@const [start, rest] = around('auth.agree', 'terms')}
+    {@const [middle, end] = rest.split('{privacy}')}
     <p class="muted">
-      By signing up, you agree to the <a href="/terms">terms</a> and the
-      <a href="/privacy">privacy policy</a>.
+      {start}<a href="/terms">{t('auth.terms')}</a>{middle}<a href="/privacy">{t('auth.privacy')}</a
+      >{end}
     </p>
   {/if}
 </form>

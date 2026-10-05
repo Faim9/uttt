@@ -1,7 +1,8 @@
 <script lang="ts">
   import { parsePosition, play, type Position } from '@uttt/core';
   import Board from '#lib/Board.svelte';
-  import { LESSONS } from '#lib/lessons.ts';
+  import { t, type Key } from '#lib/i18n.svelte.ts';
+  import { LESSONS, type Hint } from '#lib/lessons.ts';
   import { learned } from '#lib/newcomer.svelte.ts';
   import { playSound } from '#lib/sound.svelte.ts';
 
@@ -9,14 +10,21 @@
   let index = $state(0);
   let position = $state.raw<Position>(parsePosition(LESSONS[0].position));
   let lastMove = $state<number | null>(null);
-  let hint = $state('');
+  let hint = $state<Hint | null>(null);
   let done = $state(false);
 
   const lesson = $derived(LESSONS[index] as (typeof LESSONS)[number] | undefined);
 
+  /** A hint's words; a board number in it becomes the board's name ("the top-left board"). */
+  function hintText({ key, params = {} }: Hint): string {
+    const { board } = params;
+    const named = board === undefined ? params : { ...params, board: t(`board.${board}` as Key) };
+    return t(key as Key, named);
+  }
+
   function open(next: number) {
     index = next;
-    hint = '';
+    hint = null;
     done = false;
     lastMove = null;
     if (LESSONS[next]) position = parsePosition(LESSONS[next].position);
@@ -34,7 +42,7 @@
     }
     position = play(position, move);
     lastMove = move;
-    hint = '';
+    hint = null;
     done = true;
     playSound('solved');
   }
@@ -47,39 +55,42 @@
     <section class="card">
       <p
         class="steps"
-        aria-label="Lesson {Math.min(index + 1, LESSONS.length)} of {LESSONS.length}"
+        aria-label={t('learn.steps', {
+          n: Math.min(index + 1, LESSONS.length),
+          total: LESSONS.length,
+        })}
       >
-        {#each LESSONS as step, i (step.title)}
+        {#each LESSONS as step, i (step.id)}
           <button
             class="step"
             class:passed={i < index}
             aria-current={i === index ? 'step' : undefined}
-            aria-label="Lesson {i + 1}: {step.title}"
+            aria-label={t('learn.step', { n: i + 1, title: t(`lesson.${step.id}.title`) })}
             onclick={() => open(i)}
           ></button>
         {/each}
       </p>
       {#if lesson}
-        <h1>{lesson.title}</h1>
-        <p>{lesson.text}</p>
-        <p class="task">{lesson.task}</p>
+        <h1>{t(`lesson.${lesson.id}.title`)}</h1>
+        <p>{t(`lesson.${lesson.id}.text`)}</p>
+        <p class="task">{t(`lesson.${lesson.id}.task`)}</p>
         {#if done}
-          <p class="right" role="status">{lesson.done}</p>
+          <p class="right" role="status">{t(`lesson.${lesson.id}.done`)}</p>
           <button class="button primary" onclick={() => open(index + 1)}>
-            {index + 1 < LESSONS.length ? 'Next lesson' : 'Finish'}
+            {t(index + 1 < LESSONS.length ? 'learn.next' : 'learn.finish')}
           </button>
         {:else if hint}
-          <p class="wrong" role="alert">{hint}</p>
+          <p class="wrong" role="alert">{hintText(hint)}</p>
         {/if}
       {:else}
-        <h1>You know the rules!</h1>
-        <p>The best way to get better is to play. Some ideas:</p>
+        <h1>{t('learn.doneTitle')}</h1>
+        <p>{t('learn.doneText')}</p>
         <div class="actions">
-          <a class="button primary" href="/">Play online</a>
-          <a class="button" href="/computer">Play the computer</a>
-          <a class="button" href="/puzzles">Solve puzzles</a>
+          <a class="button primary" href="/">{t('learn.playOnline')}</a>
+          <a class="button" href="/computer">{t('learn.playComputer')}</a>
+          <a class="button" href="/puzzles">{t('learn.puzzles')}</a>
         </div>
-        <button class="link" onclick={() => open(0)}>Start the lessons again</button>
+        <button class="link" onclick={() => open(0)}>{t('learn.again')}</button>
       {/if}
     </section>
   </div>

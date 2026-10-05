@@ -1,6 +1,7 @@
 <script lang="ts">
   import { formatMove, type Judgement } from '@uttt/core';
-  import { formatClock, JUDGEMENTS } from './game.ts';
+  import { formatClock, JUDGEMENT_SYMBOLS } from './game.ts';
+  import { t } from './i18n.svelte.ts';
   import type { GameTree, TreeNode } from './tree.svelte.ts';
 
   interface Props {
@@ -35,7 +36,7 @@
   >
     <span class="number">{moveNumber(node, interrupted)}</span>{node.move === null
       ? ''
-      : formatMove(node.move)}{judgement ? JUDGEMENTS[judgement].symbol : ''}{#if left !== null}
+      : formatMove(node.move)}{judgement ? JUDGEMENT_SYMBOLS[judgement] : ''}{#if left !== null}
       <span class="clock">{formatClock(left)}</span>{/if}
   </button>
 {/snippet}
@@ -53,7 +54,7 @@
 
 <div class="moves">
   {#if tree.root.children.length === 0}
-    <span class="muted">No moves yet — click the board to play.</span>
+    <span class="muted">{t('moves.none')}</span>
   {:else}
     {@render line(tree.root, true)}
   {/if}

@@ -26,8 +26,8 @@ free, no ads, open source.
 - **Bot API:** write a program that plays: bot accounts connect over WebSocket with an API token, play each
   other on a ladder of their own, and take challenges from people. See [docs/bot-api.md](docs/bot-api.md),
   with a complete example bot.
-- **Everywhere:** installable as an app on phones and desktops, link previews when shared, light and dark
-  themes, sounds.
+- **Everywhere:** in English, German, Spanish, French, and Portuguese; installable as an app on phones and
+  desktops, link previews when shared, light and dark themes, sounds.
 
 The engine (Monte Carlo Tree Search with a solver) runs in your browser, so analysis costs the server
 nothing. The server is authoritative: it validates every move and runs the clocks, and games survive a

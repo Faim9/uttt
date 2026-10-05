@@ -1,6 +1,7 @@
 <script lang="ts">
   import { formatMove, type Judgement, type Player } from '@uttt/core';
-  import { JUDGEMENTS, percent } from './game.ts';
+  import { JUDGEMENT_SYMBOLS, percent } from './game.ts';
+  import { around, t, tn } from './i18n.svelte.ts';
   import Piece from './Piece.svelte';
   import type { GameReview } from './review.ts';
   import type { GameTree } from './tree.svelte.ts';
@@ -43,10 +44,12 @@
 </script>
 
 <section class="card">
-  <h2>Game review</h2>
+  <h2>{t('review.title')}</h2>
 
   {#if !review.done}
-    <p class="muted">Analyzing {review.evals.size} / {review.nodes.length} positions…</p>
+    <p class="muted">
+      {t('review.analyzing', { done: review.evals.size, total: review.nodes.length })}
+    </p>
     <progress max={review.nodes.length} value={review.evals.size}></progress>
   {/if}
 
@@ -57,18 +60,20 @@
       <div class="player">
         <span class="piece"><Piece {player} /></span>
         <strong>{accuracy === null ? '–' : `${Math.round(accuracy)}%`}</strong>
-        <span class="muted">accuracy</span>
+        <span class="muted">{t('review.accuracy')}</span>
         <div class="counts">
           {#each COUNTED as judgement (judgement)}
             {@const count = moments.filter(({ review }) => review.judgement === judgement).length}
             <button
               class="count {judgement}"
               disabled={count === 0}
-              title="Go to {player.toUpperCase()}'s next {JUDGEMENTS[judgement].label}"
+              title={t('review.next', {
+                side: player.toUpperCase(),
+                judgement: t(`judgement.${judgement}`),
+              })}
               onclick={() => next(player, judgement)}
             >
-              {count}
-              {count === 1 ? JUDGEMENTS[judgement].label : JUDGEMENTS[judgement].plural}
+              {tn(`judgements.${judgement}`, count)}
             </button>
           {/each}
         </div>
@@ -77,29 +82,28 @@
   </div>
 
   {#if verdict}
+    {@const [before, after] = around(`review.is.${verdict.judgement}`, 'move')}
     <div class="verdict {verdict.judgement}" aria-live="polite">
-      {#if verdict.judgement === 'best'}
-        <p><strong>{verdict.move}</strong> is the engine's choice.</p>
-      {:else}
-        <p>
-          <strong>{verdict.move}{JUDGEMENTS[verdict.judgement].symbol}</strong> is
-          {verdict.judgement === 'good'
-            ? 'a good move'
-            : `a ${JUDGEMENTS[verdict.judgement].label}`}.
-          {verdict.mover.toUpperCase()}'s win chance: {percent(verdict.from)} → {percent(
-            verdict.to,
-          )}.
-        </p>
-        {#if verdict.bestMove !== null}
-          <p>
-            Best was <strong>{formatMove(verdict.bestMove)}</strong>.
-            <button class="button" onclick={showBest}>Show best move</button>
-          </p>
+      <p>
+        {before}<strong>{verdict.move}{JUDGEMENT_SYMBOLS[verdict.judgement]}</strong>{after}
+        {#if verdict.judgement !== 'best'}
+          {t('review.chance', {
+            side: verdict.mover.toUpperCase(),
+            from: percent(verdict.from),
+            to: percent(verdict.to),
+          })}
         {/if}
+      </p>
+      {#if verdict.judgement !== 'best' && verdict.bestMove !== null}
+        {@const [bestBefore, bestAfter] = around('review.bestWas', 'move')}
+        <p>
+          {bestBefore}<strong>{formatMove(verdict.bestMove)}</strong>{bestAfter}
+          <button class="button" onclick={showBest}>{t('review.showBest')}</button>
+        </p>
       {/if}
     </div>
   {:else if review.done}
-    <p class="muted">Pick a move to see the engine's verdict.</p>
+    <p class="muted">{t('review.pick')}</p>
   {/if}
 </section>
 

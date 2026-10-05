@@ -1,6 +1,7 @@
 <script lang="ts">
   import { CORRESPONDENCE, type TimeControl } from '@uttt/core';
   import { formatClock, timeControlName } from './game.ts';
+  import { around, t, tn } from './i18n.svelte.ts';
   import { api, session, socket } from './session.svelte.ts';
 
   /**
@@ -80,22 +81,24 @@
 
 {#if expanded || lists.games.length > 0}
   <section class="card correspondence">
-    <h2>{expanded ? 'Correspondence' : 'Your correspondence games'}</h2>
+    <h2>{t(expanded ? 'category.correspondence' : 'corr.yourGames')}</h2>
     {#if expanded}
-      <p class="muted">
-        Days per move: play whenever you have time, no need to be online together.
-      </p>
+      <p class="muted">{t('corr.pitch')}</p>
     {/if}
 
     {#if lists.games.length > 0}
       <ul>
         {#each lists.games as game (game.id)}
           <li>
-            <a href="/game/{game.id}">vs {game.opponent ?? 'Anonymous'}</a>
+            <a href="/game/{game.id}"
+              >{t('game.vs', { name: game.opponent ?? t('game.anonymous') })}</a
+            >
             {#if game.yourTurn}
-              <strong class="turn">Your move · {formatClock(game.timeLeft)} left</strong>
+              <strong class="turn"
+                >{t('corr.yourMove', { time: formatClock(game.timeLeft) })}</strong
+              >
             {:else}
-              <span class="muted">Their move</span>
+              <span class="muted">{t('corr.theirMove')}</span>
             {/if}
           </li>
         {/each}
@@ -103,7 +106,7 @@
     {/if}
 
     {#if expanded && lists.open.length > 0}
-      <h3>Open games</h3>
+      <h3>{t('corr.open')}</h3>
       <ul>
         {#each lists.open as challenge (challenge.id)}
           <li>
@@ -112,15 +115,15 @@
               <span class="muted">{challenge.rating}{challenge.provisional ? '?' : ''}</span>
             </span>
             <span class="muted"
-              >{timeControlName(challenge.timeControl)} · {challenge.rated
-                ? 'rated'
-                : 'casual'}</span
+              >{timeControlName(challenge.timeControl)} · {t(
+                challenge.rated ? 'game.ratedLower' : 'game.casualLower',
+              )}</span
             >
             {#if session.user}
               <button
                 class="button"
                 disabled={!socket.connected}
-                onclick={() => accept(challenge.id)}>Accept</button
+                onclick={() => accept(challenge.id)}>{t('common.accept')}</button
               >
             {/if}
           </li>
@@ -130,29 +133,34 @@
 
     {#if expanded && session.user}
       {#if lists.mine.length > 0}
-        <h3>Your open games</h3>
+        <h3>{t('corr.mine')}</h3>
         <ul>
           {#each lists.mine as challenge (challenge.id)}
             <li>
               <span class="muted">
-                {timeControlName(challenge.timeControl)} · {challenge.rated ? 'rated' : 'casual'}
-                · {challenge.listed ? 'waiting for an opponent' : 'shared by link'}
+                {timeControlName(challenge.timeControl)} · {t(
+                  challenge.rated ? 'game.ratedLower' : 'game.casualLower',
+                )}
+                · {t(challenge.listed ? 'corr.waitingOpponent' : 'corr.byLink')}
               </span>
-              <button class="button" onclick={() => cancel(challenge.id)}>Cancel</button>
+              <button class="button" onclick={() => cancel(challenge.id)}
+                >{t('common.cancel')}</button
+              >
             </li>
           {/each}
         </ul>
       {/if}
-      <div class="new" role="group" aria-label="Start a correspondence game">
-        <span class="muted">New game:</span>
+      <div class="new" role="group" aria-label={t('corr.start')}>
+        <span class="muted">{t('corr.newGame')}</span>
         {#each CORRESPONDENCE as timeControl (timeControl)}
           <button class="button" onclick={() => post(timeControl)}>
-            {timeControlName(timeControl).replace(' per move', '')}
+            {tn('countdown.days', parseInt(timeControl))}
           </button>
         {/each}
       </div>
     {:else if expanded && session.ready}
-      <p class="muted"><a href="/login">Sign in</a> to play correspondence games.</p>
+      {@const [before, after] = around('corr.signIn', 'link')}
+      <p class="muted">{before}<a href="/login">{t('nav.signIn')}</a>{after}</p>
     {/if}
     {#if error}<p class="error" role="alert">{error}</p>{/if}
   </section>

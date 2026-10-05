@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { t } from './i18n.svelte.ts';
   import { api, session, socket } from './session.svelte.ts';
 
   let { twoFactor }: { twoFactor: boolean } = $props();
@@ -24,35 +25,31 @@
 </script>
 
 <section class="card">
-  <h2>Your data</h2>
+  <h2>{t('data.title')}</h2>
   <p>
-    Download everything stored about you: your account, devices, ratings, and games.
-    <a class="button" href="/api/account/export" download>Download my data</a>
+    {t('data.download')}
+    <a class="button" href="/api/account/export" download>{t('data.downloadButton')}</a>
   </p>
-
   <details>
-    <summary>Delete my account</summary>
-    <p>
-      This deletes your account, ratings, and sessions for good. Your games stay in your opponents'
-      histories, without your name. It can't be undone.
-    </p>
+    <summary>{t('data.delete')}</summary>
+    <p>{t('data.deleteWarning')}</p>
     <form onsubmit={remove}>
       <label>
-        Password
+        {t('auth.password')}
         <input type="password" bind:value={password} autocomplete="current-password" required />
       </label>
       {#if twoFactor}
         <label>
-          Authentication code
+          {t('auth.code')}
           <input bind:value={code} autocomplete="one-time-code" required />
         </label>
       {/if}
       <label class="confirm">
         <input type="checkbox" bind:checked={confirmed} required />
-        I understand this can't be undone
+        {t('data.understand')}
       </label>
       {#if error}<p class="error" role="alert">{error}</p>{/if}
-      <button class="button danger" disabled={!confirmed}>Delete my account</button>
+      <button class="button danger" disabled={!confirmed}>{t('data.delete')}</button>
     </form>
   </details>
 </section>

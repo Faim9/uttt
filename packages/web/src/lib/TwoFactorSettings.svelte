@@ -1,5 +1,6 @@
 <script lang="ts">
   import { renderSVG } from 'uqr';
+  import { t } from './i18n.svelte.ts';
   import { api } from './session.svelte.ts';
 
   interface Props {
@@ -57,34 +58,32 @@
 </script>
 
 <section class="card">
-  <h2>Two-factor authentication</h2>
-
+  <h2>{t('twoFactor.title')}</h2>
   {#if recoveryCodes}
-    <p><strong>Two-factor authentication is on.</strong></p>
-    <p>
-      Save these recovery codes somewhere safe. Each works once, if you lose your device. They won't
-      be shown again.
-    </p>
+    <p><strong>{t('twoFactor.isOn')}</strong></p>
+    <p>{t('twoFactor.saveCodes')}</p>
     <ul class="codes">
       {#each recoveryCodes as recoveryCode (recoveryCode)}<li>{recoveryCode}</li>{/each}
     </ul>
-    <button class="button primary" onclick={() => (recoveryCodes = null)}>I've saved them</button>
+    <button class="button primary" onclick={() => (recoveryCodes = null)}
+      >{t('twoFactor.saved')}</button
+    >
   {:else if enabled}
-    <p>On. Signing in asks for a code from your authenticator app.</p>
+    <p>{t('twoFactor.on')}</p>
     <form onsubmit={disable}>
       <label>
-        Password
+        {t('auth.password')}
         <input type="password" bind:value={password} autocomplete="current-password" required />
       </label>
-      <button class="button">Turn off</button>
+      <button class="button">{t('twoFactor.turnOff')}</button>
     </form>
   {:else if setup}
-    <p>Scan this with an authenticator app (e.g. Aegis, Google Authenticator, 1Password):</p>
-    <img src={qr} alt="QR code for your authenticator app" width="180" height="180" />
-    <p class="muted">Or enter this key: <code>{setup.secret.match(/.{4}/g)?.join(' ')}</code></p>
+    <p>{t('twoFactor.scan')}</p>
+    <img src={qr} alt={t('twoFactor.qr')} width="180" height="180" />
+    <p class="muted">{t('twoFactor.key')} <code>{setup.secret.match(/.{4}/g)?.join(' ')}</code></p>
     <form onsubmit={enable}>
       <label>
-        Code from the app
+        {t('twoFactor.code')}
         <input
           bind:value={code}
           autocomplete="one-time-code"
@@ -93,11 +92,11 @@
           required
         />
       </label>
-      <button class="button primary">Turn on</button>
+      <button class="button primary">{t('twoFactor.turnOn')}</button>
     </form>
   {:else}
-    <p>Protect your account with a code from your phone in addition to your password.</p>
-    <button class="button" onclick={start}>Set up</button>
+    <p>{t('twoFactor.pitch')}</p>
+    <button class="button" onclick={start}>{t('twoFactor.setUp')}</button>
   {/if}
 
   {#if error}<p class="error" role="alert">{error}</p>{/if}

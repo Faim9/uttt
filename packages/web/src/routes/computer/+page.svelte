@@ -3,6 +3,7 @@
   import Board from '#lib/Board.svelte';
   import { Engine } from '#lib/engine.ts';
   import { analysisLink } from '#lib/game.ts';
+  import { t } from '#lib/i18n.svelte.ts';
   import { onDestroy } from 'svelte';
 
   /** Engine playouts per move at each level. */
@@ -46,22 +47,22 @@
   }
 
   function result(): string {
-    if (position.outcome === 'draw') return 'Draw.';
-    return position.outcome === player ? 'You won!' : 'The computer won.';
+    if (position.outcome === 'draw') return t('computer.draw');
+    return t(position.outcome === player ? 'computer.youWon' : 'computer.itWon');
   }
 </script>
 
 {#if player === null}
   <section class="card setup">
-    <h1>Play the computer</h1>
+    <h1>{t('learn.playComputer')}</h1>
 
-    <h2>Strength</h2>
+    <h2>{t('computer.strength')}</h2>
     <div class="options">
       {#each LEVELS as playouts, i (i)}
         <button
           class="button"
           class:primary={level === i + 1}
-          title="{playouts} playouts per move"
+          title={t('computer.playouts', { n: playouts })}
           onclick={() => (level = i + 1)}
         >
           {i + 1}
@@ -69,16 +70,16 @@
       {/each}
     </div>
 
-    <h2>Play as</h2>
+    <h2>{t('computer.playAs')}</h2>
     <div class="options">
-      {#each [['x', 'X (first)'], ['o', 'O (second)'], ['random', 'Random']] as const as [value, label] (value)}
+      {#each [['x', 'computer.x'], ['o', 'computer.o'], ['random', 'challenge.random']] as const as [value, label] (value)}
         <button class="button" class:primary={side === value} onclick={() => (side = value)}>
-          {label}
+          {t(label)}
         </button>
       {/each}
     </div>
 
-    <button class="button primary start" onclick={start}>Start game</button>
+    <button class="button primary start" onclick={start}>{t('computer.start')}</button>
   </section>
 {:else}
   <div class="board-layout">
@@ -91,28 +92,30 @@
 
     <div class="panel">
       <section class="card">
-        <h2>Level {level} · You play {player.toUpperCase()}</h2>
+        <h2>{t('computer.header', { level, side: player.toUpperCase() })}</h2>
         <p class="status" aria-live="polite">
           {#if position.outcome}
             {result()}
           {:else if thinking}
-            The computer is thinking…
+            {t('computer.thinking')}
           {:else}
-            Your move{position.forced === null ? ' — play on any open board' : ''}.
+            {t(position.forced === null ? 'computer.yourMoveFree' : 'computer.yourMove')}
           {/if}
         </p>
         <div class="options">
           <button class="button" disabled={moves.length < (player === 'x' ? 1 : 2)} onclick={undo}>
-            Take back
+            {t('computer.takeBack')}
           </button>
           {#if position.outcome}
-            <a class="button primary" href={analysisLink(moves, { review: true })}>Review game</a>
+            <a class="button primary" href={analysisLink(moves, { review: true })}
+              >{t('game.review')}</a
+            >
           {:else}
-            <a class="button" href={analysisLink(moves)}>Analyze</a>
+            <a class="button" href={analysisLink(moves)}>{t('puzzle.analyze')}</a>
           {/if}
-          <button class="button" onclick={() => (player = null)}>New game</button>
+          <button class="button" onclick={() => (player = null)}>{t('game.newGame')}</button>
           {#if position.outcome}
-            <button class="button" onclick={rematch}>Rematch (swap sides)</button>
+            <button class="button" onclick={rematch}>{t('computer.rematch')}</button>
           {/if}
         </div>
       </section>

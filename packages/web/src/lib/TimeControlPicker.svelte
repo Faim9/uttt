@@ -1,6 +1,7 @@
 <script lang="ts">
   import { CORRESPONDENCE, isTimeControl, TIME_CONTROLS } from '@uttt/core';
   import { timeControlName } from './game.ts';
+  import { t } from './i18n.svelte.ts';
 
   /** Picks a time control: a preset, any minutes plus increment, and optionally days per move. */
   interface Props {
@@ -21,7 +22,7 @@
 </script>
 
 <fieldset>
-  <legend>Time control</legend>
+  <legend>{t('time.control')}</legend>
   <div class="presets">
     {#each TIME_CONTROLS as preset (preset)}
       <button
@@ -37,7 +38,7 @@
     {/each}
   </div>
   {#if correspondence}
-    <div class="presets" role="group" aria-label="Correspondence">
+    <div class="presets" role="group" aria-label={t('category.correspondence')}>
       {#each CORRESPONDENCE as preset (preset)}
         <button
           class="button"
@@ -51,16 +52,16 @@
   {/if}
   <div class="row">
     <label>
-      Minutes
+      {t('time.minutes')}
       <input type="number" min="1" max="60" bind:value={minutes} oninput={() => (days = null)} />
     </label>
     <label>
-      Increment (seconds)
+      {t('time.increment')}
       <input type="number" min="0" max="30" bind:value={increment} oninput={() => (days = null)} />
     </label>
   </div>
   {#if !isTimeControl(timeControl)}
-    <p class="error">From 1 to 60 minutes, plus 0 to 30 seconds per move.</p>
+    <p class="error">{t('time.range')}</p>
   {/if}
 </fieldset>
 

@@ -6,13 +6,13 @@
     formatMove,
     other,
     replay,
-    resultText,
     TIME_CONTROLS,
     type GameState,
     type Player,
   } from '@uttt/core';
   import Board from '#lib/Board.svelte';
-  import { analysisLink, formatClock, timeControlName } from '#lib/game.ts';
+  import { analysisLink, formatClock, resultText, timeControlName } from '#lib/game.ts';
+  import { t } from '#lib/i18n.svelte.ts';
   import PlayerBar from '#lib/PlayerBar.svelte';
   import { socket } from '#lib/session.svelte.ts';
   import { playSound } from '#lib/sound.svelte.ts';
@@ -141,11 +141,10 @@
   }
 
   function status(): string {
-    if (!game || !position) return 'Loading…';
+    if (!game || !position) return t('common.loading');
     if (game.termination) return resultText(game);
-    if (you === null) return `${position.turn.toUpperCase()} to move`;
-    if (position.turn === you) return 'Your move';
-    return "Opponent's move";
+    if (you === null) return t('game.toMove', { side: position.turn.toUpperCase() });
+    return t(position.turn === you ? 'game.yourMove' : 'game.opponentsMove');
   }
 </script>
 
@@ -175,10 +174,12 @@
 
     <div class="panel">
       <section class="card">
-        <h2>{timeControlName(game.timeControl)} · {game.rated ? 'Rated' : 'Casual'}</h2>
+        <h2>
+          {timeControlName(game.timeControl)} · {t(game.rated ? 'game.rated' : 'game.casual')}
+        </h2>
         <p class="status" aria-live="polite">{status()}</p>
         {#if active && you === null}
-          <p class="muted">You're watching. <a href="/watch">More live games</a></p>
+          <p class="muted">{t('game.watching')} <a href="/watch">{t('game.moreLive')}</a></p>
         {/if}
         {#if error}
           <p class="error" role="alert">{error}</p>
@@ -187,40 +188,49 @@
         {#if active && you}
           <div class="actions">
             {#if game.moves.length < 2}
-              <button class="button" onclick={() => act('abort')}>Abort</button>
+              <button class="button" onclick={() => act('abort')}>{t('game.abort')}</button>
             {:else if confirmingResign}
-              <span class="confirm">Resign this game?</span>
-              <button class="button primary" onclick={() => act('resign')}>Yes, resign</button>
-              <button class="button" onclick={() => (confirmingResign = false)}>Cancel</button>
+              <span class="confirm">{t('game.resignConfirm')}</span>
+              <button class="button primary" onclick={() => act('resign')}
+                >{t('game.resignYes')}</button
+              >
+              <button class="button" onclick={() => (confirmingResign = false)}
+                >{t('common.cancel')}</button
+              >
             {:else}
-              <button class="button" onclick={() => (confirmingResign = true)}>Resign</button>
+              <button class="button" onclick={() => (confirmingResign = true)}
+                >{t('game.resign')}</button
+              >
               {#if game.drawOffer === other(you)}
-                <button class="button primary" onclick={() => act('draw')}>Accept draw</button>
+                <button class="button primary" onclick={() => act('draw')}
+                  >{t('game.acceptDraw')}</button
+                >
               {:else}
                 <button
                   class="button"
                   disabled={game.drawOffer === you}
                   onclick={() => act('draw')}
                 >
-                  {game.drawOffer === you ? 'Draw offered' : 'Offer draw'}
+                  {t(game.drawOffer === you ? 'game.drawOffered' : 'game.offerDraw')}
                 </button>
               {/if}
             {/if}
           </div>
           {#if game.drawOffer === other(you)}
-            <p class="muted">Your opponent offers a draw.</p>
+            <p class="muted">{t('game.drawOffer')}</p>
           {/if}
           {#if claimIn !== null}
             <div class="left" role="status">
-              <p>Your opponent left the game.</p>
+              <p>{t('game.opponentLeft')}</p>
               {#if claimIn > 0}
-                <p class="muted">
-                  If they don't come back, you can claim the game in {Math.ceil(claimIn / 1000)}s.
-                </p>
+                <p class="muted">{t('game.claimIn', { s: Math.ceil(claimIn / 1000) })}</p>
               {:else}
                 <div class="actions">
-                  <button class="button primary" onclick={() => claim('win')}>Claim victory</button>
-                  <button class="button" onclick={() => claim('draw')}>Call it a draw</button>
+                  <button class="button primary" onclick={() => claim('win')}
+                    >{t('game.claimWin')}</button
+                  >
+                  <button class="button" onclick={() => claim('draw')}>{t('game.claimDraw')}</button
+                  >
                 </div>
               {/if}
             </div>
@@ -228,36 +238,43 @@
         {:else if !active}
           {#if you && game.tournamentId}
             {#if !stayHere}
-              <p class="offer">Back to the tournament in a few seconds…</p>
+              <p class="offer">{t('game.backSoon')}</p>
             {/if}
             <div class="actions">
               <a class="button primary" href="/tournaments/{game.tournamentId}"
-                >Back to tournament</a
+                >{t('game.backToTournament')}</a
               >
               {#if !stayHere}
-                <button class="button" onclick={() => (stayHere = true)}>Stay here</button>
+                <button class="button" onclick={() => (stayHere = true)}>{t('game.stay')}</button>
               {/if}
             </div>
           {:else if you}
             {#if rematchBy === other(you)}
-              <p class="offer">Your opponent wants a rematch.</p>
+              <p class="offer">{t('game.rematchOffer')}</p>
             {/if}
             <div class="actions">
               {#if rematchBy === other(you)}
-                <button class="button primary" onclick={() => act('rematch')}>Accept rematch</button
+                <button class="button primary" onclick={() => act('rematch')}
+                  >{t('game.acceptRematch')}</button
                 >
-                <button class="button" onclick={() => act('cancelRematch')}>Decline</button>
+                <button class="button" onclick={() => act('cancelRematch')}
+                  >{t('common.decline')}</button
+                >
               {:else if rematchBy === you}
-                <button class="button" onclick={() => act('cancelRematch')}>Cancel rematch</button>
+                <button class="button" onclick={() => act('cancelRematch')}
+                  >{t('game.cancelRematch')}</button
+                >
               {:else}
-                <button class="button primary" onclick={() => act('rematch')}>Rematch</button>
+                <button class="button primary" onclick={() => act('rematch')}
+                  >{t('game.rematch')}</button
+                >
               {/if}
               <a class="button" href={newOpponentLink ?? '/'}>
-                {newOpponentLink ? 'New opponent' : 'New game'}
+                {t(newOpponentLink ? 'game.newOpponent' : 'game.newGame')}
               </a>
             </div>
             {#if rematchBy === you}
-              <p class="muted waiting">Waiting for your opponent…</p>
+              <p class="muted waiting">{t('game.waitingOpponent')}</p>
             {/if}
           {/if}
           <div class="actions">
@@ -266,14 +283,14 @@
               class:primary={!you}
               href={analysisLink(game.moves, { review: true, game: game.id })}
             >
-              Review game
+              {t('game.review')}
             </a>
           </div>
         {/if}
       </section>
 
       <section class="card">
-        <h2>Moves</h2>
+        <h2>{t('game.moves')}</h2>
         <div class="moves">
           {#each moves as move, i (i)}
             {#if i % 2 === 0}<span class="muted">{i / 2 + 1}.</span>{/if}
@@ -289,7 +306,7 @@
     </div>
   </div>
 {:else}
-  <p class="muted">{error || 'Loading game…'}</p>
+  <p class="muted">{error || t('game.loading')}</p>
 {/if}
 
 <style>

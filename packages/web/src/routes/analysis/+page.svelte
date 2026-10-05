@@ -19,6 +19,7 @@
   import MoveTree from '#lib/MoveTree.svelte';
   import ReviewPanel from '#lib/ReviewPanel.svelte';
   import { GameReview } from '#lib/review.ts';
+  import { t } from '#lib/i18n.svelte.ts';
   import { api } from '#lib/session.svelte.ts';
   import { GameTree, type TreeNode } from '#lib/tree.svelte.ts';
   import { onDestroy } from 'svelte';
@@ -63,7 +64,7 @@
       const moves = (params.get('moves') ?? '').split(' ').filter(Boolean).map(parseMove);
       return new GameTree(start ? parsePosition(start) : initialPosition, moves);
     } catch (e) {
-      error = `Couldn't load the shared position: ${(e as Error).message}`;
+      error = t('analysis.badLink', { error: (e as Error).message });
       return new GameTree();
     }
   }
@@ -154,10 +155,13 @@
   }
 
   function status(): string {
-    if (position.outcome === 'draw') return 'Draw';
-    if (position.outcome) return `${position.outcome.toUpperCase()} wins`;
-    const where = position.forced === null ? 'any board' : `board ${position.forced + 1}`;
-    return `${position.turn.toUpperCase()} to move · ${where}`;
+    if (position.outcome === 'draw') return t('analysis.draw');
+    if (position.outcome) return t('analysis.wins', { side: position.outcome.toUpperCase() });
+    const where =
+      position.forced === null
+        ? t('analysis.anyBoard')
+        : t('analysis.board', { n: position.forced + 1 });
+    return `${t('game.toMove', { side: position.turn.toUpperCase() })} · ${where}`;
   }
 </script>
 
@@ -193,73 +197,88 @@
     {/if}
 
     <section class="card">
-      <h2>Engine</h2>
+      <h2>{t('analysis.engine')}</h2>
       <label class="toggle">
-        <input type="checkbox" bind:checked={engineOn} /> Show engine analysis
+        <input type="checkbox" bind:checked={engineOn} />
+        {t('analysis.show')}
       </label>
       <p class="status">{status()}</p>
       {#if engineOn && analysis}
         <p>
           <strong>X {Math.round(analysis.winChance * 100)}%</strong>
-          <span class="muted">· {Math.round(analysis.playouts / 1000)}k playouts</span>
+          <span class="muted"
+            >· {t('analysis.playouts', { k: Math.round(analysis.playouts / 1000) })}</span
+          >
         </p>
         <p class="pv">{analysis.pv.map(formatMove).join(' ')}</p>
       {/if}
     </section>
 
     <section class="card">
-      <h2>Moves</h2>
+      <h2>{t('game.moves')}</h2>
       <MoveTree {tree} judge={(node) => review?.of(node)?.judgement ?? null} clock={clockAfter} />
       <div class="controls">
-        <button class="button" aria-label="First move" onclick={() => tree.toStart()}>⏮</button>
-        <button class="button" aria-label="Previous move" onclick={() => tree.back()}>◀</button>
-        <button class="button" aria-label="Next move" onclick={() => tree.forward()}>▶</button>
-        <button class="button" aria-label="Last move" onclick={() => tree.toEnd()}>⏭</button>
+        <button class="button" aria-label={t('analysis.first')} onclick={() => tree.toStart()}
+          >⏮</button
+        >
+        <button class="button" aria-label={t('analysis.previous')} onclick={() => tree.back()}
+          >◀</button
+        >
+        <button class="button" aria-label={t('analysis.next')} onclick={() => tree.forward()}
+          >▶</button
+        >
+        <button class="button" aria-label={t('analysis.last')} onclick={() => tree.toEnd()}
+          >⏭</button
+        >
         <button
           class="button primary"
           disabled={tree.root.children.length === 0}
-          onclick={startReview}>{review ? 'Review again' : 'Review game'}</button
+          onclick={startReview}>{t(review ? 'analysis.reviewAgain' : 'game.review')}</button
         >
       </div>
       <div class="controls">
         <button
           class="button"
           disabled={!tree.current.parent}
-          onclick={() => tree.promote(tree.current)}>Promote</button
+          onclick={() => tree.promote(tree.current)}>{t('analysis.promote')}</button
         >
         <button
           class="button"
           disabled={!tree.current.parent}
-          onclick={() => tree.delete(tree.current)}>Delete from here</button
+          onclick={() => tree.delete(tree.current)}>{t('analysis.delete')}</button
         >
       </div>
     </section>
 
     <section class="card">
-      <h2>Share &amp; import</h2>
+      <h2>{t('analysis.share')}</h2>
       <div class="controls">
         <button class="button" onclick={() => copy('link', shareLink())}>
-          {copied === 'link' ? 'Copied!' : 'Copy link'}
+          {t(copied === 'link' ? 'common.copied' : 'analysis.copyLink')}
         </button>
         <button class="button" onclick={() => copy('game', gameRecord())}>
-          {copied === 'game' ? 'Copied!' : 'Copy game'}
+          {t(copied === 'game' ? 'common.copied' : 'analysis.copyGame')}
         </button>
         <button class="button" onclick={() => copy('position', formatPosition(position))}>
-          {copied === 'position' ? 'Copied!' : 'Copy position'}
+          {t(copied === 'position' ? 'common.copied' : 'analysis.copyPosition')}
         </button>
       </div>
       <textarea
         bind:value={importText}
         rows="3"
-        placeholder="Paste a game record or position string"
-        aria-label="Game record or position string to import"></textarea>
+        placeholder={t('analysis.paste')}
+        aria-label={t('analysis.pasteLabel')}></textarea>
       <div class="controls">
-        <button class="button primary" disabled={!importText.trim()} onclick={load}>Load</button>
-        <button class="button" onclick={() => setTree(new GameTree())}>New board</button>
+        <button class="button primary" disabled={!importText.trim()} onclick={load}
+          >{t('analysis.load')}</button
+        >
+        <button class="button" onclick={() => setTree(new GameTree())}
+          >{t('analysis.newBoard')}</button
+        >
         <a
           class="button"
           href="/editor?{new URLSearchParams({ position: formatPosition(position) })}"
-          >Board editor</a
+          >{t('analysis.editor')}</a
         >
       </div>
     </section>

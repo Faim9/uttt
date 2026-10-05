@@ -1,5 +1,12 @@
-<article class="card document">
+<script lang="ts">
+  import { i18n, t } from '#lib/i18n.svelte.ts';
+</script>
+
+<article class="card document" lang="en">
   <h1>Terms of use</h1>
+  {#if i18n.language !== 'en'}<p class="muted" lang={i18n.language}>
+      <em>{t('legal.english')}</em>
+    </p>{/if}
   <p class="muted">Last updated October 2026.</p>
 
   <p>

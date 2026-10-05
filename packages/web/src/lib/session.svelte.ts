@@ -1,11 +1,12 @@
 import type { ClientMessage, ServerMessage, User } from '@uttt/core';
+import { serverText, t } from './i18n.svelte.ts';
 
 /** A failed API call, with the server's message and response body. */
 export class ApiError extends Error {
   readonly data: Record<string, unknown>;
 
   constructor(data: Record<string, unknown>) {
-    super(typeof data.error === 'string' ? data.error : 'Something went wrong');
+    super(typeof data.error === 'string' ? serverText(data.error) : t('error.somethingWrong'));
     this.data = data;
   }
 }
@@ -61,7 +62,9 @@ class Socket {
       this.retries = 0;
     };
     ws.onmessage = (event) => {
-      const message: ServerMessage = JSON.parse(event.data);
+      const parsed: ServerMessage = JSON.parse(event.data);
+      const message =
+        parsed.type === 'error' ? { ...parsed, message: serverText(parsed.message) } : parsed;
       for (const listener of this.listeners) listener(message);
     };
     ws.onclose = () => {

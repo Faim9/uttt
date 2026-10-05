@@ -4,7 +4,6 @@
   import {
     categoryOf,
     puzzleStart,
-    resultText,
     TIME_CONTROLS,
     type GameState,
     type PoolTimeControl,
@@ -18,6 +17,8 @@
   import FollowingList from '#lib/Following.svelte';
   import FriendChallenge from '#lib/FriendChallenge.svelte';
   import GameCard from '#lib/GameCard.svelte';
+  import { resultText } from '#lib/game.ts';
+  import { around, t, tn } from '#lib/i18n.svelte.ts';
   import { learned, newcomer } from '#lib/newcomer.svelte.ts';
   import { search, startSearch, stopSearch } from '#lib/search.svelte.ts';
   import { api, session, socket } from '#lib/session.svelte.ts';
@@ -123,54 +124,57 @@
 <div class="lobby">
   <section class="intro">
     <h1>Ultimate Tic-Tac-Toe</h1>
-    <p class="muted">Nine boards, one game. Every move decides where your opponent plays next.</p>
+    <p class="muted">{t('lobby.tagline')}</p>
     <p class="activity">
       {#if activity.playing + lookingCount > 0}
         <span class="live" aria-hidden="true"></span>
-        {activity.playing} playing · {lookingCount} looking for a game
+        {t('lobby.activity', { playing: activity.playing, looking: lookingCount })}
       {:else}
-        No games right now. Start one, and the next visitor plays you.
+        {t('lobby.quiet')}
       {/if}
     </p>
   </section>
 
-  <section class="pairing" aria-label="Play">
+  <section class="pairing" aria-label={t('nav.play')}>
     {#if newcomer.show}
       <div class="welcome">
         <p>
-          <strong>New to Ultimate Tic-Tac-Toe?</strong>
-          Learn the rules by playing: six quick lessons, about two minutes.
+          <strong>{t('lobby.newHere')}</strong>
+          {t('lobby.learnPitch')}
         </p>
-        <a class="button primary" href="/learn">Learn to play</a>
-        <button class="dismiss" onclick={learned}>I know the rules</button>
+        <a class="button primary" href="/learn">{t('lobby.learnToPlay')}</a>
+        <button class="dismiss" onclick={learned}>{t('lobby.knowRules')}</button>
       </div>
     {/if}
 
     {#if tournament}
       <a class="tournament" href="/tournaments/{tournament.id}">
         <strong>{tournament.name}</strong>
-        <span>{tournament.timeControl} arena · {timing(tournament, now)}</span>
+        <span>
+          {t('lobby.arena', { timeControl: tournament.timeControl })} · {timing(tournament, now)}
+        </span>
       </a>
     {/if}
 
     <div class="mode">
-      <div class="toggle" role="group" aria-label="Game type">
+      <div class="toggle" role="group" aria-label={t('lobby.gameType')}>
         <button aria-pressed={!rated} disabled={!!search.pool} onclick={() => (rated = false)}>
-          Casual
+          {t('game.casual')}
         </button>
         <button
           aria-pressed={rated}
           disabled={!!search.pool || ratedBlocker !== null}
           onclick={() => (rated = true)}
         >
-          Rated
+          {t('game.rated')}
         </button>
       </div>
       {#if ratedBlocker === 'signin'}
-        <span class="muted"><a href="/login">Sign in</a> to play rated games</span>
+        {@const [before, after] = around('lobby.signInToRate', 'link')}
+        <span class="muted">{before}<a href="/login">{t('nav.signIn')}</a>{after}</span>
       {:else if ratedBlocker === 'verify'}
-        <span class="muted">Confirm your email to play rated (<a href="/account">settings</a>)</span
-        >
+        {@const [before, after] = around('lobby.verifyToRate', 'link')}
+        <span class="muted">{before}<a href="/account">{t('lobby.settings')}</a>{after}</span>
       {/if}
     </div>
 
@@ -179,11 +183,11 @@
       disabled={!socket.connected || search.pool !== null}
       onclick={() => startSearch(busiest, rated)}
     >
-      Play now
+      {t('lobby.playNow')}
       <span>
         {busiest} · {waiting(busiest) > 0
-          ? `${waiting(busiest)} waiting`
-          : 'the usual meeting point'}
+          ? tn('lobby.waiting', waiting(busiest))
+          : t('lobby.meetingPoint')}
       </span>
     </button>
 
@@ -198,45 +202,44 @@
         >
           <strong>{timeControl}</strong>
           {#if search.pool === timeControl}
-            <span class="status">Searching {searchedFor}s</span>
-            <span class="cancel">Click to cancel</span>
+            <span class="status">{t('lobby.searching', { s: searchedFor })}</span>
+            <span class="cancel">{t('lobby.clickToCancel')}</span>
           {:else}
-            <span class="status">{categoryOf(timeControl)}</span>
+            <span class="status">{t(`category.${categoryOf(timeControl)}`)}</span>
           {/if}
           {#if others > 0}
-            <span class="badge">{others} waiting</span>
+            <span class="badge">{tn('lobby.waiting', others)}</span>
           {/if}
         </button>
       {/each}
       <!-- The other ways to play complete the grid. -->
       <button class="pool other" onclick={() => friend?.open()}>
-        <strong>Friend</strong>
-        <span class="status">Send a link</span>
+        <strong>{t('lobby.friend')}</strong>
+        <span class="status">{t('lobby.sendLink')}</span>
       </button>
       <a class="pool other" href="/computer">
-        <strong>Computer</strong>
-        <span class="status">Six levels</span>
+        <strong>{t('nav.computer')}</strong>
+        <span class="status">{t('lobby.sixLevels')}</span>
       </a>
       <button
         class="pool other"
         aria-expanded={showCorrespondence}
         onclick={() => (showCorrespondence = !showCorrespondence)}
       >
-        <strong>Days</strong>
-        <span class="status">per move</span>
+        <strong>{t('lobby.days')}</strong>
+        <span class="status">{t('lobby.perMove')}</span>
       </button>
     </div>
 
     {#if search.error}
       <p class="error" role="alert">{search.error}</p>
     {:else if search.pool && now - search.since > ALONE_MS}
+      {@const [before, after] = around('lobby.alone', 'link', { pool: search.pool })}
       <p class="alone">
-        No one else is looking for {search.pool} right now.
-        <a href="/computer">Play the computer while you wait</a>: you'll be taken to your game as
-        soon as someone joins.
+        {before}<a href="/computer">{t('lobby.playComputerWhileWaiting')}</a>{after}
       </p>
     {:else if !socket.connected && session.ready}
-      <p class="muted">Connecting…</p>
+      <p class="muted">{t('lobby.connecting')}</p>
     {/if}
 
     <Correspondence {rated} expanded={showCorrespondence} />
@@ -248,21 +251,21 @@
       <GameCard {game} {now} receivedAt={activityAt}>
         <h2 class="preview-title">
           {#if live}
-            <span class="live" aria-hidden="true"></span> Live now
+            <span class="live" aria-hidden="true"></span> {t('lobby.liveNow')}
           {:else}
-            Last game · <span class="muted">{resultText(game)}</span>
+            {t('lobby.lastGame')} · <span class="muted">{resultText(game)}</span>
           {/if}
         </h2>
       </GameCard>
     {/if}
     {#if daily}
       <article class="card puzzle">
-        <h2 class="preview-title">Daily puzzle</h2>
+        <h2 class="preview-title">{t('lobby.dailyPuzzle')}</h2>
         <div class="preview-board">
           <Board position={daily} disabled silent />
-          <a class="cover" href="/puzzles?id=daily" aria-label="Solve the daily puzzle"></a>
+          <a class="cover" href="/puzzles?id=daily" aria-label={t('lobby.solveDaily')}></a>
         </div>
-        <p>{daily.turn.toUpperCase()} to play and win</p>
+        <p>{t('puzzle.task', { side: daily.turn.toUpperCase() })}</p>
       </article>
     {/if}
     <FollowingList />
@@ -277,17 +280,14 @@
       <DemoBoard />
     </div>
     <div class="card rules">
-      <h2>How to play</h2>
+      <h2>{t('rules.title')}</h2>
       <ol>
-        <li>Nine small tic-tac-toe boards make one big board. X moves first.</li>
-        <li>
-          <strong>Where you play decides where your opponent plays:</strong> take the top-right cell of
-          any board, and they must play in the top-right board. It's highlighted for them.
-        </li>
-        <li>If that board is already won or full, they may play anywhere.</li>
-        <li>Three in a row wins a small board. Three small boards in a row wins the game.</li>
+        <li>{t('rules.boards')}</li>
+        <li><strong>{t('rules.sendLead')}</strong> {t('rules.send')}</li>
+        <li>{t('rules.free')}</li>
+        <li>{t('rules.win')}</li>
       </ol>
-      <a class="button primary" href="/learn">Learn by playing</a>
+      <a class="button primary" href="/learn">{t('rules.learn')}</a>
     </div>
   </section>
 {/if}

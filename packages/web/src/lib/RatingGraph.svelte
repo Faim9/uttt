@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { t } from './i18n.svelte.ts';
+
   /** A player's rating over time in one category: a line, with a crosshair readout and a table view. */
   let { points }: { points: { rating: number; at: string }[] } = $props();
 
@@ -63,17 +65,17 @@
 </script>
 
 {#if points.length < 2}
-  <p class="muted">The graph appears after a couple of rated games.</p>
+  <p class="muted">{t('graph.soon')}</p>
 {:else}
   <div class="graph" bind:clientWidth={width}>
     <svg
       viewBox="0 0 {width} {HEIGHT}"
       role="slider"
-      aria-label="Rating after each rated game; use the arrow keys to move between games"
+      aria-label={t('graph.rating')}
       aria-valuemin={1}
       aria-valuemax={points.length}
       aria-valuenow={shown + 1}
-      aria-valuetext="{points[shown].rating} on {date(shown)}"
+      aria-valuetext={t('graph.point', { rating: points[shown].rating, date: date(shown) })}
       tabindex="0"
       onpointermove={track}
       onpointerleave={() => (active = null)}
@@ -121,9 +123,9 @@
     {/if}
   </div>
   <details>
-    <summary>Show as table</summary>
+    <summary>{t('graph.table')}</summary>
     <table>
-      <thead><tr><th>Date</th><th>Rating</th></tr></thead>
+      <thead><tr><th>{t('graph.date')}</th><th>{t('graph.ratingColumn')}</th></tr></thead>
       <tbody>
         {#each points as point, i (i)}
           <tr><td>{date(i)}</td><td>{point.rating}</td></tr>

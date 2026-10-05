@@ -50,6 +50,12 @@ After that, the owner sets priorities:
   restore), restore-on-first-start, Cloudflare Tunnel, rotated logs, health check; guide in docs/deploy.md.
 - **Privacy (GDPR):** privacy page, download-my-data (JSON), account deletion (games kept, anonymized).
 - **Ratings:** Glicko-2 per category (bullet / blitz / rapid), profiles, leaderboard.
+- **Translations:** English, German, Spanish, French, and Portuguese (Portugal), picked from the browser's
+  languages or in the footer. A small built-in `t()` (no library): one message file per language, checked by
+  TypeScript to be complete; plurals from the browser's own rules; only the chosen language is downloaded.
+  The server's common messages are translated too (a test checks their English matches the server's word
+  for word). Stay in English: the terms and privacy pages (a note says the English text applies), the
+  admin page, emails, and link previews.
 - **Bot API** (docs/bot-api.md): bot accounts (made from fresh accounts, for good, labelled BOT) connect
   over the site's WebSocket protocol with an API token (shown once, stored hashed, revocable). Bots seek in
   pools of their own and are rated among themselves on a separate leaderboard; people challenge them from

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { around, t } from './i18n.svelte.ts';
   import { api } from './session.svelte.ts';
 
   /**
@@ -33,9 +34,7 @@
 
   function becomeBot(event: SubmitEvent) {
     event.preventDefault();
-    const sure = confirm(
-      'Turn this account into a bot, for good? It will play only through the API, carry a BOT label, and be ranked apart from people.',
-    );
+    const sure = confirm(t('bots.confirm'));
     if (sure) run(() => api('POST', '/api/account/bot', { password }));
   }
 
@@ -52,47 +51,40 @@
 </script>
 
 <section class="card">
-  <h2>Bot account</h2>
+  <h2>{t('bots.title')}</h2>
   {#if !bot}
-    <p>
-      Wrote a program that plays? A bot account lets it play through the <a href={GUIDE}>bot API</a
-      >. Bots carry a <span class="bot-tag">BOT</span> label, play people only in casual games, and are
-      ranked among themselves.
-    </p>
-    <p class="muted">
-      Only an account that hasn't played yet can become a bot, and it can't be turned back. Create a
-      new account for your bot rather than using your own.
-    </p>
+    {@const [before, after] = around('bots.pitch', 'link')}
+    <p>{before}<a href={GUIDE}>{t('bots.api')}</a>{after}</p>
+    <p class="muted">{t('bots.fresh')}</p>
     <form onsubmit={becomeBot}>
       <label>
-        Your password
+        {t('account.yourPassword')}
         <input type="password" bind:value={password} autocomplete="current-password" required />
       </label>
-      <button class="button">Turn this account into a bot</button>
+      <button class="button">{t('bots.become')}</button>
     </form>
   {:else}
-    <p>
-      This is a bot account. Your program connects with an API token: see the <a href={GUIDE}
-        >bot API guide</a
-      >.
-    </p>
+    {@const [before, after] = around('bots.isBot', 'link')}
+    <p>{before}<a href={GUIDE}>{t('bots.guide')}</a>{after}</p>
     {#if token}
-      <p><strong>Your new token</strong>, shown only this once. Keep it secret, like a password:</p>
+      <p><strong>{t('bots.newToken')}</strong></p>
       <div class="row">
-        <input readonly value={token} aria-label="API token" />
-        <button class="button primary" onclick={copy}>{copied ? 'Copied!' : 'Copy'}</button>
+        <input readonly value={token} aria-label={t('bots.token')} />
+        <button class="button primary" onclick={copy}
+          >{t(copied ? 'common.copied' : 'common.copy')}</button
+        >
       </div>
     {/if}
     <div class="actions">
       <button class="button" onclick={newToken}>
-        {hasToken ? 'Replace the token' : 'Create a token'}
+        {t(hasToken ? 'bots.replace' : 'bots.create')}
       </button>
       {#if hasToken}
         <button
           class="button"
           onclick={() =>
             run(() => api('POST', '/api/account/token/revoke').then(() => (token = '')))}
-          >Revoke the token</button
+          >{t('bots.revoke')}</button
         >
       {/if}
     </div>

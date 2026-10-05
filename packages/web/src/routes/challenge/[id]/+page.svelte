@@ -2,6 +2,7 @@
   import { page } from '$app/state';
   import type { Player, TimeControl } from '@uttt/core';
   import { timeControlName } from '#lib/game.ts';
+  import { t } from '#lib/i18n.svelte.ts';
   import { api, socket } from '#lib/session.svelte.ts';
 
   interface Challenge {
@@ -29,31 +30,32 @@
 
   /** The challenger picked their color; the accepter gets the other one. */
   function yourColor({ color }: Challenge): string {
-    if (color === 'random') return 'a random side';
-    return color === 'x' ? 'O (second)' : 'X (first)';
+    if (color === 'random') return t('incoming.randomSide');
+    return t(color === 'x' ? 'computer.o' : 'computer.x');
   }
 </script>
 
 <section class="card">
   {#if challenge}
-    <h1>{challenge.username ?? 'An anonymous player'} challenges you</h1>
+    <h1>
+      {t('challengePage.title', { name: challenge.username ?? t('challengePage.anonymous') })}
+    </h1>
     <p>
-      <strong>{timeControlName(challenge.timeControl)}</strong> · {challenge.rated
-        ? 'Rated'
-        : 'Casual'} · you play
-      {yourColor(challenge)}
+      <strong>{timeControlName(challenge.timeControl)}</strong> · {t(
+        challenge.rated ? 'game.rated' : 'game.casual',
+      )} · {t('incoming.youPlay', { side: yourColor(challenge) })}
     </p>
     <button
       class="button primary"
       disabled={!socket.connected}
-      onclick={() => socket.send({ type: 'acceptChallenge', id })}>Accept</button
+      onclick={() => socket.send({ type: 'acceptChallenge', id })}>{t('common.accept')}</button
     >
-    <a class="button" href="/">Decline</a>
+    <a class="button" href="/">{t('common.decline')}</a>
   {/if}
   {#if error}
     <p class="error" role="alert">{error}</p>
   {:else if !challenge}
-    <p class="muted">Loading challenge…</p>
+    <p class="muted">{t('challengePage.loading')}</p>
   {/if}
 </section>
 

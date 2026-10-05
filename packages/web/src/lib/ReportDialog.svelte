@@ -1,16 +1,10 @@
 <script lang="ts">
   import { REPORT_REASONS, type ReportReason } from '@uttt/core';
+  import { t } from './i18n.svelte.ts';
   import { api } from './session.svelte.ts';
 
   /** Reports a player to the admins. */
   let { username }: { username: string } = $props();
-
-  const LABELS: Record<ReportReason, string> = {
-    cheating: 'Cheating (using an engine or help)',
-    abuse: 'Insults, harassment, or threats',
-    username: 'Offensive username',
-    other: 'Something else',
-  };
 
   let dialog: HTMLDialogElement;
   let reason = $state<ReportReason>('cheating');
@@ -38,35 +32,37 @@
 </script>
 
 <dialog bind:this={dialog} aria-labelledby="report-title">
-  <h2 id="report-title">Report {username}</h2>
+  <h2 id="report-title">{t('report.title', { name: username })}</h2>
   {#if sent}
-    <p>Thanks. An admin will look at it.</p>
+    <p>{t('report.thanks')}</p>
     <div class="actions">
-      <button class="button primary" onclick={() => dialog.close()}>Close</button>
+      <button class="button primary" onclick={() => dialog.close()}>{t('common.close')}</button>
     </div>
   {:else}
     <form onsubmit={send}>
       <label>
-        What's wrong?
+        {t('report.what')}
         <select bind:value={reason}>
           {#each REPORT_REASONS as value (value)}
-            <option {value}>{LABELS[value]}</option>
+            <option {value}>{t(`report.reason.${value}`)}</option>
           {/each}
         </select>
       </label>
       <label>
-        Details
+        {t('report.details')}
         <textarea
           bind:value={details}
           rows="4"
           maxlength="1000"
-          placeholder="Which game, what happened…"
+          placeholder={t('report.placeholder')}
           required></textarea>
       </label>
       {#if error}<p class="error" role="alert">{error}</p>{/if}
       <div class="actions">
-        <button type="button" class="button" onclick={() => dialog.close()}>Cancel</button>
-        <button class="button primary">Send report</button>
+        <button type="button" class="button" onclick={() => dialog.close()}
+          >{t('common.cancel')}</button
+        >
+        <button class="button primary">{t('report.send')}</button>
       </div>
     </form>
   {/if}

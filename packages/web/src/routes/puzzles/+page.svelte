@@ -13,6 +13,7 @@
   } from '@uttt/core';
   import Board from '#lib/Board.svelte';
   import { Engine } from '#lib/engine.ts';
+  import { around, t, tn } from '#lib/i18n.svelte.ts';
   import { api } from '#lib/session.svelte.ts';
   import { playSound } from '#lib/sound.svelte.ts';
   import { onDestroy, untrack } from 'svelte';
@@ -189,6 +190,7 @@
 </script>
 
 {#if puzzle && position}
+  {@const [before, after] = around('puzzle.task', 'side')}
   <div class="board-layout">
     <Board
       {position}
@@ -199,45 +201,49 @@
 
     <div class="panel">
       <section class="card">
-        <h2>{puzzle.daily ? 'Daily puzzle' : `Puzzle #${puzzle.id}`}</h2>
+        <h2>{puzzle.daily ? t('lobby.dailyPuzzle') : t('puzzle.number', { id: puzzle.id })}</h2>
         <p class="task">
-          <span class="side {solver}">{solver.toUpperCase()}</span> to play and win
+          {before}<span class="side {solver}">{solver.toUpperCase()}</span>{after}
         </p>
         {#if status === 'wrong'}
           <p class="wrong" role="alert">
-            That's not it!
+            {t('puzzle.wrong')}
             {#if refutation !== null}
-              {other(solver).toUpperCase()} answers {formatMove(refutation)}.
+              {t('puzzle.answers', {
+                side: other(solver).toUpperCase(),
+                move: formatMove(refutation),
+              })}
             {/if}
           </p>
         {:else if status === 'solved'}
           <p class="right" role="status">
-            Solved! {yourMoves.join(', then ')} wins.
+            {t('puzzle.solved', { moves: yourMoves.join(t('puzzle.then')) })}
             {#if !onLine}
-              That's another way to win; the puzzle's own line is
-              {line
-                .filter((m, i) => i % 2 === 0)
-                .map(formatMove)
-                .join(', then ')}.
+              {t('puzzle.another', {
+                line: line
+                  .filter((m, i) => i % 2 === 0)
+                  .map(formatMove)
+                  .join(t('puzzle.then')),
+              })}
             {/if}
           </p>
         {:else if status === 'shown'}
-          <p role="status">The solution: {puzzle.line.join(' ')}</p>
+          <p role="status">{t('puzzle.solution', { line: puzzle.line.join(' ') })}</p>
         {:else if history.length === 0}
-          <p class="muted">Your opponent will reply with their best defense.</p>
+          <p class="muted">{t('puzzle.defense')}</p>
         {:else if position.turn === solver}
-          <p class="right" role="status">Good move! Keep going.</p>
+          <p class="right" role="status">{t('puzzle.good')}</p>
         {/if}
         <div class="actions">
           {#if finished}
-            <button class="button primary" onclick={next}>Next puzzle</button>
-            <a class="button" href={analysis}>Analyze</a>
+            <button class="button primary" onclick={next}>{t('puzzle.next')}</button>
+            <a class="button" href={analysis}>{t('puzzle.analyze')}</a>
           {:else}
             {#if status === 'wrong'}
-              <button class="button primary" onclick={tryAgain}>Try again</button>
+              <button class="button primary" onclick={tryAgain}>{t('challenge.again')}</button>
             {/if}
-            <button class="button" onclick={showSolution}>Show solution</button>
-            <button class="button" onclick={next}>Skip</button>
+            <button class="button" onclick={showSolution}>{t('puzzle.show')}</button>
+            <button class="button" onclick={next}>{t('puzzle.skip')}</button>
           {/if}
         </div>
       </section>
@@ -245,7 +251,7 @@
       <section class="card rating">
         {#if puzzle.you}
           <p>
-            Your puzzle rating
+            {t('puzzle.yourRating')}
             <strong>{puzzle.you.rating}{puzzle.you.provisional ? '?' : ''}</strong>
             {#if change !== null}
               <span class={change >= 0 ? 'right' : 'wrong'}>
@@ -254,32 +260,32 @@
             {/if}
           </p>
           {#if !rated}
-            <p class="muted">You've tried this one before, so it isn't rated.</p>
+            <p class="muted">{t('puzzle.tried')}</p>
           {/if}
         {:else}
+          {@const [start, rest] = around('puzzle.signUp', 'signUp')}
+          {@const [middle, end] = rest.split('{signIn}')}
           <p>
-            <a href="/signup">Sign up</a> or <a href="/login">sign in</a> to get a puzzle rating: solve
-            puzzles to climb, and get puzzles at your level.
+            {start}<a href="/signup">{t('nav.signUp')}</a>{middle}<a href="/login"
+              >{t('nav.signIn')}</a
+            >{end}
           </p>
         {/if}
         {#if finished}
-          <p class="muted">
-            This puzzle is rated {puzzle.rating} · tried {puzzle.plays}
-            {puzzle.plays === 1 ? 'time' : 'times'}
-          </p>
+          <p class="muted">{tn('puzzle.stats', puzzle.plays, { rating: puzzle.rating })}</p>
         {/if}
       </section>
       <p class="muted">
         {#if puzzle.daily}
-          A new daily puzzle every day.
+          {t('puzzle.dailyNote')}
         {:else}
-          <a href="/puzzles?id=daily">Today's daily puzzle</a>
+          <a href="/puzzles?id=daily">{t('puzzle.today')}</a>
         {/if}
       </p>
     </div>
   </div>
 {:else}
-  <p class="muted">{error || 'Loading the puzzle…'}</p>
+  <p class="muted">{error || t('puzzle.loading')}</p>
 {/if}
 
 <style>

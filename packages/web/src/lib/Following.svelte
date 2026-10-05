@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from './i18n.svelte.ts';
   import { api, session } from './session.svelte.ts';
 
   /** The players you follow: who's online, and a link to the game they're playing. */
@@ -35,16 +36,16 @@
 
 {#if session.user && players.length > 0}
   <section class="card">
-    <h2>Following</h2>
+    <h2>{t('following.title')}</h2>
     <ul>
       {#each sorted as player (player.username)}
         <li>
           <span class="dot" class:online={player.online} aria-hidden="true"></span>
           <a href="/@{player.username}">{player.username}</a>
           {#if player.gameId}
-            <a class="watch" href="/game/{player.gameId}">Watch</a>
+            <a class="watch" href="/game/{player.gameId}">{t('nav.watch')}</a>
           {:else}
-            <span class="muted">{player.online ? 'online' : 'offline'}</span>
+            <span class="muted">{t(player.online ? 'following.online' : 'following.offline')}</span>
           {/if}
         </li>
       {/each}

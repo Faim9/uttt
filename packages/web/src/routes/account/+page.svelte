@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { around, t } from '#lib/i18n.svelte.ts';
   import { api, session } from '#lib/session.svelte.ts';
   import TwoFactorSettings from '#lib/TwoFactorSettings.svelte';
   import AccountData from '#lib/AccountData.svelte';
@@ -46,7 +47,7 @@
     event.preventDefault();
     await load(
       api<Account>('POST', '/api/account/password', passwords),
-      'Password changed. Your other devices were signed out.',
+      t('account.passwordChanged'),
     );
     if (!error) passwords = { current: '', password: '' };
   }
@@ -70,41 +71,45 @@
   function device(userAgent: string): string {
     const find = (table: [RegExp, string][]) =>
       table.find(([pattern]) => pattern.test(userAgent))?.[1];
-    return `${find(BROWSERS) ?? 'A browser'} on ${find(SYSTEMS) ?? 'an unknown system'}`;
+    return t('account.device', {
+      browser: find(BROWSERS) ?? t('account.someBrowser'),
+      system: find(SYSTEMS) ?? t('account.someSystem'),
+    });
   }
 
   const date = (iso: string) => new Date(iso).toLocaleString();
 </script>
 
-<h1>Settings</h1>
+<h1>{t('nav.settings')}</h1>
 
 {#if session.ready && !session.user}
-  <p>Please <a href="/login">sign in</a> to manage your account.</p>
+  {@const [before, after] = around('account.signIn', 'link')}
+  <p>{before}<a href="/login">{t('account.signInLink')}</a>{after}</p>
 {:else if account}
   {#if error}<p class="card message error" role="alert">{error}</p>{/if}
   {#if notice}<p class="card message" role="status">{notice}</p>{/if}
 
   {#if account.admin}
-    <p class="card"><a href="/admin">Admin tools</a>: reports, players, and the action log.</p>
+    <p class="card"><a href="/admin">Admin tools</a></p>
   {/if}
 
   <section class="card">
-    <h2>Account</h2>
+    <h2>{t('account.title')}</h2>
     <p><strong>{account.username}</strong> · {account.email}</p>
     {#if account.emailVerified}
-      <p class="muted">Email confirmed.</p>
+      <p class="muted">{t('account.confirmed')}</p>
     {:else}
       <p>
-        Confirm your email to play rated games: follow the link we sent you.
+        {t('account.confirm')}
         <button
           class="button"
           onclick={() =>
             load(
               api<Account>('POST', '/api/account/verify-email'),
-              `We sent a new link to ${account?.email}.`,
+              t('account.linkSent', { email: account?.email ?? '' }),
             )}
         >
-          Send a new link
+          {t('account.sendLink')}
         </button>
       </p>
     {/if}
@@ -117,15 +122,15 @@
             api<Account>('POST', '/api/account/turn-emails', { on: event.currentTarget.checked }),
           )}
       />
-      Email me when it's my move in a correspondence game and I'm not on the site
+      {t('account.turnEmails')}
     </label>
   </section>
 
   <section class="card">
-    <h2>Password</h2>
+    <h2>{t('auth.password')}</h2>
     <form onsubmit={changePassword}>
       <label>
-        Current password
+        {t('account.currentPassword')}
         <input
           type="password"
           bind:value={passwords.current}
@@ -134,7 +139,7 @@
         />
       </label>
       <label>
-        New password
+        {t('account.newPassword')}
         <input
           type="password"
           bind:value={passwords.password}
@@ -143,7 +148,7 @@
           required
         />
       </label>
-      <button class="button primary">Change password</button>
+      <button class="button primary">{t('account.changePassword')}</button>
     </form>
   </section>
 
@@ -153,15 +158,15 @@
   />
 
   <section class="card">
-    <h2>Signed-in devices</h2>
+    <h2>{t('account.devices')}</h2>
     <ul class="sessions">
       {#each account.sessions as s (s.id)}
         <li>
           <div>
             <strong title={s.userAgent}>{device(s.userAgent)}</strong>
-            {#if s.current}<span class="badge">This device</span>{/if}
+            {#if s.current}<span class="badge">{t('account.thisDevice')}</span>{/if}
             <div class="muted">
-              Signed in {date(s.createdAt)} · last active {date(s.lastSeenAt)}
+              {t('account.deviceDates', { since: date(s.createdAt), seen: date(s.lastSeenAt) })}
             </div>
           </div>
           {#if !s.current}
@@ -170,7 +175,7 @@
               onclick={() =>
                 load(api<Account>('POST', '/api/account/sessions/revoke', { id: s.id }))}
             >
-              Sign out
+              {t('nav.signOut')}
             </button>
           {/if}
         </li>
@@ -182,10 +187,10 @@
         onclick={() =>
           load(
             api<Account>('POST', '/api/account/sessions/revoke-others'),
-            'All other devices were signed out.',
+            t('account.othersSignedOut'),
           )}
       >
-        Sign out all other devices
+        {t('account.signOutOthers')}
       </button>
     {/if}
   </section>
@@ -198,7 +203,7 @@
 
   <AccountData twoFactor={account.twoFactor} />
 {:else}
-  <p class="muted">{error || 'Loading…'}</p>
+  <p class="muted">{error || t('common.loading')}</p>
 {/if}
 
 <style>

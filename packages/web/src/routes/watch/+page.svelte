@@ -2,6 +2,7 @@
   import type { GameState } from '@uttt/core';
   import GameCard from '#lib/GameCard.svelte';
   import { timeControlName } from '#lib/game.ts';
+  import { t, tn } from '#lib/i18n.svelte.ts';
   import { api } from '#lib/session.svelte.ts';
   import { onMount } from 'svelte';
 
@@ -29,31 +30,31 @@
   });
 </script>
 
-<h1>Live games</h1>
+<h1>{t('watch.title')}</h1>
 
 {#if error}
   <p class="error" role="alert">{error}</p>
 {/if}
 
 {#if games === null}
-  <p class="muted">Loading…</p>
+  <p class="muted">{t('common.loading')}</p>
 {:else if games.length === 0}
   <div class="card empty">
-    <p>No one is playing right now. Be the first!</p>
-    <a class="button primary" href="/">Start a game</a>
+    <p>{t('watch.none')}</p>
+    <a class="button primary" href="/">{t('watch.start')}</a>
   </div>
 {:else}
-  <p class="muted">
-    {games.length === 1 ? '1 game' : `${games.length} games`} in progress, strongest players first.
-  </p>
+  <p class="muted">{tn('watch.count', games.length)}</p>
   <div class="games">
     {#each games as game (game.id)}
       <GameCard {game} {now} {receivedAt}>
         <p class="details">
           <span class="muted"
-            >{timeControlName(game.timeControl)} · {game.rated ? 'Rated' : 'Casual'}</span
+            >{timeControlName(game.timeControl)} · {t(
+              game.rated ? 'game.rated' : 'game.casual',
+            )}</span
           >
-          <a href="/game/{game.id}">Watch</a>
+          <a href="/game/{game.id}">{t('nav.watch')}</a>
         </p>
       </GameCard>
     {/each}

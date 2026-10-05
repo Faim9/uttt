@@ -1,5 +1,6 @@
 <script lang="ts">
   import { isCorrespondence, isTimeControl, type Player } from '@uttt/core';
+  import { t } from './i18n.svelte.ts';
   import { api, socket } from './session.svelte.ts';
   import TimeControlPicker from './TimeControlPicker.svelte';
 
@@ -76,37 +77,32 @@
 </script>
 
 <dialog bind:this={dialog} onclose={closed} aria-labelledby="friend-title">
-  <h2 id="friend-title">Play a friend</h2>
+  <h2 id="friend-title">{t('friend.title')}</h2>
   {#if link}
-    {#if stored}
-      <p>
-        Send this link to your friend. They can accept it whenever they like; the game then shows up
-        on your home page, and we email you when it's your move.
-      </p>
-    {:else}
-      <p>Send this link to your friend. The game starts as soon as they open it.</p>
-    {/if}
+    <p>{t(stored ? 'friend.sendStored' : 'friend.send')}</p>
     <div class="row">
-      <input readonly value={link} aria-label="Challenge link" />
-      <button class="button primary" onclick={copy}>{copied ? 'Copied!' : 'Copy'}</button>
+      <input readonly value={link} aria-label={t('friend.link')} />
+      <button class="button primary" onclick={copy}
+        >{t(copied ? 'common.copied' : 'common.copy')}</button
+      >
     </div>
-    {#if !stored}<p class="muted waiting">Waiting for your friend…</p>{/if}
+    {#if !stored}<p class="muted waiting">{t('friend.waiting')}</p>{/if}
   {:else}
     <TimeControlPicker correspondence onchange={(value) => (timeControl = value)} />
     <label>
-      You play
+      {t('challenge.youPlay')}
       <select bind:value={color}>
-        <option value="random">Random</option>
-        <option value="x">X (moves first)</option>
+        <option value="random">{t('challenge.random')}</option>
+        <option value="x">{t('challenge.x')}</option>
         <option value="o">O</option>
       </select>
     </label>
-    <p class="muted">{rated ? 'Rated game' : 'Casual game'}: change it on the main page.</p>
+    <p class="muted">{t(rated ? 'friend.rated' : 'friend.casual')}</p>
     {#if error}<p class="error" role="alert">{error}</p>{/if}
   {/if}
   <div class="actions">
     <button class="button" onclick={() => dialog.close()}
-      >{link && !stored ? 'Cancel challenge' : 'Close'}</button
+      >{t(link && !stored ? 'challenge.cancel' : 'common.close')}</button
     >
     {#if !link}
       <button
@@ -114,7 +110,7 @@
         disabled={!socket.connected || creating || !isTimeControl(timeControl)}
         onclick={create}
       >
-        Create link
+        {t('friend.create')}
       </button>
     {/if}
   </div>

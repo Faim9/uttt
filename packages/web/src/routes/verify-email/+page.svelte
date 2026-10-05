@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { around, t } from '#lib/i18n.svelte.ts';
   import { api, session, socket } from '#lib/session.svelte.ts';
 
   let status = $state<'checking' | 'done' | 'failed'>('checking');
@@ -22,15 +23,16 @@
 
 <section class="card">
   {#if status === 'checking'}
-    <p class="muted">Confirming your email…</p>
+    <p class="muted">{t('verify.checking')}</p>
   {:else if status === 'done'}
-    <h1>Email confirmed</h1>
-    <p>You can now play rated games.</p>
-    <a class="button primary" href="/">Play</a>
+    <h1>{t('verify.done')}</h1>
+    <p>{t('verify.rated')}</p>
+    <a class="button primary" href="/">{t('nav.play')}</a>
   {:else}
-    <h1>That didn't work</h1>
+    {@const [before, after] = around('verify.again', 'link')}
+    <h1>{t('verify.failed')}</h1>
     <p role="alert">{error}</p>
-    <p class="muted">You can send a new link from your <a href="/account">settings</a>.</p>
+    <p class="muted">{before}<a href="/account">{t('lobby.settings')}</a>{after}</p>
   {/if}
 </section>
 

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { t } from './i18n.svelte.ts';
   import { search, stopSearch } from './search.svelte.ts';
   import { socket } from './session.svelte.ts';
 
@@ -35,11 +36,11 @@
 {#if search.pool && page.url.pathname !== '/'}
   <div class="bar" role="status">
     <span>
-      Looking for a {search.pool}{search.rated ? ' rated' : ''} opponent ·
+      {t(search.rated ? 'search.lookingRated' : 'search.looking', { pool: search.pool })} ·
       {Math.floor(waited / 60)}:{String(waited % 60).padStart(2, '0')}
     </span>
-    <span class="muted">You'll be taken to the game when one is found.</span>
-    <button class="button" onclick={stopSearch}>Cancel</button>
+    <span class="muted">{t('search.taken')}</span>
+    <button class="button" onclick={stopSearch}>{t('common.cancel')}</button>
   </div>
 {/if}
 

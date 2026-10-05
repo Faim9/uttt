@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { around, t } from '#lib/i18n.svelte.ts';
   import { api, session, socket } from '#lib/session.svelte.ts';
   import { phaseOf, timing, type Tournament } from '#lib/tournament.ts';
   import { onMount } from 'svelte';
@@ -63,40 +64,45 @@
     <section class="card info">
       <h1>{tournament.name}</h1>
       <p>
-        <strong>{tournament.timeControl}</strong> · {tournament.rated ? 'Rated' : 'Casual'} · Arena
+        <strong>{tournament.timeControl}</strong> · {t(
+          tournament.rated ? 'game.rated' : 'game.casual',
+        )}
+        · {t('tournament.arena')}
       </p>
       <p class="timing">{timing({ ...tournament, players: 0 }, now)}</p>
 
       {#if error}<p class="error" role="alert">{error}</p>{/if}
 
       {#if phase === 'finished'}
-        <p class="muted">This tournament is over. Congratulations to the winners!</p>
+        <p class="muted">{t('tournament.over')}</p>
       {:else if !session.user}
-        <p><a href="/login">Sign in</a> to join. Tournaments need an account for the standings.</p>
+        {@const [before, after] = around('tournament.signIn', 'link')}
+        <p>{before}<a href="/login">{t('nav.signIn')}</a>{after}</p>
       {:else if !joined || paused}
-        <button class="button primary" onclick={join}>{joined ? 'Resume' : 'Join'}</button>
+        <button class="button primary" onclick={join}
+          >{t(joined ? 'tournament.resume' : 'tournament.join')}</button
+        >
       {:else}
         <p class="waiting" role="status">
-          {phase === 'upcoming'
-            ? "You're in. Keep this page open; your first game starts when the tournament does."
-            : 'Waiting for your next opponent…'}
+          {t(phase === 'upcoming' ? 'tournament.youreIn' : 'tournament.waiting')}
         </p>
-        <button class="button" onclick={() => (paused = true)}>Pause</button>
+        <button class="button" onclick={() => (paused = true)}>{t('tournament.pause')}</button>
       {/if}
-      <p class="muted rules">
-        You're paired again as soon as your game ends. A win scores 2 points, a draw 1. Stay on this
-        page to keep playing; leave it to take a break.
-      </p>
+      <p class="muted rules">{t('tournament.rules')}</p>
     </section>
 
     <section class="card">
-      <h2>Standings</h2>
+      <h2>{t('tournament.standings')}</h2>
       {#if tournament.standings.length === 0}
-        <p class="muted">No players yet. Be the first to join!</p>
+        <p class="muted">{t('tournament.noPlayers')}</p>
       {:else}
         <table>
           <thead>
-            <tr><th>#</th><th>Player</th><th>Points</th><th>Games</th><th></th></tr>
+            <tr>
+              <th>#</th><th>{t('leaderboard.player')}</th><th>{t('tournament.points')}</th><th
+                >{t('history.title')}</th
+              ><th></th>
+            </tr>
           </thead>
           <tbody>
             {#each tournament.standings as row, i (row.username)}
@@ -106,7 +112,7 @@
                 <td><strong>{row.score}</strong></td>
                 <td>{row.games}</td>
                 <td>
-                  {#if row.playing}<a href="/game/{row.playing}">Watch</a>{/if}
+                  {#if row.playing}<a href="/game/{row.playing}">{t('nav.watch')}</a>{/if}
                 </td>
               </tr>
             {/each}
@@ -116,7 +122,7 @@
     </section>
   </div>
 {:else}
-  <p class="muted">{error || 'Loading…'}</p>
+  <p class="muted">{error || t('common.loading')}</p>
 {/if}
 
 <style>
