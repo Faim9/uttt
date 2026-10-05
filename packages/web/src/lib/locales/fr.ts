@@ -600,6 +600,7 @@ const fr: Messages = {
   'legal.english': "Cette page n'existe qu'en anglais, et c'est le texte anglais qui fait foi.",
   'history.result': 'Résultat',
   'graph.evalBar': 'Chances de victoire des X',
+  'game.backToLive': 'Revenir à la position en direct',
 };
 
 export default fr;

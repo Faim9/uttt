@@ -618,6 +618,8 @@ const en = {
   'legal.english': 'This page is only in English, and the English text is the one that applies.',
   'history.result': 'Result',
   'graph.evalBar': "X's win chance",
+  // Stepping through a game
+  'game.backToLive': 'Back to the live position',
 };
 
 export default en;

@@ -598,6 +598,7 @@ const de: Messages = {
   'legal.english': 'Diese Seite gibt es nur auf Englisch, und es gilt der englische Text.',
   'history.result': 'Ergebnis',
   'graph.evalBar': 'Gewinnchance von X',
+  'game.backToLive': 'Zurück zur Live-Stellung',
 };
 
 export default de;

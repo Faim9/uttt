@@ -598,6 +598,7 @@ const pt: Messages = {
   'legal.english': 'Esta página só existe em inglês, e é o texto em inglês que vale.',
   'history.result': 'Resultado',
   'graph.evalBar': 'Hipótese de vitória do X',
+  'game.backToLive': 'Voltar à posição ao vivo',
 };
 
 export default pt;

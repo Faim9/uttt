@@ -16,7 +16,9 @@
   import { Engine } from '#lib/engine.ts';
   import EvalBar from '#lib/EvalBar.svelte';
   import EvalGraph from '#lib/EvalGraph.svelte';
+  import { clocksAt } from '#lib/game.ts';
   import MoveTree from '#lib/MoveTree.svelte';
+  import PlayerBar from '#lib/PlayerBar.svelte';
   import ReviewPanel from '#lib/ReviewPanel.svelte';
   import { GameReview } from '#lib/review.ts';
   import { t } from '#lib/i18n.svelte.ts';
@@ -70,29 +72,32 @@
   }
 
   /**
-   * Links from online games add `game`, so the moves show each player's time left. Only the moves that
-   * still follow the game get one; explored variations don't.
+   * Links from online games add `game`, so the board keeps the players' names and their clocks, as they
+   * stood at the move shown (in a variation, where it left the game).
    */
-  let gameClocks = $state.raw<{ moves: number[]; clockHistory: number[] } | null>(null);
+  let played = $state.raw<GameState | null>(null);
   const gameId = page.url.searchParams.get('game');
   if (gameId) {
     api<GameState>('GET', `/api/games/${encodeURIComponent(gameId)}`).then(
-      (game) => (gameClocks = game),
-      () => {}, // Without the game, the review just has no clock times.
+      (game) => (played = game),
+      () => {}, // Without the game, the review just has no names or clocks.
     );
   }
-  /** The main line's moves for as long as it follows the game: these get the game's clock times. */
+  /** The main line's moves for as long as it follows the game. */
   const followed = $derived.by(() => {
-    if (!gameClocks || tree.root.position !== initialPosition) return [];
-    const { moves } = gameClocks;
+    if (!played || tree.root.position !== initialPosition) return [];
+    const { moves } = played;
     const line = tree.root.mainLine;
     const diverges = line.findIndex((node, i) => node.move !== moves[i]);
     return diverges < 0 ? line : line.slice(0, diverges);
   });
-  const clockAfter = (node: TreeNode) => {
-    const i = followed.indexOf(node);
-    return i < 0 ? null : (gameClocks?.clockHistory[i] ?? null);
-  };
+  /** The clocks at the current move, or at the last move of the game on the way to it. */
+  const clocks = $derived.by(() => {
+    if (!played) return null;
+    let node: TreeNode | null = tree.current;
+    while (node && node !== tree.root && !followed.includes(node)) node = node.parent;
+    return clocksAt(played, node && node !== tree.root ? followed.indexOf(node) + 1 : 0);
+  });
 
   function startReview(): void {
     review?.cancel();
@@ -169,6 +174,9 @@
 
 <div class="board-layout">
   <div class="board-column">
+    {#if played}
+      <PlayerBar side="o" player={played.players.o} clock={clocks?.o ?? 0} running={false} />
+    {/if}
     <div class="board-with-eval">
       <EvalBar
         winChance={position.outcome
@@ -182,6 +190,9 @@
         onmove={(move) => tree.play(move)}
       />
     </div>
+    {#if played}
+      <PlayerBar side="x" player={played.players.x} clock={clocks?.x ?? 0} running={false} />
+    {/if}
     {#if review}
       <EvalGraph {review} current={tree.current} ongoto={(node) => tree.goTo(node)} />
     {/if}
@@ -216,7 +227,7 @@
 
     <section class="card">
       <h2>{t('game.moves')}</h2>
-      <MoveTree {tree} judge={(node) => review?.of(node)?.judgement ?? null} clock={clockAfter} />
+      <MoveTree {tree} judge={(node) => review?.of(node)?.judgement ?? null} />
       <div class="controls">
         <button class="button" aria-label={t('analysis.first')} onclick={() => tree.toStart()}
           >⏮</button

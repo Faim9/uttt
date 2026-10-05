@@ -1,9 +1,11 @@
 import {
+  clockOf,
   formatMove,
   isCorrespondence,
   type GamePlayer,
   type GameState,
   type Judgement,
+  type Player,
   type TimeControl,
 } from '@uttt/core';
 import { t, tn } from './i18n.svelte.ts';
@@ -32,6 +34,21 @@ export function timeControlName(timeControl: TimeControl): string {
   return isCorrespondence(timeControl)
     ? tn('time.daysPerMove', parseInt(timeControl))
     : timeControl;
+}
+
+/**
+ * Each player's time left after the first `ply` moves of a game, from its clock history; null for games
+ * from before clocks were recorded.
+ */
+export function clocksAt(
+  { timeControl, clockHistory }: Pick<GameState, 'timeControl' | 'clockHistory'>,
+  ply: number,
+): Record<Player, number> | null {
+  if (clockHistory.length < ply) return null;
+  const start = clockOf(timeControl).initialMs;
+  const clocks = { x: start, o: start };
+  for (let i = 0; i < ply; i++) clocks[i % 2 === 0 ? 'x' : 'o'] = clockHistory[i];
+  return clocks;
 }
 
 /** m:ss, with tenths in the last 10 seconds; days and hours for correspondence clocks. */

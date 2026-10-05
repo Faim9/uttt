@@ -11,7 +11,7 @@
     type Player,
   } from '@uttt/core';
   import Board from '#lib/Board.svelte';
-  import { analysisLink, formatClock, resultText, timeControlName } from '#lib/game.ts';
+  import { analysisLink, clocksAt, resultText, timeControlName } from '#lib/game.ts';
   import { t } from '#lib/i18n.svelte.ts';
   import PlayerBar from '#lib/PlayerBar.svelte';
   import { socket } from '#lib/session.svelte.ts';
@@ -42,6 +42,14 @@
     game ? (unconfirmed ? [...game.moves, unconfirmed.move] : game.moves) : [],
   );
   const position = $derived(game ? replay(moves) : null);
+  /** The move the board shows, counted from 1, when looking back; null follows the game. */
+  let viewing = $state<number | null>(null);
+  const ply = $derived(viewing ?? moves.length);
+  const shown = $derived(moves.slice(0, ply));
+  $effect(() => {
+    void gameId;
+    viewing = null;
+  });
   /** How long your opponent had been gone when the last update came; null while they're here. */
   const opponentAbsence = $derived(
     game && you && game.termination === null ? game.absence[other(you)] : null,
@@ -108,6 +116,30 @@
     }
   });
 
+  /** Steps through the game; reaching the last move follows the game again. */
+  function view(target: number) {
+    viewing = target >= moves.length ? null : Math.max(0, target);
+  }
+
+  function onkeydown(event: KeyboardEvent) {
+    if (event.target instanceof HTMLInputElement) return;
+    const steps: Record<string, number> = {
+      ArrowLeft: ply - 1,
+      ArrowRight: ply + 1,
+      Home: 0,
+      End: moves.length,
+    };
+    if (!(event.key in steps)) return;
+    event.preventDefault();
+    view(steps[event.key]);
+  }
+
+  /** The clock beside a player: live while following the game, else as it stood at the move shown. */
+  function barClock(side: Player): number {
+    const then = viewing === null || !game ? null : clocksAt(game, ply);
+    return then ? then[side] : clock(side);
+  }
+
   /** Your clock stops when you move, not when the server's confirmation arrives. */
   function clock(side: Player): number {
     if (!game) return 0;
@@ -148,27 +180,29 @@
   }
 </script>
 
+<svelte:window {onkeydown} />
+
 {#if game && position}
   <div class="board-layout">
     <div class="play">
       <PlayerBar
         side={other(bottom)}
         player={game.players[other(bottom)]}
-        clock={clock(other(bottom))}
-        running={!unconfirmed && game.running === other(bottom)}
+        clock={barClock(other(bottom))}
+        running={viewing === null && !unconfirmed && game.running === other(bottom)}
       />
       <Board
-        {position}
-        lastMove={moves.at(-1) ?? null}
-        disabled={!active || position.turn !== you}
+        position={viewing === null ? position : replay(shown)}
+        lastMove={shown.at(-1) ?? null}
+        disabled={!active || position.turn !== you || viewing !== null}
         over={!active}
         onmove={play}
       />
       <PlayerBar
         side={bottom}
         player={game.players[bottom]}
-        clock={clock(bottom)}
-        running={!unconfirmed && game.running === bottom}
+        clock={barClock(bottom)}
+        running={viewing === null && !unconfirmed && game.running === bottom}
       />
     </div>
 
@@ -294,14 +328,28 @@
         <div class="moves">
           {#each moves as move, i (i)}
             {#if i % 2 === 0}<span class="muted">{i / 2 + 1}.</span>{/if}
-            <span>
-              {formatMove(move)}
-              {#if game.clockHistory[i] !== undefined}
-                <span class="clock-left">{formatClock(game.clockHistory[i])}</span>
-              {/if}
-            </span>
+            <button class="move" class:current={i + 1 === ply} onclick={() => view(i + 1)}
+              >{formatMove(move)}</button
+            >
           {/each}
         </div>
+        <div class="steps">
+          <button class="button" aria-label={t('analysis.first')} onclick={() => view(0)}>⏮</button>
+          <button class="button" aria-label={t('analysis.previous')} onclick={() => view(ply - 1)}
+            >◀</button
+          >
+          <button class="button" aria-label={t('analysis.next')} onclick={() => view(ply + 1)}
+            >▶</button
+          >
+          <button class="button" aria-label={t('analysis.last')} onclick={() => view(moves.length)}
+            >⏭</button
+          >
+        </div>
+        {#if viewing !== null && active}
+          <p class="muted">
+            <button class="link" onclick={() => (viewing = null)}>{t('game.backToLive')}</button>
+          </p>
+        {/if}
       </section>
     </div>
   </div>
@@ -369,9 +417,37 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .clock-left {
-    margin-left: 0.3rem;
-    color: var(--muted);
-    font-size: 0.8rem;
+  .move {
+    justify-self: start;
+    padding: 0.05rem 0.3rem;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+  }
+
+  .move:hover {
+    background: var(--border);
+  }
+
+  .move.current {
+    background: var(--accent);
+    color: white;
+  }
+
+  .steps {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+  }
+
+  .link {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
   }
 </style>

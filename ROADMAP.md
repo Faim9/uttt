@@ -33,8 +33,10 @@ After that, the owner sets priorities:
 - **Post-game review:** "Review game" after every game (online and vs. computer) and on the analysis board.
   Evaluates each position at 40k playouts across parallel workers (~2–3 s per game), classifies every move
   (best / good / inaccuracy / mistake / blunder by win-chance lost: 10 / 20 / 30%), per-player accuracy,
-  eval graph, jump to each player's next mistake, and "show best move". The moves show each player's time
-  left (recorded for every move of every online game since October 2026).
+  eval graph, jump to each player's next mistake, and "show best move". Reviews of online games keep the
+  players' names and show both clocks as they stood at the move shown (recorded for every move of every
+  online game since October 2026). The game page steps through moves any time (click a move, the arrows,
+  Home/End), during the game too, with the clocks of the move shown.
 - **Rating-based matchmaking** (after lichess's pool): pairs by rating gap minus a wait bonus that grows every
   2 s wave, so the accepted gap starts at ~100 points and widens while waiting; provisional players pair together.
 - **Account security:** settings page with signed-in devices (sign out one or all, which also drops their live
