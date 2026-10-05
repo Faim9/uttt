@@ -1,0 +1,1 @@
+ALTER TABLE `games` ADD `clock_history` text;

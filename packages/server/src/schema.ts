@@ -98,6 +98,8 @@ export const games = sqliteTable(
     oRatingDiff: integer(),
     /** UTN moves separated by spaces, e.g. `5-5 5-1 1-9`. */
     moves: text().notNull(),
+    /** The mover's time left after each move, in ms, separated by spaces; null for older games. */
+    clockHistory: text(),
     xClock: integer().notNull(),
     oClock: integer().notNull(),
     termination: text({ enum: ['line', 'resign', 'timeout', 'agreement', 'abort', 'disconnect'] }),

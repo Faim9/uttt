@@ -43,8 +43,13 @@ export const JUDGEMENTS: Record<Judgement, { label: string; plural: string; symb
 };
 
 /** Opens the moves on the analysis board; with `review`, the engine review starts right away. */
-export function analysisLink(moves: number[], { review = false } = {}): string {
+/** Opens moves in the analysis board; `game` (an online game's id) also shows its clock times. */
+export function analysisLink(
+  moves: number[],
+  { review = false, game }: { review?: boolean; game?: string } = {},
+): string {
   const params = new URLSearchParams({ moves: moves.map(formatMove).join(' ') });
+  if (game) params.set('game', game);
   return `/analysis?${params}${review ? '&review' : ''}`;
 }
 

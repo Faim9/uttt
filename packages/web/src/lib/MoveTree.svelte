@@ -1,15 +1,17 @@
 <script lang="ts">
   import { formatMove, type Judgement } from '@uttt/core';
-  import { JUDGEMENTS } from './game.ts';
+  import { formatClock, JUDGEMENTS } from './game.ts';
   import type { GameTree, TreeNode } from './tree.svelte.ts';
 
   interface Props {
     tree: GameTree;
     /** The review's verdict on the move leading to a node, if any. */
     judge?: (node: TreeNode) => Judgement | null;
+    /** The mover's time left after the move leading to a node, when it's from a played game. */
+    clock?: (node: TreeNode) => number | null;
   }
 
-  let { tree, judge = () => null }: Props = $props();
+  let { tree, judge = () => null, clock = () => null }: Props = $props();
 
   /** Move numbers count X+O pairs; an O move only gets one ("3…") where the line is interrupted. */
   function moveNumber(node: TreeNode, interrupted: boolean): string {
@@ -25,6 +27,7 @@
 
 {#snippet move(node: TreeNode, interrupted: boolean)}
   {@const judgement = judge(node)}
+  {@const left = clock(node)}
   <button
     class="move {judgement ?? ''}"
     class:current={node === tree.current}
@@ -32,7 +35,8 @@
   >
     <span class="number">{moveNumber(node, interrupted)}</span>{node.move === null
       ? ''
-      : formatMove(node.move)}{judgement ? JUDGEMENTS[judgement].symbol : ''}
+      : formatMove(node.move)}{judgement ? JUDGEMENTS[judgement].symbol : ''}{#if left !== null}
+      <span class="clock">{formatClock(left)}</span>{/if}
   </button>
 {/snippet}
 
@@ -85,8 +89,16 @@
     color: var(--muted);
   }
 
-  .current .number {
+  .current .number,
+  .current .clock {
     color: inherit;
+  }
+
+  .clock {
+    margin-left: 0.2rem;
+    color: var(--muted);
+    font-size: 0.8em;
+    font-weight: 400;
   }
 
   .variation {

@@ -39,7 +39,7 @@
 
   /** The running tournament, or the next one within a week, to feature in the lobby. */
   let tournament = $state<Tournament | null>(null);
-  let daily = $state<{ position: Position; winIn: number } | null>(null);
+  let daily = $state<Position | null>(null);
   let showCorrespondence = $state(false);
 
   const ALONE_MS = 20_000;
@@ -80,7 +80,7 @@
       () => {},
     );
     api<Puzzle>('GET', '/api/puzzles/daily').then(
-      (puzzle) => (daily = { position: puzzleStart(puzzle).position, winIn: puzzle.winIn }),
+      (puzzle) => (daily = puzzleStart(puzzle).position),
       () => {},
     );
 
@@ -208,16 +208,23 @@
           {/if}
         </button>
       {/each}
-    </div>
-
-    <div class="more" role="group" aria-label="Other ways to play">
-      <button class="button" onclick={() => friend?.open()}>Play a friend</button>
-      <a class="button" href="/computer">Play the computer</a>
+      <!-- The other ways to play complete the grid. -->
+      <button class="pool other" onclick={() => friend?.open()}>
+        <strong>Friend</strong>
+        <span class="status">Send a link</span>
+      </button>
+      <a class="pool other" href="/computer">
+        <strong>Computer</strong>
+        <span class="status">Six levels</span>
+      </a>
       <button
-        class="button"
+        class="pool other"
         aria-expanded={showCorrespondence}
-        onclick={() => (showCorrespondence = !showCorrespondence)}>Days per move</button
+        onclick={() => (showCorrespondence = !showCorrespondence)}
       >
+        <strong>Days</strong>
+        <span class="status">per move</span>
+      </button>
     </div>
 
     {#if search.error}
@@ -252,13 +259,10 @@
       <article class="card puzzle">
         <h2 class="preview-title">Daily puzzle</h2>
         <div class="preview-board">
-          <Board position={daily.position} disabled silent />
+          <Board position={daily} disabled silent />
           <a class="cover" href="/puzzles?id=daily" aria-label="Solve the daily puzzle"></a>
         </div>
-        <p>
-          {daily.position.turn.toUpperCase()} to play and win in
-          {['', 'one move', 'two moves', 'three moves', 'four moves'][daily.winIn]}
-        </p>
+        <p>{daily.turn.toUpperCase()} to play and win</p>
       </article>
     {/if}
     <FollowingList />
@@ -291,7 +295,7 @@
 <style>
   .lobby {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 18rem;
+    grid-template-columns: minmax(0, 1fr) 19rem;
     grid-template-areas:
       'intro previews'
       'pairing previews';
@@ -411,7 +415,7 @@
 
   .pools {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.75rem;
   }
 
@@ -420,7 +424,7 @@
     gap: 0.15rem;
     justify-items: center;
     align-content: center;
-    min-height: 7.5rem;
+    aspect-ratio: 5 / 4;
     padding: 1rem 0.5rem;
     border: var(--border-width) solid var(--border);
     border-radius: var(--radius);
@@ -435,7 +439,7 @@
 
   .pool strong {
     font-family: var(--font-display);
-    font-size: 2rem;
+    font-size: clamp(1.6rem, 4vw, 2.5rem);
     font-weight: var(--display-weight);
     line-height: 1.1;
   }
@@ -445,7 +449,8 @@
     text-transform: capitalize;
   }
 
-  .pool:hover:enabled {
+  .pool:hover:enabled,
+  a.pool:hover {
     border-color: var(--accent);
     transform: translateY(-2px);
   }
@@ -528,13 +533,21 @@
     color: var(--muted);
   }
 
-  .more {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+  .pool.other {
+    background: var(--raised);
+    color: inherit;
+    text-decoration: none;
   }
 
-  .more .button[aria-expanded='true'] {
+  .pool.other strong {
+    font-size: clamp(1rem, 3vw, 1.8rem);
+  }
+
+  .pool.other .status {
+    text-transform: none;
+  }
+
+  .pool[aria-expanded='true'] {
     border-color: var(--accent);
   }
 

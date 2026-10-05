@@ -884,6 +884,7 @@ export class Store {
     const { seats } = game;
     const values = {
       moves: game.moves.map(formatMove).join(' '),
+      clockHistory: game.clockHistory.join(' '),
       xClock: game.clocks.x,
       oClock: game.clocks.o,
       xRatingDiff: seats.x.ratingDiff,
@@ -985,6 +986,7 @@ export class Store {
 }
 
 const parseMoves = (moves: string) => (moves ? moves.split(' ').map(parseMove) : []);
+const parseClocks = (clocks: string | null) => (clocks ? clocks.split(' ').map(Number) : []);
 
 function toInit(row: GameRow): GameInit {
   const seat = (side: Player) => ({
@@ -999,6 +1001,7 @@ function toInit(row: GameRow): GameInit {
     seats: { x: seat('x'), o: seat('o') },
     moves: parseMoves(row.moves),
     clocks: { x: row.xClock, o: row.oClock },
+    clockHistory: parseClocks(row.clockHistory),
     tournamentId: row.tournamentId,
     // A correspondence deadline keeps counting while the server is down; live games get the time back.
     turnStartedAt:
@@ -1022,6 +1025,7 @@ export function toState(row: GameRow): GameState {
     rated: row.rated,
     players: { x: player('x'), o: player('o') },
     moves: parseMoves(row.moves),
+    clockHistory: parseClocks(row.clockHistory),
     clocks: { x: row.xClock, o: row.oClock },
     running: null,
     drawOffer: null,

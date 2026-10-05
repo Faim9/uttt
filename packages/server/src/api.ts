@@ -3,7 +3,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { signedIn } from './auth.ts';
 import type { Hub } from './hub.ts';
-import type { Store } from './store.ts';
+import { toState, type Store } from './store.ts';
 
 const Params = z.object({ name: z.string().max(20) });
 
@@ -47,6 +47,13 @@ export const apiRoutes =
     });
 
     app.get('/api/games/live', async () => hub.liveGames());
+
+    /** A game by id, live or finished, e.g. for reviewing it with its clock times. */
+    app.get('/api/games/:id', async (request, reply) => {
+      const { id } = z.object({ id: z.string().regex(/^[A-Za-z0-9]{8}$/) }).parse(request.params);
+      const row = store.game(id);
+      return row ? toState(row) : reply.code(404).send({ error: 'Game not found' });
+    });
 
     /**
      * For the lobby: how many are playing, how many wait in each pool (`3+2`, `3+2 rated`), and a game to

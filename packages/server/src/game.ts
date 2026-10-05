@@ -31,6 +31,7 @@ export interface GameInit {
   seats: Record<Player, Seat>;
   moves?: number[];
   clocks?: Record<Player, number>;
+  clockHistory?: number[];
   tournamentId?: string | null;
   /** When the player to move got the turn; defaults to now (a restored live game gets its time back). */
   turnStartedAt?: number;
@@ -63,6 +64,8 @@ export class LiveGame {
   readonly tournamentId: string | null;
   readonly moves: number[];
   readonly clocks: Record<Player, number>;
+  /** The mover's time left after each move, for reviewing the game later. */
+  readonly clockHistory: number[];
   position: Position;
   drawOffer: Player | null = null;
   termination: Termination | null = null;
@@ -86,6 +89,7 @@ export class LiveGame {
     this.tournamentId = init.tournamentId ?? null;
     this.moves = init.moves ?? [];
     this.clocks = init.clocks ?? { x: initialMs, o: initialMs };
+    this.clockHistory = init.clockHistory ?? [];
     this.position = replay(this.moves);
     this.turnStartedAt = init.turnStartedAt ?? Date.now();
     this.correspondence = isCorrespondence(init.timeControl);
@@ -119,6 +123,7 @@ export class LiveGame {
       this.clocks[side] += clockOf(this.timeControl).incrementMs;
     }
     this.moves.push(move);
+    this.clockHistory.push(this.clocks[side]);
     this.position = play(this.position, move);
     this.turnStartedAt = Date.now();
     this.drawOffer = null;
@@ -177,6 +182,7 @@ export class LiveGame {
       rated: this.rated,
       players: { x: publicSeat(this.seats.x), o: publicSeat(this.seats.o) },
       moves: [...this.moves],
+      clockHistory: [...this.clockHistory],
       clocks,
       running,
       drawOffer: this.drawOffer,

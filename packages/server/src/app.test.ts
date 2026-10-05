@@ -340,9 +340,16 @@ test('the lobby counts players in games and waiting in each pool, and features a
     featured: { live: true, game: { id: gameId } },
   });
 
-  // Once it's over, the last game played stands in.
+  // Games can be fetched by id, with each move's time left.
   x.send({ type: 'move', gameId, move: parseMove('5-5') });
   await x.next('game');
+  expect((await spectator.request('GET', `/api/games/${gameId}`)).json()).toMatchObject({
+    moves: [parseMove('5-5')],
+    clockHistory: [180_000],
+  });
+  expect((await spectator.request('GET', '/api/games/nonexist')).statusCode).toBe(404);
+
+  // Once it's over, the last game played stands in.
   x.send({ type: 'resign', gameId });
   await x.next('game');
   expect((await lobby()).featured).toMatchObject({
@@ -733,8 +740,8 @@ test('puzzles are rated on the first try, judged by the moves played', async () 
   const first = (await alice.request('GET', '/api/puzzles/next')).json();
   expect(first.you).toEqual({ rating: 1500, provisional: true, rated: true });
   expect(Math.abs(first.rating - 1500)).toBeLessThan(100);
-  const solution = first.line.filter((move: string, i: number) => i % 2 === 0);
-
+  // A try sends every move played, both sides.
+  const solution = first.line;
   const solved = (await solve(alice, first, solution)).json();
   expect(solved).toMatchObject({ solved: true, puzzle: { plays: 1, you: { rated: false } } });
   expect(solved.change).toBeGreaterThan(0);
@@ -744,6 +751,8 @@ test('puzzles are rated on the first try, judged by the moves played', async () 
     solved: true,
     change: null,
   });
+  // Stopping short of the win doesn't solve it.
+  expect((await solve(alice, first, solution.slice(0, -1))).json().solved).toBe(false);
 
   const second = (await alice.request('GET', '/api/puzzles/next')).json();
   expect(second.id).not.toBe(first.id);
@@ -773,7 +782,7 @@ test('shared links get previews: a title, a description and a board image', asyn
 
   const puzzle = await page('/puzzles?id=1');
   expect(puzzle).toContain('<title>Puzzle #1 · UTTT</title>');
-  expect(puzzle).toMatch(/to play and win in \w+ moves?\. Can you find it\?/);
+  expect(puzzle).toMatch(/to play and win\. Can you find it\?/);
   const image = puzzle.match(/property="og:image" content="([^"]+)"/)?.[1] ?? '';
   expect(image).toMatch(/^https:\/\/uttt\.test\/api\/preview\.png\?position=/);
 

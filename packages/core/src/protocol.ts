@@ -140,9 +140,12 @@ export const CorrespondenceBody = z.object({
 export const CloseAccountBody = z.object({ reason: z.string().trim().min(1).max(500) });
 export const RenameBody = z.object({ username: Username });
 
-/** The moves a player made on a puzzle, in UTN (their own moves, not the replies), for the server to judge. */
+/**
+ * Every move of a try at a puzzle, both sides, in UTN, for the server to judge: the solver's own moves must
+ * each keep a forced win. At most the longest line, 4 moves, plus the slack of 2, each with its reply.
+ */
 export const PuzzleAttemptBody = z.object({
-  moves: z.array(z.string().regex(/^[1-9]-[1-9]$/)).max(4),
+  moves: z.array(z.string().regex(/^[1-9]-[1-9]$/)).max(12),
 });
 
 /** How long a player must be gone from a running game before the opponent may claim it. */
@@ -203,6 +206,8 @@ export interface GameState {
   rated: boolean;
   players: Record<Player, GamePlayer>;
   moves: number[];
+  /** The mover's time left after each move, in ms; empty for games from before it was recorded. */
+  clockHistory: number[];
   /** Milliseconds left for each player when the message was sent. */
   clocks: Record<Player, number>;
   /** Whose clock is running, if any. */

@@ -42,7 +42,6 @@ const SITE = {
   ),
   lastMove: parseMove('3-7'),
 };
-const IN = ['', 'one move', 'two moves', 'three moves', 'four moves'];
 /** Rendered images, kept while they're likely to be fetched again (crawlers often come in groups). */
 const CACHED_IMAGES = 100;
 
@@ -92,7 +91,7 @@ function describe(url: URL, store: Store, hub: Hub): Preview {
     const daily = puzzle.id === store.dailyPuzzle()?.id;
     return {
       title: daily ? 'Daily puzzle · UTTT' : `Puzzle #${puzzle.id} · UTTT`,
-      description: `${position.turn.toUpperCase()} to play and win in ${IN[puzzle.winIn]}. Can you find it?`,
+      description: `${position.turn.toUpperCase()} to play and win. Can you find it?`,
       position,
       lastMove: null,
     };

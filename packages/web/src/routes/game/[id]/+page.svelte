@@ -12,7 +12,7 @@
     type Player,
   } from '@uttt/core';
   import Board from '#lib/Board.svelte';
-  import { analysisLink, timeControlName } from '#lib/game.ts';
+  import { analysisLink, formatClock, timeControlName } from '#lib/game.ts';
   import PlayerBar from '#lib/PlayerBar.svelte';
   import { socket } from '#lib/session.svelte.ts';
   import { playSound } from '#lib/sound.svelte.ts';
@@ -264,7 +264,7 @@
             <a
               class="button"
               class:primary={!you}
-              href={analysisLink(game.moves, { review: true })}
+              href={analysisLink(game.moves, { review: true, game: game.id })}
             >
               Review game
             </a>
@@ -277,7 +277,12 @@
         <div class="moves">
           {#each moves as move, i (i)}
             {#if i % 2 === 0}<span class="muted">{i / 2 + 1}.</span>{/if}
-            <span>{formatMove(move)}</span>
+            <span>
+              {formatMove(move)}
+              {#if game.clockHistory[i] !== undefined}
+                <span class="clock-left">{formatClock(game.clockHistory[i])}</span>
+              {/if}
+            </span>
           {/each}
         </div>
       </section>
@@ -345,5 +350,11 @@
     max-height: 14rem;
     overflow-y: auto;
     font-variant-numeric: tabular-nums;
+  }
+
+  .clock-left {
+    margin-left: 0.3rem;
+    color: var(--muted);
+    font-size: 0.8rem;
   }
 </style>

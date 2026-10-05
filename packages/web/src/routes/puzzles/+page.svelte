@@ -1,7 +1,16 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { formatMove, other, play, puzzleStart, type Position, type Puzzle } from '@uttt/core';
+  import {
+    bestDefense,
+    formatMove,
+    other,
+    play,
+    PUZZLE_SLACK,
+    puzzleStart,
+    stillWins,
+    type Puzzle,
+  } from '@uttt/core';
   import Board from '#lib/Board.svelte';
   import { Engine } from '#lib/engine.ts';
   import { api } from '#lib/session.svelte.ts';
@@ -19,7 +28,6 @@
 
   /** The opponent's reply waits this long, so you see your move land first. */
   const REPLY_MS = 450;
-  const MOVES = ['', 'in one move', 'in two moves', 'in three moves', 'in four moves'];
   /** Enough for the engine to find the reply that punishes a wrong move in these endgames. */
   const REFUTATION_PLAYOUTS = 30_000;
 
@@ -29,27 +37,30 @@
 
   let puzzle = $state.raw<Shown | null>(null);
   let error = $state('');
-  let position = $state.raw<Position | null>(null);
-  let step = $state(0);
-  let lastMove = $state<number | null>(null);
+  /** The moves on the board since the puzzle's start, both sides; the server judges these. */
+  let history = $state.raw<number[]>([]);
   let status = $state<'solving' | 'wrong' | 'solved' | 'shown'>('solving');
   /** Whether this try moves your rating: only your first try at a puzzle does. */
   let rated = $state(false);
   /** Your rating change once the try is judged. */
   let change = $state<number | null>(null);
-  /** Your moves so far, which the server judges. */
-  let played: string[] = [];
   let reported = false;
-  /** After a wrong move: where "Try again" goes back to, and the opponent's answer once it's played. */
-  let retry: { position: Position; lastMove: number | null } | null = null;
-  let refutation = $state<number | null>(null);
+  /** After a wrong move, its place in `history`: "Try again" goes back to just before it. */
+  let mistake = $state<number | null>(null);
 
-  const line = $derived(puzzle ? puzzleStart(puzzle).line : []);
-  const solver = $derived(puzzle ? puzzleStart(puzzle).position.turn : 'x');
+  const begin = $derived(puzzle ? puzzleStart(puzzle) : null);
+  const line = $derived(begin?.line ?? []);
+  const solver = $derived(begin?.position.turn ?? 'x');
+  const position = $derived(begin ? history.reduce(play, begin.position) : null);
+  /** Whether the moves so far are the puzzle's own line, whose replies are then used. */
+  const onLine = $derived(history.every((move, i) => move === line[i]));
+  /** The opponent's answer to a wrong move, once it's played. */
+  const refutation = $derived(mistake === null ? null : (history[mistake + 1] ?? null));
   const finished = $derived(status === 'solved' || status === 'shown');
+  const yourMoves = $derived(history.filter((move, i) => i % 2 === 0).map(formatMove));
   const analysis = $derived(
     puzzle
-      ? `/analysis?${new URLSearchParams({ position: puzzle.position, moves: puzzle.line.join(' ') })}`
+      ? `/analysis?${new URLSearchParams({ position: puzzle.position, moves: history.map(formatMove).join(' ') })}`
       : '/analysis',
   );
 
@@ -71,18 +82,12 @@
 
   function start(shown: Shown) {
     puzzle = shown;
-    resetBoard(shown);
+    history = [];
+    mistake = null;
     status = 'solving';
     rated = shown.you?.rated ?? false;
     change = null;
-    played = [];
     reported = false;
-  }
-
-  function resetBoard(from: Puzzle) {
-    position = puzzleStart(from).position;
-    step = 0;
-    lastMove = null;
   }
 
   /** Sends your first try to be judged: on your first mistake, on solving, or on giving up. */
@@ -92,7 +97,7 @@
     const result = await api<{ change: number | null; puzzle: Shown }>(
       'POST',
       `/api/puzzles/${puzzle.id}/attempt`,
-      { moves: played },
+      { moves: history.map(formatMove) },
     );
     // You may have moved on to another puzzle meanwhile.
     if (puzzle?.id !== result.puzzle.id) return;
@@ -100,69 +105,79 @@
     change = result.change;
   }
 
-  function advance(move: number) {
-    if (!position) return;
-    position = play(position, move);
-    lastMove = move;
-    step++;
-  }
-
+  /**
+   * Any move that still forces a win counts, not only the puzzle's own line (up to a little slower):
+   * it's checked exhaustively, like the puzzle itself. Then the opponent defends as long as possible.
+   */
   function onmove(move: number) {
-    played.push(formatMove(move));
-    if (move !== line[step]) {
-      punish(move);
-      return;
-    }
-    advance(move);
+    if (!puzzle || !position) return;
+    const before = position;
+    const allowed = puzzle.winIn + PUZZLE_SLACK - Math.ceil(history.length / 2);
+    const followsLine = onLine && move === line[history.length];
+    history = [...history, move];
+    const played = history;
     status = 'solving';
-    if (step < line.length) {
-      setTimeout(() => advance(line[step]), REPLY_MS);
-    } else {
-      status = 'solved';
-      playSound('solved');
-      report();
-    }
+    // Checking another move can take a moment, so the move shows first.
+    setTimeout(() => {
+      if (history !== played) return; // you've moved on
+      if (!followsLine && stillWins(before, move, allowed) !== true) return punish();
+      if (position?.outcome === solver) {
+        status = 'solved';
+        playSound('solved');
+        report();
+        return;
+      }
+      setTimeout(() => {
+        if (history !== played || !position) return;
+        const reply = onLine ? line[history.length] : bestDefense(position, allowed - 1);
+        history = [...history, reply];
+      }, REPLY_MS);
+    });
   }
 
-  /** Plays your wrong move and the opponent's best answer to it, so you see why it fails. */
-  async function punish(move: number) {
-    if (!position) return;
+  /** Leaves your wrong move on the board and plays the opponent's best answer, so you see why it fails. */
+  async function punish() {
     status = 'wrong';
     playSound('wrong');
     report();
-    retry = { position, lastMove };
-    refutation = null;
-    const after = play(position, move);
-    position = after;
-    lastMove = move;
-    if (after.outcome !== null) return;
-    const [analysis] = await Promise.all([
-      engine.analyze(after, REFUTATION_PLAYOUTS),
+    mistake = history.length - 1;
+    const played = history;
+    if (!position || position.outcome !== null) return;
+    const [found] = await Promise.all([
+      engine.analyze(position, REFUTATION_PLAYOUTS),
       wait(REPLY_MS),
     ]);
-    // You may have tried again or moved on meanwhile.
-    if (position !== after || analysis?.bestMove == null) return;
-    position = play(after, analysis.bestMove);
-    lastMove = refutation = analysis.bestMove;
+    if (history !== played || found?.bestMove == null) return;
+    history = [...history, found.bestMove];
   }
 
   function tryAgain() {
-    if (!retry) return;
-    ({ position, lastMove } = retry);
+    if (mistake === null) return;
+    history = history.slice(0, mistake);
+    mistake = null;
     status = 'solving';
   }
 
   function showSolution() {
     if (!puzzle) return;
     report();
-    resetBoard(puzzle);
+    const shown = puzzle;
+    history = [];
+    mistake = null;
     status = 'shown';
-    line.forEach((move, i) => setTimeout(() => advance(move), (i + 1) * REPLY_MS));
+    line.forEach((move, i) =>
+      setTimeout(
+        () => {
+          if (puzzle === shown && status === 'shown') history = [...history, move];
+        },
+        (i + 1) * REPLY_MS,
+      ),
+    );
   }
 
   /** The next puzzle at your level. Skipping one you've started counts as giving up. */
   async function next() {
-    if (played.length > 0) report();
+    if (history.length > 0) report();
     try {
       const shown = await api<Shown>('GET', '/api/puzzles/next');
       start(shown);
@@ -177,7 +192,7 @@
   <div class="board-layout">
     <Board
       {position}
-      {lastMove}
+      lastMove={history.at(-1) ?? null}
       disabled={position.turn !== solver || finished || status === 'wrong'}
       {onmove}
     />
@@ -187,7 +202,6 @@
         <h2>{puzzle.daily ? 'Daily puzzle' : `Puzzle #${puzzle.id}`}</h2>
         <p class="task">
           <span class="side {solver}">{solver.toUpperCase()}</span> to play and win
-          {MOVES[puzzle.winIn]}
         </p>
         {#if status === 'wrong'}
           <p class="wrong" role="alert">
@@ -198,14 +212,21 @@
           </p>
         {:else if status === 'solved'}
           <p class="right" role="status">
-            Solved! {puzzle.line.filter((m, i) => i % 2 === 0).join(', then ')} wins.
+            Solved! {yourMoves.join(', then ')} wins.
+            {#if !onLine}
+              That's another way to win; the puzzle's own line is
+              {line
+                .filter((m, i) => i % 2 === 0)
+                .map(formatMove)
+                .join(', then ')}.
+            {/if}
           </p>
         {:else if status === 'shown'}
           <p role="status">The solution: {puzzle.line.join(' ')}</p>
-        {:else if step > 0}
-          <p class="right" role="status">Good move! Keep going.</p>
-        {:else if puzzle.winIn > 1}
+        {:else if history.length === 0}
           <p class="muted">Your opponent will reply with their best defense.</p>
+        {:else if position.turn === solver}
+          <p class="right" role="status">Good move! Keep going.</p>
         {/if}
         <div class="actions">
           {#if finished}

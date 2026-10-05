@@ -1,4 +1,13 @@
-import { PuzzleAttemptBody } from '@uttt/core';
+import {
+  isLegal,
+  parseMove,
+  play,
+  PUZZLE_SLACK,
+  PuzzleAttemptBody,
+  puzzleStart,
+  stillWins,
+  type Puzzle,
+} from '@uttt/core';
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { signedIn, type Services } from './auth.ts';
@@ -17,6 +26,22 @@ const Params = z.object({ id: z.coerce.number().int().positive() });
 const Which = z.object({ which: z.enum(['daily', 'next']).or(z.coerce.number().int().positive()) });
 
 type PuzzleRow = NonNullable<ReturnType<Store['puzzle']>>;
+
+/** Whether a try's moves (both sides) solve the puzzle; see the attempt route. */
+function judge(puzzle: Puzzle, moves: number[]): boolean {
+  let { position } = puzzleStart(puzzle);
+  const solver = position.turn;
+  let solverMoves = 0;
+  for (const move of moves) {
+    if (position.outcome !== null || !isLegal(position, move)) return false;
+    if (position.turn === solver) {
+      const allowed = puzzle.winIn + PUZZLE_SLACK - solverMoves++;
+      if (stillWins(position, move, allowed) !== true) return false;
+    }
+    position = play(position, move);
+  }
+  return position.outcome === solver;
+}
 
 /**
  * Puzzles and puzzle ratings. The browser gets the solution so moves answer instantly, but the server
@@ -78,16 +103,18 @@ export const puzzleRoutes =
       return view(puzzle, userId);
     });
 
-    /** Judges a try: solved only if the moves are exactly the solution's. */
+    /**
+     * Judges a try: solved if the solver won, and each of their moves kept a forced win (any win counts,
+     * not only the puzzle's own line, up to a little slower). The replies needn't be the best defense:
+     * the solver's moves win against every reply.
+     */
     app.post('/api/puzzles/:id/attempt', async (request, reply) => {
       const userId = signedIn(store, request)?.user.id;
       if (userId === undefined) return reply.code(401).send({ error: 'Sign in to rate puzzles' });
       const puzzle = store.puzzle(Params.parse(request.params).id);
       if (!puzzle) return reply.code(404).send({ error: 'No such puzzle' });
       const { moves } = PuzzleAttemptBody.parse(request.body);
-      const solution = puzzle.line.filter((move, i) => i % 2 === 0);
-      const solved =
-        moves.length === solution.length && moves.every((move, i) => move === solution[i]);
+      const solved = judge(puzzle, moves.map(parseMove));
       const change = store.ratePuzzle(userId, puzzle.id, solved);
       return { solved, change, puzzle: view(store.puzzle(puzzle.id) ?? puzzle, userId) };
     });

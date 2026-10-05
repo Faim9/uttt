@@ -1,7 +1,7 @@
 /**
  * Puzzles: positions where the side to move can force a game win in a few of their moves, and exactly one
- * move does it at every step against the best defense. Wins are checked exhaustively, never estimated, so a
- * puzzle never rejects a move that wins as fast.
+ * move does it fastest at every step against the best defense. Wins are checked exhaustively, never
+ * estimated. Solving accepts slower wins too (see `stillWins`): players aren't told how many moves it takes.
  */
 
 import { formatMove, formatPosition, parseMove, parsePosition } from './notation.ts';
@@ -17,6 +17,8 @@ export interface Puzzle {
 }
 
 const MAX_WIN_IN = 4;
+/** How many moves slower than a puzzle's own line a win may be and still solve it. */
+export const PUZZLE_SLACK = 2;
 /**
  * The exhaustive check grows exponentially with depth and with open positions. Past this many positions, a
  * candidate is skipped: puzzles are only ever accepted after a complete check.
@@ -101,4 +103,38 @@ export function puzzleAt(position: Position, nodes = NODE_BUDGET): Puzzle | null
 /** Plays a puzzle's line from its start, for checking and for showing it. */
 export function puzzleStart(puzzle: Puzzle): { position: Position; line: number[] } {
   return { position: parsePosition(puzzle.position), line: puzzle.line.map(parseMove) };
+}
+
+/**
+ * Whether `move` keeps a forced win for the side to move within `n` of their own moves: true or false, or
+ * null when the search is too big to tell (rare in puzzles; it counts as not solving).
+ */
+export function stillWins(position: Position, move: number, n: number): boolean | null {
+  try {
+    return forcesWin(position, move, n, new Budget(NODE_BUDGET));
+  } catch (error) {
+    if (error instanceof TooDeep) return null;
+    throw error;
+  }
+}
+
+/**
+ * The defense that holds out longest against a forced win within `n` moves: the reply after which the
+ * win takes the most moves. Used once a solver leaves the puzzle's own line by another winning move.
+ */
+export function bestDefense(position: Position, n: number): number {
+  const budget = new Budget(NODE_BUDGET);
+  const replies = legalMoves(position);
+  let best = { reply: replies[0], winIn: 0 };
+  try {
+    for (const reply of replies) {
+      const next = play(position, reply);
+      if (next.outcome !== null) continue;
+      const winIn = fastestWins(next, n, budget)?.winIn ?? Infinity;
+      if (winIn > best.winIn) best = { reply, winIn };
+    }
+  } catch (error) {
+    if (!(error instanceof TooDeep)) throw error;
+  }
+  return best.reply;
 }

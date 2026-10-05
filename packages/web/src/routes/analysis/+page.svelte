@@ -10,6 +10,7 @@
     parsePosition,
     startOf,
     type Analysis,
+    type GameState,
   } from '@uttt/core';
   import Board from '#lib/Board.svelte';
   import { Engine } from '#lib/engine.ts';
@@ -18,7 +19,8 @@
   import MoveTree from '#lib/MoveTree.svelte';
   import ReviewPanel from '#lib/ReviewPanel.svelte';
   import { GameReview } from '#lib/review.ts';
-  import { GameTree } from '#lib/tree.svelte.ts';
+  import { api } from '#lib/session.svelte.ts';
+  import { GameTree, type TreeNode } from '#lib/tree.svelte.ts';
   import { onDestroy } from 'svelte';
 
   /** Caps memory use: the search tree grows by one node per playout. */
@@ -65,6 +67,31 @@
       return new GameTree();
     }
   }
+
+  /**
+   * Links from online games add `game`, so the moves show each player's time left. Only the moves that
+   * still follow the game get one; explored variations don't.
+   */
+  let gameClocks = $state.raw<{ moves: number[]; clockHistory: number[] } | null>(null);
+  const gameId = page.url.searchParams.get('game');
+  if (gameId) {
+    api<GameState>('GET', `/api/games/${encodeURIComponent(gameId)}`).then(
+      (game) => (gameClocks = game),
+      () => {}, // Without the game, the review just has no clock times.
+    );
+  }
+  /** The main line's moves for as long as it follows the game: these get the game's clock times. */
+  const followed = $derived.by(() => {
+    if (!gameClocks || tree.root.position !== initialPosition) return [];
+    const { moves } = gameClocks;
+    const line = tree.root.mainLine;
+    const diverges = line.findIndex((node, i) => node.move !== moves[i]);
+    return diverges < 0 ? line : line.slice(0, diverges);
+  });
+  const clockAfter = (node: TreeNode) => {
+    const i = followed.indexOf(node);
+    return i < 0 ? null : (gameClocks?.clockHistory[i] ?? null);
+  };
 
   function startReview(): void {
     review?.cancel();
@@ -182,7 +209,7 @@
 
     <section class="card">
       <h2>Moves</h2>
-      <MoveTree {tree} judge={(node) => review?.of(node)?.judgement ?? null} />
+      <MoveTree {tree} judge={(node) => review?.of(node)?.judgement ?? null} clock={clockAfter} />
       <div class="controls">
         <button class="button" aria-label="First move" onclick={() => tree.toStart()}>⏮</button>
         <button class="button" aria-label="Previous move" onclick={() => tree.back()}>◀</button>

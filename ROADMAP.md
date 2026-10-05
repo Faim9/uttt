@@ -34,7 +34,8 @@ After that, the owner sets priorities:
 - **Post-game review:** "Review game" after every game (online and vs. computer) and on the analysis board.
   Evaluates each position at 40k playouts across parallel workers (~2–3 s per game), classifies every move
   (best / good / inaccuracy / mistake / blunder by win-chance lost: 10 / 20 / 30%), per-player accuracy,
-  eval graph, jump to each player's next mistake, and "show best move".
+  eval graph, jump to each player's next mistake, and "show best move". The moves show each player's time
+  left (recorded for every move of every online game since October 2026).
 - **Rating-based matchmaking** (after lichess's pool): pairs by rating gap minus a wait bonus that grows every
   2 s wave, so the accepted gap starts at ~100 points and widens while waiting; provisional players pair together.
 - **Account security:** settings page with signed-in devices (sign out one or all, which also drops their live
@@ -70,7 +71,10 @@ After that, the owner sets priorities:
 - **Puzzles:** 470 positions where one move forces a game win in one to four moves (60 / 220 / 150 / 40),
   unique at every step against the best defense, checked exhaustively; generated from engine self-play with
   `pnpm puzzles` (new ones join the database when the server starts). A daily puzzle of two moves or more
-  (the same for everyone), links to analyze.
+  (the same for everyone), links to analyze. The task doesn't say how many moves the win takes (that
+  gives too much away), so any move that still forces a win counts, up to two moves slower than the
+  puzzle's own line (44% of puzzles have such a slower win), checked exhaustively in the browser and again
+  by the server; the opponent then defends as long as possible.
 - **Puzzle ratings** (like lichess's): every player and every puzzle has a Glicko-2 rating; solving counts
   as a win against the puzzle, a wrong move or giving up as a loss. Only the first try at a puzzle is rated,
   and the server judges the moves played. "Next puzzle" picks an untried one near your rating (guests get
@@ -108,7 +112,7 @@ After that, the owner sets priorities:
   the board: games (players, result), puzzles, profiles (ratings), tournaments, challenges, and analysis
   positions. The server fills in the Open Graph tags and draws the board as a PNG itself (no image library).
 - **Look and feel:** the home page is the lobby (one click on a time control starts pairing, like lichess),
-  with small buttons for a friend, the computer, and correspondence; beside it, the strongest live game
+  in a 3×3 grid of tiles (six time controls, then a friend, the computer, and days per move); beside it, the strongest live game
   (or the last one played) and the daily puzzle as boards you click to watch or solve. Newcomers get a
   "Learn to play" invitation and the rules with a self-playing demo board, until they finish the lessons
   or say they know the rules. Only the API is rate limited; the site's hashed files are cached for a year. Logo, self-hosted Outfit font,

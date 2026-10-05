@@ -54,6 +54,8 @@ test('clocks start after both first moves, count down, and add the increment', (
   expect(game.state().clocks.x).toBe(175_000);
   game.move('alice', parseMove('1-9'));
   expect(game.state().clocks).toEqual({ x: 177_000, o: 180_000 });
+  // Each move's time left is kept for reviewing the game.
+  expect(game.state().clockHistory).toEqual([180_000, 180_000, 177_000]);
 });
 
 test('running out of time loses', () => {
