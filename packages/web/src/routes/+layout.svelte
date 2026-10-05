@@ -12,11 +12,8 @@
 
   let { children } = $props();
 
-  /**
-   * The public repository. The AGPL requires offering the source to everyone who uses the site, so set this
-   * before deploying; the footer links to it once set.
-   */
-  const SOURCE_URL = '';
+  /** The public repository: the AGPL requires offering the source to everyone who uses the site. */
+  const SOURCE_URL = 'https://github.com/Faim9/uttt';
 
   const links = [
     { href: '/', label: 'Play' },
@@ -126,9 +123,8 @@
   </p>
   <p>
     Free software under the
-    <a href="https://www.gnu.org/licenses/agpl-3.0.html" rel="license">GNU AGPL v3</a
-    >{#if SOURCE_URL}
-      · <a href={SOURCE_URL}>Source code</a>{/if}.
+    <a href="https://www.gnu.org/licenses/agpl-3.0.html" rel="license">GNU AGPL v3</a> ·
+    <a href={SOURCE_URL}>Source code</a>.
   </p>
 {/snippet}
 

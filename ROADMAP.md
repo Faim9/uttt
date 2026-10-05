@@ -6,7 +6,8 @@ work is finished or priorities change. The target product is described in PILLAR
 ## Next, in priority order
 
 1. **Public launch** (the owner skipped a soft launch): the site runs on its own server with an uptime
-   alert; left: make the repository public (set `SOURCE_URL`), and launch.
+   alert, and the repository is public (github.com/Faim9/uttt, linked in the footer as the AGPL requires).
+   Left: the announcement.
 2. **Bring in players:** plan the launch so new visitors find opponents (owner and Claude to discuss).
 
 After that, the owner sets priorities:
@@ -135,8 +136,6 @@ After that, the owner sets priorities:
   through `SMTP_URL` and `MAIL_FROM`.
 - **Site name and domain:** decided: **UTTT**, at `uttt.org` (registered at Cloudflare, 2026-10). `u3t.org` as a
   redirect is a maybe, if the site takes off.
-- **Publish the repository** and set `SOURCE_URL` in `packages/web/src/routes/+layout.svelte` before deploying:
-  the AGPL requires offering the source to the site's users.
 - **Impressum** (German law: name and a reachable postal address): postponed by the owner until donations or
   a wider launch; options are a current home address or a paid address service.
 - **Logo:** a first one exists (grid with X and O, `packages/web/src/lib/Logo.svelte`, favicon); replace it if

@@ -1,7 +1,8 @@
 # UTTT — a free, open platform for Ultimate Tic-Tac-Toe
 
-Play Ultimate Tic-Tac-Toe online against real people, climb a fair rating ladder, and review your games with an
-engine. Built in the spirit of [lichess.org](https://lichess.org): free, no ads, open source.
+**Play at [uttt.org](https://uttt.org).** Play Ultimate Tic-Tac-Toe online against real people, climb a fair
+rating ladder, and review your games with an engine. Built in the spirit of [lichess.org](https://lichess.org):
+free, no ads, open source.
 
 > **Built with AI assistance.** This project is developed by Faim9 together with Claude (Anthropic's AI
 > model), which writes most of the code under Faim9's direction. Commits made this way carry a
@@ -10,17 +11,24 @@ engine. Built in the spirit of [lichess.org](https://lichess.org): free, no ads,
 
 ## Features
 
-- **Play online:** quick pairing in five time controls (1+0 to 10+5) or a challenge link for a friend. Guests
-  can play casual games; accounts play rated games.
-- **Fair ratings:** Glicko-2, separately for bullet, blitz, and rapid, with profiles and a leaderboard.
-- **Server-authoritative games:** the server validates every move and runs the clocks; games survive a
-  server restart.
-- **Play the computer** at six strength levels.
-- **Analysis board:** variations, live engine evaluation and best line, import/export, shareable links.
-- **Post-game review:** every move judged (best / good / inaccuracy / mistake / blunder), accuracy per player,
-  an evaluation graph, and the best move wherever you went wrong.
+- **Play online:** one-click pairing in six time controls (1+0 to 10+5), any time control up to 60+30 by
+  challenge link, and correspondence games of 1 to 14 days per move. Guests play casual games; accounts
+  play rated games.
+- **Fair ratings:** Glicko-2 for bullet, blitz, rapid, correspondence, and puzzles, with rating graphs,
+  profiles, and a leaderboard. Rating-based matchmaking with lag-compensated clocks.
+- **Learn and train:** interactive lessons on the rules, 470 puzzles (each checked exhaustively) with a
+  daily puzzle, and a computer opponent at six levels.
+- **Analysis:** an analysis board with variations, live engine evaluation and best line, a board editor,
+  import/export and shareable links; one-click post-game review that judges every move, with accuracy, an
+  evaluation graph, and clock times.
+- **Community:** watch live games, arena tournaments, follow and block players, rematches, reports and
+  moderation tools.
+- **Everywhere:** installable as an app on phones and desktops, link previews when shared, light and dark
+  themes, sounds.
 
-The engine (Monte Carlo Tree Search) runs in your browser, so analysis costs the server nothing.
+The engine (Monte Carlo Tree Search with a solver) runs in your browser, so analysis costs the server
+nothing. The server is authoritative: it validates every move and runs the clocks, and games survive a
+restart.
 
 ## How to play
 
