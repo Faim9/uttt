@@ -75,8 +75,8 @@ importers:
         specifier: ^5.12.5
         version: 5.12.5
       nodemailer:
-        specifier: ^10.0.13
-        version: 10.0.13
+        specifier: ^10.1.4
+        version: 10.1.4
       zod:
         specifier: ^4.6.5
         version: 4.6.5
@@ -1686,8 +1686,8 @@ packages:
     resolution: {integrity: sha512-VijLXbi3UACN69I0JVXJsX4tjACjNoQDgv2gTF6sx2wWEi8tkSg2eX8p5gSIFi8z2+DL3oHmY6OyKce38SDolg==}
     engines: {node: ^18 || ^20 || >= 21}
 
-  nodemailer@10.0.13:
-    resolution: {integrity: sha512-SzG86OlvcW/NNhUFC6uROMwRTL4n7MswfQqC/T8mhkmnY1YVa23zUEMYi4ijSeXSl9GLz9ZeTJDUatEDuY5FeQ==}
+  nodemailer@10.1.4:
+    resolution: {integrity: sha512-EsMnOR2oRv4LGnWvHgcVYkkQ4O2j8KO4WTw6l+PHR4sOXo8SAgIraxtEnGDmotjbhv0hDsu3IuDIFZm8iXwO4A==}
     engines: {node: '>=20.0.0'}
 
   obug@2.2.1:
@@ -3388,7 +3388,7 @@ snapshots:
 
   node-addon-api@8.9.2: {}
 
-  nodemailer@10.0.13: {}
+  nodemailer@10.1.4: {}
 
   obug@2.2.1: {}
 
