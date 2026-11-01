@@ -68,7 +68,7 @@ services:
       - app
 
   tunnel:
-    image: docker.io/cloudflare/cloudflared:2026.9.3
+    image: docker.io/cloudflare/cloudflared:2026.10.5
     command: tunnel --no-autoupdate run
     restart: unless-stopped
     logging: *logging
